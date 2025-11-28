@@ -1,26 +1,206 @@
+@import 'react-phone-input-2/lib/style.css';
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* In v4, we use @plugin to load external plugins. 
+  Make sure 'tailwindcss-animate' is installed.
+*/
+@plugin "tailwindcss-animate";
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* Define your custom theme values here. 
+  This replaces the 'extend' object from tailwind.config.ts 
+*/
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ADD THIS LINE to enable class-based dark mode in v4 */
+@variant dark (&:where(.dark, .dark *));
+
+/* ... your existing :root and .dark variables ... */
+@theme {
+  /* Colors mapping to CSS variables */
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  /* Custom Journey Colors */
+  --color-journey-start: hsl(var(--journey-start));
+  --color-journey-active: hsl(var(--journey-active));
+  --color-journey-complete: hsl(var(--journey-complete));
+  --color-journey-path: hsl(var(--journey-path));
+
+  /* Sidebar Colors */
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  /* Border Radius */
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  /* Animations */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-glow: glow 2s ease-in-out infinite;
+  --animate-slide-in: slide-in 0.5s ease-out;
+
+  /* Keyframes must be referenced here to be used in --animate-* */
+  @keyframes accordion-down {
+    from { height: 0; }
+    to { height: var(--radix-accordion-content-height); }
+  }
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); }
+    to { height: 0; }
+  }
+  @keyframes glow {
+    0%, 100% { box-shadow: 0 0 20px hsl(var(--journey-active) / 0.4); }
+    50% { box-shadow: 0 0 40px hsl(var(--journey-active) / 0.8); }
+  }
+  @keyframes slide-in {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* -----------------------------------------------------------------------
+  CSS VARIABLES DEFINITION
+  This is where the actual color values live (The "Beautiful" Palette).
+  -----------------------------------------------------------------------
+*/
+:root {
+  /* Romantic Wedding Palette - Adjusted for High Visibility */
+  --background: 35 30% 99%;    /* Warm cream white */
+  --foreground: 340 20% 20%;   /* Dark Charcoal with red undertone */
+
+  --card: 0 0% 100%;
+  --card-foreground: 340 20% 20%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 340 20% 20%;
+
+  /* Blush Rose Primary */
+  --primary: 345 60% 65%;      /* Deep Rose */
+  --primary-foreground: 35 30% 98%;
+
+  /* Sage Green Secondary */
+  --secondary: 140 30% 55%;    /* Rich Sage */
+  --secondary-foreground: 35 30% 98%;
+
+  /* Warm Gold Accent */
+  --accent: 42 70% 60%;        /* Deep Gold */
+  --accent-foreground: 340 20% 20%;
+
+  /* Soft Cream Muted */
+  --muted: 40 30% 96%;
+  --muted-foreground: 340 10% 45%;
+
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 340 15% 85%;
+  --input: 340 15% 90%;
+  --ring: 345 60% 65%;
+
+  --radius: 1rem;
+
+  /* Custom Journey Colors */
+  --journey-start: 345 60% 75%;
+  --journey-active: 42 70% 60%;
+  --journey-complete: 140 30% 55%;
+  --journey-path: 340 10% 85%;
+
+  /* Sidebar */
+  --sidebar-background: 35 30% 99%;
+  --sidebar-foreground: 340 20% 20%;
+  --sidebar-primary: 345 60% 65%;
+  --sidebar-primary-foreground: 35 30% 98%;
+  --sidebar-accent: 40 30% 96%;
+  --sidebar-accent-foreground: 340 20% 20%;
+  --sidebar-border: 340 15% 85%;
+  --sidebar-ring: 345 60% 65%;
+}
+
+.dark {
+  --background: 340 25% 12%;
+  --foreground: 35 30% 95%;
+
+  --card: 340 25% 15%;
+  --card-foreground: 35 30% 95%;
+
+  --popover: 340 25% 15%;
+  --popover-foreground: 35 30% 95%;
+
+  --primary: 345 60% 75%;
+  --primary-foreground: 340 30% 15%;
+
+  --secondary: 140 25% 65%;
+  --secondary-foreground: 140 30% 15%;
+
+  --muted: 340 20% 25%;
+  --muted-foreground: 340 15% 70%;
+
+  --accent: 42 70% 65%;
+  --accent-foreground: 42 30% 15%;
+
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 340 20% 25%;
+  --input: 340 20% 25%;
+  --ring: 345 60% 75%;
+  
+  --journey-start: 345 60% 70%;
+  --journey-active: 42 70% 65%;
+  --journey-complete: 140 30% 60%;
+  --journey-path: 340 15% 30%;
+  
+  --sidebar-background: 340 25% 12%;
+  --sidebar-foreground: 35 30% 95%;
+  --sidebar-primary: 345 60% 75%;
+  --sidebar-primary-foreground: 340 30% 15%;
+  --sidebar-accent: 340 20% 25%;
+  --sidebar-accent-foreground: 35 30% 95%;
+  --sidebar-border: 340 20% 25%;
+  --sidebar-ring: 345 60% 75%;
+}
+
+/* Utility to apply base styles. 
+  In v4, we don't need @layer base for standard border/bg 
+  if we just want them globally. 
+*/
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
 }
