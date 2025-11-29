@@ -38,33 +38,3 @@ export enum FormFieldType {
   ]
 
 
-interface NavItem {
-  name: string;
-  href: string;
-  icon: React.ReactNode;
-}
-
-  
-export const NavbarType = (isIntercesseur?: boolean, isManager?: boolean): NavItem[] => {
-  const userNav: NavItem[] = [
-    { name: 'Prière', href: '/dashboard/user/prayer', icon: <Church  /> },
-    { name: 'Profile', href: '/dashboard/user/profile', icon: <CircleUserRound /> },
-  ];
-
-  const intercesseurNav: NavItem[] = [
-    { name: 'Disponibilité', href: '/dashboard/user/intercessor/availability', icon: <Calendar1 /> },
-    { name: 'Planing', href: '/dashboard/user/intercessor/planing', icon: <NotebookPen /> },
-    // { name: 'Rendez-vous', href: '/dashboard/member/rdv', icon: <CalendarClock color="gray" /> },
-  ];
-
-  const managerNav: NavItem[] = [
-    { name: 'Toutes les prières', href: '/dashboard/user/manager/prayer', icon: <Church  /> },
-    { name: 'Gestion membres', href: '/dashboard/user/manager/member', icon: <Settings/> },
-  ];
-
-  return [
-    ...userNav,
-    ...(isIntercesseur ? intercesseurNav : []),
-    ...(isManager ? [...intercesseurNav, ...managerNav, ] : []),
-  ];
-};

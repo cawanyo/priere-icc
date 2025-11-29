@@ -5,52 +5,85 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+
 import { Heart, Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+
+import { formSchema, SignupFormValues } from "@/lib/validations/auth";
+import { SignupFormInner } from "./SignUpForm";
+import ImageLeft from "./ImageLeft";
+
+
 export default function SignupPage() {
+
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
 
+  const form = useForm<SignupFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "", 
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+
+  const handleSignup = async (values: SignupFormValues) => {
+    setIsLoading(true);
     try {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({
+          name: values.name,
+          email: values.email || undefined, 
+          phone: values.phone || undefined, 
+          password: values.password,
+          confirmPassword: values.confirmPassword
+        }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || "Something went wrong");
+        if (data.message.includes("User exists")) {
+             form.setError("email", { 
+                type: "manual", 
+                message: "Un compte avec cet email ou ce numéro de téléphone existe déjà." 
+             });
+        }
+        throw new Error(data.message || "Erreur lors de la création du compte.");
       }
 
-      toast.success("Account created! Logging you in...");
+      toast.success("Compte créé ! Connexion en cours...");
 
-      // Auto-login
+      // Auto-login: utilise l'email ou le téléphone comme identifiant
+      const identifier = values.email || values.phone; 
+      
       const loginResult = await signIn("credentials", {
-        email,
-        password,
+        identifier: identifier, 
+        password: values.password,
         redirect: false,
       });
 
       if (loginResult?.ok) {
-        router.push("/roadmap");
+        router.push("/dashboard");
       } else {
         router.push("/login");
       }
     } catch (error: any) {
-      toast.error(error.message);
+      if (error.message && !error.message.includes("User exists")) {
+        toast.error(error.message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -59,27 +92,10 @@ export default function SignupPage() {
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
       
-      {/* --- RIGHT SIDE: FORM (Order 1 on mobile, Order 2 on Desktop usually, but let's keep Left Image / Right Form standard) --- */}
+     
       
       {/* --- LEFT SIDE: IMAGE --- */}
-      <div className="hidden bg-muted lg:block relative h-full overflow-hidden">
-        <img
-          src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=2070&auto=format&fit=crop"
-          alt="Celebration"
-          className="h-full w-full object-cover transition-transform duration-[20s] hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-12 text-white">
-          <div className="flex items-center gap-2 mb-4">
-            <Heart className="w-6 h-6 text-primary fill-primary" />
-            <span className="text-lg font-serif font-bold">Aisle Roadmap</span>
-          </div>
-          <blockquote className="space-y-2">
-            <p className="text-lg font-medium leading-relaxed">
-              &ldquo;Begin your forever with confidence. Every great story starts with a single step.&rdquo;
-            </p>
-          </blockquote>
-        </div>
-      </div>
+      <ImageLeft />
 
       {/* --- RIGHT SIDE: FORM --- */}
       <div className="flex items-center justify-center py-12 px-8 bg-background">
@@ -91,54 +107,15 @@ export default function SignupPage() {
         >
           <div className="grid gap-2 text-center">
             <h1 className="text-3xl font-serif font-bold">Create an Account</h1>
-            <p className="text-balance text-muted-foreground">
-              Enter your details below to start your planning journey
-            </p>
           </div>
 
           <div className="grid gap-4">
             {/* Form */}
-            <form onSubmit={handleSignup} className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  placeholder="Jane Doe"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="h-11"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="h-11"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Create a password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-11"
-                />
-              </div>
-              <Button type="submit" className="w-full h-11" disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create Account
-              </Button>
-            </form>
+             <SignupFormInner
+                    form={form} 
+                    onHandleSubmit={handleSignup} 
+                    isLoading={isLoading} 
+              />
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">

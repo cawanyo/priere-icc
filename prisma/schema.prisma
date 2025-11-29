@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"  // <--- Must start with "file:" for SQLite
+  provider = "postgresql"
+  url      = env("DATABASE_URL")  
 }
 
 
@@ -31,7 +31,11 @@ model User {
 
   accounts      Account[]
   sessions      Session[]
-  
+  prayers       Prayer[]
+  roleRequest RoleRequest?
+  plannings     Planning[]
+  unavailabilities Unavailability[]
+  testimonies Testimony[]
  
 }
 
@@ -61,4 +65,159 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+
+model Prayer {
+  id          String   @id @default(cuid())
+  
+  subjectType String   // Type du sujet (ex: Maladie, Famille...)
+  content     String   // Contenu de la prière
+  
+  // Informations du demandeur (capturées à l'instant T)
+  name        String?
+  email       String?
+  phone       String?
+  
+  // Relation optionnelle si l'utilisateur est connecté
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+
+  // Statut de la prière
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED, ANSWERED
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+model RoleRequest {
+  id        String   @id @default(cuid())
+  userId    String   @unique // Une seule demande active par utilisateur
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // États possibles : PENDING (En attente), LEADER_APPROVED (Validé par leader), REJECTED (Refusé)
+  // L'état final "Intercesseur" correspond au changement de rôle du User
+  status    String   @default("PENDING") 
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+model Unavailability {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  startDate DateTime
+  endDate   DateTime // Si c'est un jour unique, endDate = startDate (ou fin de journée)
+  reason    String?  // Optionnel : "Vacances", "Travail", etc.
+
+  createdAt DateTime @default(now())
+}
+
+
+
+model Planning {
+  id            String   @id @default(cuid())
+  
+  // Date et Heure précises de l'événement réel
+  startTime     DateTime
+  endTime       DateTime
+  
+  title         String   
+  description   String?
+
+  // Lien optionnel vers la définition récurrente (pour savoir si cet événement remplace une occurrence)
+  recurringId   String?  
+
+  specialEventId String?
+  specialEvent   SpecialEvent? @relation(fields: [specialEventId], references: [id])
+
+  intercessors  User[]   
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model RecurringSchedule {
+  id          String   @id @default(cuid())
+  
+  title       String
+  description String?
+  
+  dayOfWeek   Int      // 0 = Dimanche, 1 = Lundi, ..., 6 = Samedi
+  
+  // Pour stocker l'heure, on utilise DateTime (on ignorera la date) ou String "HH:mm"
+  // DateTime est plus simple pour les comparaisons Prisma, on utilisera une date fixe (ex: 1970-01-01)
+  startTime   DateTime 
+  endTime     DateTime 
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+// prisma/schema.prisma
+
+// ... (Autres modèles inchangés)
+
+model SpecialEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  
+  startDate   DateTime
+  endDate     DateTime
+
+  // Les modèles de créneaux pour cet événement (ex: Matin, Soir)
+  templates   EventTemplate[]
+  
+  // Les assignations réelles liées
+  plannings   Planning[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model EventTemplate {
+  id             String       @id @default(cuid())
+  title          String       // Ex: "Session du Soir"
+  
+  // On stocke l'heure sur une date fictive (ex: 1970-01-01)
+  startTime      DateTime 
+  endTime        DateTime 
+
+  specialEventId String
+  specialEvent   SpecialEvent @relation(fields: [specialEventId], references: [id], onDelete: Cascade)
+}
+
+
+model Testimony {
+  id        String   @id @default(cuid())
+  
+  // Identité
+  name      String   // Requis (Nom du compte ou Nom saisi par l'invité)
+  userId    String?  // Optionnel (si connecté)
+  user      User?    @relation(fields: [userId], references: [id])
+
+  // Contenu
+  content   String?  // Texte du témoignage
+  audioUrl  String?  // URL du fichier audio
+  images    TestimonyImage[]  // URL de la photo
+
+  // Modération
+  status    String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TestimonyImage {
+  id          String    @id @default(cuid())
+  url         String
+  testimonyId String
+  testimony   Testimony @relation(fields: [testimonyId], references: [id], onDelete: Cascade)
 }
