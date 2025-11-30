@@ -39,7 +39,6 @@ export function TestimonyCard({ testimony, showStatus = false }: TestimonyProps)
   const [playbackRate, setPlaybackRate] = useState(1);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  console.log(testimony.images)
 
   // --- Gestion Audio ---
 

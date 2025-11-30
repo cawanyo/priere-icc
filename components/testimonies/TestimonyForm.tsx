@@ -24,6 +24,7 @@ import { Loader2, Send, AlertCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { $Enums } from "@prisma/client";
+import { useRouter } from "next/navigation";
 
 // Schéma Zod Client
 const formSchema = z.object({
@@ -45,7 +46,7 @@ type TestimonyFormValues = z.infer<typeof formSchema>;
 
 export function TestimonyForm() {
   const { data: session } = useSession();
-  
+  const router = useRouter()
   const form = useForm<TestimonyFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -83,7 +84,6 @@ export function TestimonyForm() {
     }
 
     const res = await createTestimony(formData);
-    console.log(res)
     if (res.success) {
       toast.success(res.message);
       // Reset complet du formulaire (y compris les composants customs si possible, sinon recharger la page ou gérer un état de reset local dans les enfants)
@@ -95,7 +95,7 @@ export function TestimonyForm() {
       });
       // Note: Pour vider visuellement AudioRecorder et ImageUploader, l'idéal est d'exposer une ref ou une prop 'reset', ou simplement de laisser la page se rafraîchir si on redirige.
       // Ici, comme on reste sur la page, les composants enfants ne se videront pas automatiquement sauf si on les force (via une clé unique par exemple).
-      window.location.reload(); // Solution simple pour reset les composants non contrôlés
+      router.push('/testimonies')
     } else {
       toast.error(res.message);
     }

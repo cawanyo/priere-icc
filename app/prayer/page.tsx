@@ -1,7 +1,10 @@
 import Image from "next/image";
 import { PrayerRequestForm } from "./PrayerRequestForm";
+import { checkUser } from "../actions/user";
 
-export default function PrayerPage() {
+export default async function PrayerPage() {
+
+  const user = await checkUser();
   return (
     <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
@@ -26,7 +29,7 @@ export default function PrayerPage() {
 
           {/* Zone du formulaire */}
           <div className="w-full md:w-2/3 p-8 md:p-12">
-            <PrayerRequestForm />
+            <PrayerRequestForm user={user?? undefined}/>
           </div>
         </div>
       </div>

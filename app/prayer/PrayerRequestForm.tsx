@@ -2,7 +2,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -29,10 +28,10 @@ import { PhoneInputCustom } from "@/components/ui/phone-input";
 import { User, Mail } from "lucide-react";
 import { IconInput } from "@/components/ui/text-input";
 import { PrayerFormValues, prayerSchema } from "@/lib/validations/prayer";
-
-export function PrayerRequestForm() {
-  const { data: session } = useSession();
-
+import { User as UserType} from "@prisma/client";
+import { useRouter } from "next/navigation";
+export function PrayerRequestForm({user}: {user?:UserType}) {
+  const router = useRouter()
   const form = useForm<PrayerFormValues>({
     resolver: zodResolver(prayerSchema),
     defaultValues: {
@@ -45,12 +44,12 @@ export function PrayerRequestForm() {
   });
 
   useEffect(() => {
-    if (session?.user) {
-      form.setValue("name", session.user.name || "");
-      form.setValue("email", session.user.email || "");
-      form.setValue("phone", session.user.phone || "");
+    if (user) {
+      form.setValue("name", user.name || "");
+      form.setValue("email", user.email || "");
+      form.setValue("phone", user.phone || "");
     }
-  }, [session, form]);
+  }, [user, form]);
 
   const isLoading = form.formState.isSubmitting;
 
@@ -66,6 +65,7 @@ export function PrayerRequestForm() {
 
       toast.success("Votre sujet de prière a été envoyé avec succès !");
       form.reset();
+      router.push('/')
     } catch (error) {
       toast.error("Impossible d'envoyer la requête. Veuillez réessayer.");
     }

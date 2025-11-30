@@ -81,7 +81,7 @@ export async function createTestimony(formData: FormData) {
 
     if (session) revalidatePath("/dashboard/user/testimonies");
     
-    return { success: true, message: "Témoignage envoyé pour validation !" };
+    return { success: true, message: "Témoignage envoyé !" };
   } catch (error) {
     console.error(error);
     return { success: false, message: "Erreur lors de l'envoi." };
