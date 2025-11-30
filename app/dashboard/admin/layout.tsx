@@ -2,7 +2,7 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { checkAdmin } from "../actions/admin";
+import { checkAdmin } from "../../actions/admin";
 
 export default async function AdminLayout({
   children,

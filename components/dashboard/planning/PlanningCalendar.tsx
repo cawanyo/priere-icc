@@ -8,16 +8,19 @@ import { ChevronLeft, ChevronRight, Plus, Calendar as CalIcon, Users, Repeat } f
 import { EventModal } from "./EventModal";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { getPlanningEvents } from "@/app/actions/planing";
 import { RecurringManager } from "./RecurringManager";
-
+import { DownloadPlanningButton } from "@/components/pdf/DownloadPlanningButton"; // Import du bouton
 export function PlanningCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState<any[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRecurringOpen, setIsRecurringOpen] = useState(false);
+
+
+  const startOfWeekDate = startOfWeek(currentDate, { weekStartsOn: 1 });
+  const endOfWeekDate = endOfWeek(currentDate, { weekStartsOn: 1 });
 
   // Charger les données de la semaine
   const loadEvents = async () => {
@@ -83,6 +86,14 @@ export function PlanningCalendar() {
             </div>
             <div className="flex gap-2 w-full md:w-auto">
                 {/* BOUTON AJOUTÉ ICI */}
+                <DownloadPlanningButton 
+                    events={events} // On passe la liste des événements récupérés
+                    title="Planning Hebdomadaire"
+                    subtitle={`Semaine du ${format(startOfWeekDate, "d MMMM", { locale: fr })} au ${format(endOfWeekDate, "d MMMM yyyy", { locale: fr })}`}
+                    startDate={startOfWeekDate}
+                    endDate={endOfWeekDate}
+                    fileName={`planning-semaine-${format(startOfWeekDate, "ww")}.pdf`}
+                />
                 <Button 
                     variant="outline" 
                     onClick={() => setIsRecurringOpen(true)}
