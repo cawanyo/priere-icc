@@ -5,8 +5,8 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = ''; // 📧 Changez l'email ici
-  const password = ''; // 🔒 Changez le mot de passe ici
+  const email = 'admin@icctoulouse.com'; // 📧 Changez l'email ici
+  const password = 'Password123!'; // 🔒 Changez le mot de passe ici
 
   const hashedPassword = await bcrypt.hash(password, 10);
 

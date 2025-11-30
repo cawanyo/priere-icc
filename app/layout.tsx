@@ -4,6 +4,8 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 import { Header } from "@/components/Home/Header";
 import Footer from "@/components/Home/Footer";
+import { Suspense } from "react";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
@@ -28,7 +30,9 @@ export default function RootLayout({
       <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
         <Providers>
           <div className="min-h-screen w-full flex flex-col justify-between">
-            <Header />
+            <Suspense fallback={<LoadingOverlay />}>
+              <Header />
+            </Suspense>
             <main className=""> 
               {children}
             </main>
