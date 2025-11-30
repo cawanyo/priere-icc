@@ -128,8 +128,8 @@ export function Header() {
                         ))}
                         {session?.user && (
                             <DropdownMenuItem asChild>
-                                <Link href="/dashboard/user/prayer" className="text-pink-600 font-medium">
-                                    Mes Requêtes
+                                <Link href="/dashboard" className="text-pink-600 font-medium">
+                                    Dashboard
                                 </Link>
                             </DropdownMenuItem>
                         )}

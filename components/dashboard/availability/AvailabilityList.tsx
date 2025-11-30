@@ -14,6 +14,7 @@ interface AvailabilityListProps {
   items: any[];
 }
 
+export const dynamic = "force-dynamic";
 export function AvailabilityList({ items }: AvailabilityListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 

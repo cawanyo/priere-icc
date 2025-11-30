@@ -4,6 +4,7 @@ import { AvailabilityForm } from "@/components/dashboard/availability/Availabili
 import { AvailabilityList } from "@/components/dashboard/availability/AvailabilityList";
 import { CalendarClock } from "lucide-react";
 
+
 export default async function AvailabilityPage() {
   const { data: items } = await getUserUnavailabilities();
 
