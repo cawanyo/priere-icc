@@ -4,7 +4,14 @@ import { checkUser } from "../actions/user";
 
 export default async function PrayerPage() {
 
-  const user = await checkUser();
+  let user;
+  try{
+    user = await checkUser();
+  } 
+  catch(e)
+  {
+    
+  }
   return (
     <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
