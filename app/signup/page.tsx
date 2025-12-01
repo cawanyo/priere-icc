@@ -117,7 +117,7 @@ export default function SignupPage() {
                     isLoading={isLoading} 
               />
 
-            <div className="relative">
+            {/* <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
               </div>
@@ -136,18 +136,18 @@ export default function SignupPage() {
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
               </svg>
               Google
-            </Button>
+            </Button> */}
           </div>
 
           <div className="mt-4 text-center text-sm">
-            Already have an account?{" "}
+            Vous avez déjà un comte?{" "}
             <Link href="/login" className="underline font-medium text-primary">
-              Log in
+              Se connecter
             </Link>
           </div>
 
           <Button variant="link" className="mt-2 w-fit mx-auto text-muted-foreground" onClick={() => router.push("/")}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
+            <ArrowLeft className="mr-2 h-4 w-4" /> Retour à l'acceuil
           </Button>
         </motion.div>
       </div>

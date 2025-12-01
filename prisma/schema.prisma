@@ -11,10 +11,16 @@ datasource db {
 enum Role {
   ADMIN
   LEADER
+  PRAYER_LEADER
   INTERCESSOR // Intercesseur standard
   REQUESTER // Utilisateur qui ne fait que déposer des requêtes
 }
 
+enum STATUS {
+  PENDING
+  APPROVED
+  REFUSED
+}
 
 model User {
   id            String    @id @default(cuid())
@@ -94,11 +100,13 @@ model Prayer {
 
 model RoleRequest {
   id        String   @id @default(cuid())
-  userId    String   @unique // Une seule demande active par utilisateur
+  userId    String   @unique 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  // États possibles : PENDING (En attente), LEADER_APPROVED (Validé par leader), REJECTED (Refusé)
-  // L'état final "Intercesseur" correspond au changement de rôle du User
+  // NOUVEAU CHAMP : Le rôle demandé
+  // Par défaut, pour la compatibilité, on pourrait dire INTERCESSOR, mais mieux vaut le rendre explicite
+  role      Role     @default(INTERCESSOR) 
+
   status    String   @default("PENDING") 
   
   createdAt DateTime @default(now())

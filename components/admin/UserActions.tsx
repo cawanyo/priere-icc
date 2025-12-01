@@ -1,4 +1,3 @@
-// components/admin/UserActions.tsx
 "use client";
 
 import { useState } from "react";
@@ -27,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { deleteUser, updateUserRole } from "@/app/actions/admin"; // Import des server actions
+import { deleteUser, updateUserRole } from "@/app/actions/admin";
 import { toast } from "sonner";
 import { Role } from "@prisma/client";
 
@@ -82,7 +81,7 @@ export function UserActions({ userId, currentRole, userName }: UserActionsProps)
             <UserCog className="mr-2 h-4 w-4" /> Changer le rôle
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setIsDeleteOpen(true)} className="text-red-600">
+          <DropdownMenuItem onClick={() => setIsDeleteOpen(true)} className="text-red-600 focus:text-red-700 focus:bg-red-50">
             <Trash className="mr-2 h-4 w-4" /> Supprimer
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -94,7 +93,7 @@ export function UserActions({ userId, currentRole, userName }: UserActionsProps)
           <DialogHeader>
             <DialogTitle>Modifier le rôle</DialogTitle>
             <DialogDescription>
-              Changer le niveau d'accès pour {userName}.
+              Changer le niveau d'accès pour <span className="font-semibold text-indigo-900">{userName}</span>.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
@@ -107,7 +106,8 @@ export function UserActions({ userId, currentRole, userName }: UserActionsProps)
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="REQUESTER">Requester (Utilisateur)</SelectItem>
-                <SelectItem value="INTERCESSOR">Intercessor</SelectItem>
+                <SelectItem value="PRAYER_LEADER">Conducteur de Prière</SelectItem> {/* AJOUT ICI */}
+                <SelectItem value="INTERCESSOR">Intercesseur</SelectItem>
                 <SelectItem value="LEADER">Leader</SelectItem>
                 <SelectItem value="ADMIN">Admin</SelectItem>
               </SelectContent>
@@ -115,7 +115,7 @@ export function UserActions({ userId, currentRole, userName }: UserActionsProps)
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsUpdateOpen(false)}>Annuler</Button>
-            <Button onClick={handleUpdate} disabled={loading}>
+            <Button onClick={handleUpdate} disabled={loading} className="bg-indigo-900 hover:bg-indigo-800">
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Sauvegarder
             </Button>

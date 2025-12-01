@@ -1,9 +1,11 @@
 // app/dashboard/leader/prayer/page.tsx
+export const dynamic = "force-dynamic";
+
 import { getGlobalPrayers } from "@/app/actions/leader";
 import { PrayerFilters } from "@/components/dashboard/prayer/PrayerFilters"; 
 import { PrayerAdminList } from "@/components/dashboard/leader/PrayerAdminList";
+import { PaginationControl } from "@/components/ui/pagination-control"; // Import
 
-// 1. Définir le type des props comme une Promise
 type SearchParams = Promise<{ [key: string]: string | undefined }>;
 
 export default async function LeaderPrayerPage({
@@ -12,8 +14,8 @@ export default async function LeaderPrayerPage({
   searchParams: SearchParams;
 }) {
   
-  // 2. AWAIT les searchParams avant de les utiliser
   const params = await searchParams;
+  const currentPage = Number(params.page) || 1;
 
   const filters = {
     status: params.status,
@@ -21,9 +23,11 @@ export default async function LeaderPrayerPage({
     search: params.search,
     startDate: params.startDate,
     endDate: params.endDate,
+    page: currentPage,
+    limit: 9, // On affiche plus de cartes pour le leader
   };
 
-  const { data: prayers, error } = await getGlobalPrayers(filters);
+  const { data: prayers, metadata, error } = await getGlobalPrayers(filters);
 
   if (error) return <div className="p-8 text-red-500 bg-red-50 rounded-lg">{error}</div>;
 
@@ -40,7 +44,7 @@ export default async function LeaderPrayerPage({
         </div>
         <div className="bg-white px-4 py-2 rounded-xl border shadow-sm text-sm">
             <span className="text-gray-500">Total requêtes :</span> 
-            <span className="ml-2 text-xl font-bold text-pink-600">{prayers?.length || 0}</span>
+            <span className="ml-2 text-xl font-bold text-pink-600">{metadata?.totalCount || 0}</span>
         </div>
       </div>
 
@@ -49,6 +53,15 @@ export default async function LeaderPrayerPage({
 
       {/* Liste de cartes */}
       <PrayerAdminList prayers={prayers || []} />
+
+      {/* Pagination */}
+      {metadata && (
+        <PaginationControl 
+            totalPages={metadata.totalPages} 
+            currentPage={metadata.currentPage} 
+            className="mt-8 pb-8"
+        />
+      )}
     </div>
   );
 }

@@ -12,7 +12,7 @@ export default function Home() {
         image: "/assets/images/intercession.jpg",
     },
     {
-        title: "24h non ztop",
+        title: "24h non stop",
         content: "Un temps intense de prière ininterrompue pour briser les chaînes et proclamer la victoire.",
         image: "/assets/images/24h.jpg",
     },

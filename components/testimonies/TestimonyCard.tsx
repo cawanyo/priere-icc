@@ -4,13 +4,14 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Play, Pause, Quote, Maximize2 } from "lucide-react";
+import { Play, Pause, Quote } from "lucide-react";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+// AJOUT DE DialogTitle DANS LES IMPORTS
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 
 interface TestimonyImage {
   id: string;
@@ -114,7 +115,10 @@ export function TestimonyCard({ testimony, showStatus = false }: TestimonyProps)
             )}
           </div>
         </DialogTrigger>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black/90 border-none">
+        <DialogContent className="max-w-4xl p-0 overflow-hidden bg-gray-200/40 border-none">
+            {/* CORRECTION : AJOUT DU TITRE POUR ACCESSIBILITÉ */}
+            <DialogTitle className="sr-only">Visualisation de l'image</DialogTitle>
+            
             <div className="relative h-[80vh] w-full">
                 <Image src={src} alt="Full view" fill className="object-contain" />
             </div>

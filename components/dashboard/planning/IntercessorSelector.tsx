@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import { Check, ChevronsUpDown, Trash, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -92,10 +92,12 @@ export function IntercessorSelector({ selectedIds, onChange }: IntercessorSelect
         {selectedMembers.map(member => (
             <Badge key={member.id} variant="secondary" className="pl-2 pr-1 py-1 flex items-center gap-1">
                 {member.name}
-                <X 
-                    className="h-3 w-3 cursor-pointer hover:text-red-500" 
-                    onClick={() => toggleSelection(member.id)}
-                />
+                 
+                <div className=" inline" onClick={() => toggleSelection(member.id)}>
+                 <X size={13} className="text-red-400 hover:cursor-pointer hover:text-red-500 ml-3" />
+                </div>
+                
+
             </Badge>
         ))}
       </div>

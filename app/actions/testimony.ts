@@ -90,37 +90,60 @@ export async function createTestimony(formData: FormData) {
 
 // ... getPublicTestimonies et getUserTestimonies restent similaires
 // Juste ajouter `include: { images: true }` dans les requêtes prisma.
-export async function getPublicTestimonies() {
+// app/actions/testimony.ts (Extrait mis à jour)
+
+// ...
+
+// Helper pour la pagination
+type PaginationOptions = { page?: number; limit?: number };
+
+export async function getPublicTestimonies(options: PaginationOptions = {}) {
   try {
+    const page = options.page || 1;
+    const limit = options.limit || 6;
+    const skip = (page - 1) * limit;
+
+    const totalCount = await prisma.testimony.count({ where: { status: "APPROVED" } });
+
     const testimonies = await prisma.testimony.findMany({
       where: { status: "APPROVED" },
       orderBy: { createdAt: "desc" },
-      include: { 
-        images: true, // IMPORTANT
-        user: { select: { image: true } } // Pour l'avatar
-      } 
+      include: { images: true, user: { select: { image: true } } },
+      skip,
+      take: limit,
     });
-    return { success: true, data: testimonies };
+
+    const totalPages = Math.ceil(totalCount / limit);
+    return { success: true, data: testimonies, metadata: { totalPages, currentPage: page, totalCount } };
   } catch (error) {
     return { success: false, data: [] };
   }
 }
 
-export async function getUserTestimonies() {
+export async function getUserTestimonies(options: PaginationOptions = {}) {
   const session = await getServerSession(authOptions);
   // @ts-ignore
   if (!session?.user?.id) throw new Error("Non connecté");
 
   try {
+    const page = options.page || 1;
+    const limit = options.limit || 6;
+    const skip = (page - 1) * limit;
+
+    // @ts-ignore
+    const where = { userId: session.user.id };
+    const totalCount = await prisma.testimony.count({ where });
+
     const testimonies = await prisma.testimony.findMany({
-      // @ts-ignore
-      where: { userId: session.user.id },
+      where,
       orderBy: { createdAt: "desc" },
-      include: { 
-        images: true // IMPORTANT
-      }
+      include: { images: true },
+      skip,
+      take: limit,
     });
-    return { success: true, data: testimonies };
+
+    const totalPages = Math.ceil(totalCount / limit);
+    return { success: true, data: testimonies, metadata: { totalPages, currentPage: page, totalCount } };
   } catch (error) {
     return { success: false, error: "Erreur chargement" };
   }

@@ -6,15 +6,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { revalidatePath } from "next/cache";
 
-// Vérification droits Leader/Admin
 async function checkLeaderAccess() {
   const session = await getServerSession(authOptions);
   // @ts-ignore
   if (!session || !session.user?.id) throw new Error("Non connecté");
-
   // @ts-ignore
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
-
   if (!user || (user.role !== "LEADER" && user.role !== "ADMIN")) {
     throw new Error("Accès refusé.");
   }
@@ -27,10 +24,7 @@ export async function getRoleRequests() {
   await checkLeaderAccess();
   try {
     const requests = await prisma.roleRequest.findMany({
-      // On récupère toutes les demandes qui ne sont pas encore finalisées en rôle
-      where: {
-        status: { not: "INTERCESSOR" } 
-      },
+      where: { status: "PENDING" }, // On récupère toutes les demandes en attente
       include: {
         user: {
           select: { id: true, name: true, email: true, phone: true, image: true }
@@ -47,36 +41,42 @@ export async function getRoleRequests() {
 export async function updateRoleRequestStatus(requestId: string, newStatus: string) {
   await checkLeaderAccess();
   try {
-    // 1. Mettre à jour le statut de la demande (ex: LEADER_APPROVED, REJECTED...)
-    const request = await prisma.roleRequest.update({
+    // 1. Récupérer la demande pour connaître le rôle visé
+    const request = await prisma.roleRequest.findUnique({ where: { id: requestId } });
+    if (!request) throw new Error("Demande introuvable");
+
+    // 2. Mise à jour du statut de la demande
+    await prisma.roleRequest.update({
       where: { id: requestId },
       data: { status: newStatus },
-      include: { user: true }
     });
 
-    // 2. LOGIQUE SPÉCIALE : Si le statut passe à "INTERCESSOR", on promeut l'utilisateur
-    if (newStatus === "INTERCESSOR") {
+    // 3. Si "APPROVED", on promeut l'utilisateur avec le rôle qu'il a demandé
+    if (newStatus === "APPROVED") {
       await prisma.user.update({
         where: { id: request.userId },
-        data: { role: "INTERCESSOR" }
+        data: { role: request.role } // INTERCESSOR ou PRAYER_LEADER
       });
     }
 
     revalidatePath("/dashboard/leader/team");
-    return { success: true, message: "Statut de la candidature mis à jour." };
+    return { success: true, message: "Statut mis à jour." };
   } catch (error) {
     return { success: false, message: "Erreur opération." };
   }
 }
 
-// --- GESTION DES MEMBRES ACTUELS ---
+// --- GESTION DES MEMBRES ---
 
 export async function getTeamMembers() {
   await checkLeaderAccess();
   try {
+    // On récupère les deux types de membres
     const members = await prisma.user.findMany({
-      where: { role: "INTERCESSOR" },
-      select: { id: true, name: true, email: true, phone: true, image: true, createdAt: true },
+      where: { 
+        role: { in: ["INTERCESSOR", "PRAYER_LEADER"] } 
+      },
+      select: { id: true, name: true, email: true, phone: true, image: true, role: true, createdAt: true },
       orderBy: { name: "asc" }
     });
     return { success: true, data: members };
@@ -88,20 +88,17 @@ export async function getTeamMembers() {
 export async function removeTeamMember(userId: string) {
   await checkLeaderAccess();
   try {
-    // Rétrogradation en simple utilisateur
     await prisma.user.update({
       where: { id: userId },
-      data: { role: "REQUESTER" }
+      data: { role: "REQUESTER" } // Retour case départ
     });
     
-    // Nettoyage : On supprime l'ancienne demande de rôle si elle existe encore
-    await prisma.roleRequest.deleteMany({
-        where: { userId: userId }
-    });
+    // Nettoyage de l'ancienne demande
+    await prisma.roleRequest.deleteMany({ where: { userId: userId } });
 
     revalidatePath("/dashboard/leader/team");
-    return { success: true, message: "Membre retiré de l'équipe." };
+    return { success: true, message: "Membre retiré." };
   } catch (error) {
-    return { success: false, message: "Erreur lors du retrait du membre." };
+    return { success: false, message: "Erreur lors du retrait." };
   }
 }

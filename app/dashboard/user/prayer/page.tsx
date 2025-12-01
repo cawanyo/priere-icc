@@ -2,11 +2,11 @@
 import { getUserPrayers } from "@/app/actions/prayer";
 import { PrayerFilters } from "@/components/dashboard/prayer/PrayerFilters";
 import { PrayerCard } from "@/components/dashboard/prayer/PrayerCard";
+import { PaginationControl } from "@/components/ui/pagination-control"; // Import
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 
-// Définition du type pour Next.js 15
 type SearchParams = Promise<{ [key: string]: string | undefined }>;
 
 export default async function UserPrayersPage({
@@ -14,25 +14,23 @@ export default async function UserPrayersPage({
 }: {
   searchParams: SearchParams;
 }) {
-  
-  // Await des paramètres (Next.js 15)
   const params = await searchParams;
+  const currentPage = Number(params.page) || 1;
 
-  // Construction des filtres
   const filters = {
     status: params.status,
     type: params.type,
-    search: params.search,       // Nouveau
-    startDate: params.startDate, // Nouveau
-    endDate: params.endDate,     // Nouveau
+    search: params.search,
+    startDate: params.startDate,
+    endDate: params.endDate,
     dateOrder: (params.dateOrder as 'asc' | 'desc') || 'desc',
+    page: currentPage,
+    limit: 9, // Nombre de cartes par page
   };
 
-  const { data: prayers, error } = await getUserPrayers(filters);
+  const { data: prayers, metadata, error } = await getUserPrayers(filters);
 
-  if (error) {
-    return <div className="p-8 text-red-500 bg-red-50 rounded-lg border border-red-100">Erreur : {error}</div>;
-  }
+  if (error) return <div className="p-8 text-red-500 bg-red-50 rounded-lg">{error}</div>;
 
   return (
     <div className="flex-1 space-y-8 p-8 pt-6 bg-gray-50/30 min-h-screen">
@@ -42,7 +40,7 @@ export default async function UserPrayersPage({
         <div>
             <h2 className="text-3xl font-serif font-bold tracking-tight text-indigo-900">Mes Prières</h2>
             <p className="text-muted-foreground">
-                Suivez l'évolution de vos requêtes et témoignez de la main de Dieu.
+                Suivez l'évolution de vos requêtes ({metadata?.totalCount || 0}).
             </p>
         </div>
         <Link href="/prayer">
@@ -52,26 +50,31 @@ export default async function UserPrayersPage({
         </Link>
       </div>
 
-      {/* Barre de filtres (La même que celle du Leader, maintenant fonctionnelle ici aussi) */}
       <PrayerFilters />
 
-      {/* Grille de contenu */}
+      {/* Grille */}
       {prayers && prayers.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {prayers.map((prayer) => (
-            <PrayerCard key={prayer.id} prayer={prayer} />
-          ))}
-        </div>
+        <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {prayers.map((prayer) => (
+                <PrayerCard key={prayer.id} prayer={prayer} />
+            ))}
+            </div>
+            
+            {/* Pagination */}
+            {metadata && (
+                <PaginationControl 
+                    totalPages={metadata.totalPages} 
+                    currentPage={metadata.currentPage} 
+                />
+            )}
+        </>
       ) : (
         <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
-            <p className="text-gray-500 font-medium mb-4">Aucune prière trouvée pour ces critères.</p>
-            {(filters.status || filters.type || filters.search || filters.startDate) ? (
-                <p className="text-sm text-muted-foreground">Essayez de modifier vos filtres.</p>
-            ) : (
-                <Link href="/prayer">
-                    <Button variant="outline" className="border-indigo-200 text-indigo-700 hover:bg-indigo-50">Déposer une requête</Button>
-                </Link>
-            )}
+            <p className="text-gray-500 font-medium mb-4">Aucune prière trouvée.</p>
+            <Link href="/prayer">
+                <Button variant="outline">Déposer une requête</Button>
+            </Link>
         </div>
       )}
     </div>

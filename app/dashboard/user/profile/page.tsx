@@ -106,6 +106,7 @@ export default async function ProfilePage() {
                     <IntercessorJourney 
                         userRole={user.role} 
                         requestStatus={user.roleRequest?.status || null} 
+                        requestedRole={user.roleRequest?.role}
                     />
                 </CardContent>
             </Card>

@@ -10,34 +10,40 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { UserActions } from "@/components/admin/UserActions";
+
 import { getAdminStats } from "@/app/actions/admin";
 import { Role } from "@prisma/client";
 import { AdminStats } from "@/components/admin/AdminSats";
+import { UserActions } from "@/components/admin/UserActions";
 
-// Helper pour les couleurs des badges
+// Mise à jour des couleurs de badge
 const getRoleBadgeColor = (role: Role) => {
   switch (role) {
     case "ADMIN": return "destructive"; // Rouge
     case "LEADER": return "default"; // Noir/Blanc
-    case "INTERCESSOR": return "secondary"; // Gris/Bleu
-    default: return "outline"; // Bordure simple
+    case "INTERCESSOR": return "secondary"; // Gris/Bleu (Shadcn default secondary)
+    case "PRAYER_LEADER": return "outline"; // Indigo (On le stylisera via className si besoin, ou outline par défaut)
+    default: return "outline"; 
   }
 };
 
+// Fonction helper pour afficher un label plus joli
+const formatRole = (role: string) => {
+    switch (role) {
+        case "PRAYER_LEADER": return "Conducteur";
+        case "INTERCESSOR": return "Intercesseur";
+        case "REQUESTER": return "Utilisateur";
+        default: return role; // ADMIN, LEADER
+    }
+};
+
 export default async function AdminUsersPage() {
-  // 1. Récupération des données (Parallélisée pour la performance)
+  // ... (Code existant inchangé pour la récupération des données)
   const [users, stats] = await Promise.all([
     prisma.user.findMany({
       orderBy: { createdAt: "desc" },
       select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        phone: true,
-        image: true,
-        createdAt: true,
+        id: true, name: true, email: true, role: true, phone: true, image: true, createdAt: true,
       }
     }),
     getAdminStats()
@@ -49,10 +55,8 @@ export default async function AdminUsersPage() {
         <h2 className="text-3xl font-bold tracking-tight">Gestion des Utilisateurs</h2>
       </div>
 
-      {/* Section Statistiques */}
       <AdminStats stats={stats} />
 
-      {/* Section Tableau */}
       <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
@@ -71,13 +75,14 @@ export default async function AdminUsersPage() {
                 <TableCell>
                   <Avatar>
                     <AvatarImage src={user.image || ""} />
-                    <AvatarFallback>{user.name?.slice(0, 2).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback className="bg-indigo-50 text-indigo-700 font-bold">
+                        {user.name?.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                 </TableCell>
                 <TableCell className="font-medium">
                     <div className="flex flex-col">
                         <span>{user.name}</span>
-                        {/* Affiche "Moi" si c'est l'utilisateur courant, optionnel */}
                     </div>
                 </TableCell>
                 <TableCell>
@@ -87,8 +92,12 @@ export default async function AdminUsersPage() {
                     </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={getRoleBadgeColor(user.role)}>
-                    {user.role}
+                  {/* Utilisation d'une classe spécifique pour PRAYER_LEADER pour bien le distinguer */}
+                  <Badge 
+                    variant={getRoleBadgeColor(user.role)}
+                    className={user.role === "PRAYER_LEADER" ? "border-indigo-500 text-indigo-700 bg-indigo-50" : ""}
+                  >
+                    {formatRole(user.role)}
                   </Badge>
                 </TableCell>
                 <TableCell>

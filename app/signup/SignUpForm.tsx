@@ -35,7 +35,7 @@ export function SignupFormInner({ form, onHandleSubmit, isLoading }: SignupFormI
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Full Name</FormLabel>
+              <FormLabel>Nom complet </FormLabel>
                 <FormControl>
                     <IconInput 
                         placeholder="Jean Dupont" 
@@ -97,7 +97,7 @@ export function SignupFormInner({ form, onHandleSubmit, isLoading }: SignupFormI
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>Mot de passe</FormLabel>
               <FormControl>
                 <PasswordInput
                     placeholder="Créez un mot de passe"
@@ -116,7 +116,7 @@ export function SignupFormInner({ form, onHandleSubmit, isLoading }: SignupFormI
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
+              <FormLabel>Mot de passe confirmé</FormLabel>
               <FormControl>
                 <PasswordInput
                     placeholder="Confirmez votre mot de passe"
@@ -131,7 +131,7 @@ export function SignupFormInner({ form, onHandleSubmit, isLoading }: SignupFormI
 
         <Button type="submit" className="w-full h-11" disabled={isLoading}>
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Create Account
+          Créer un compte
         </Button>
       </form>
     </Form>

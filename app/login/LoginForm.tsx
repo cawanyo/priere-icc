@@ -59,7 +59,7 @@ export function LoginFormInner({ form, onHandleSubmit, isLoading }: LoginFormInn
               <div className="flex items-center justify-between">
                 <FormLabel>Mot de passe</FormLabel>
                 <Link
-                  href="/forgot-password"
+                  href="#"
                   className="text-sm font-medium text-primary hover:underline"
                 >
                   Mot de passe oublié ?

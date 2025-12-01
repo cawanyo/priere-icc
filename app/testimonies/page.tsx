@@ -1,12 +1,29 @@
+// app/testimonies/page.tsx
+export const dynamic = "force-dynamic"; // Important pour que la pagination et les nouveaux contenus fonctionnent
+
 import { getPublicTestimonies } from "@/app/actions/testimony";
 import { TestimonyCard } from "@/components/testimonies/TestimonyCard";
 import { Button } from "@/components/ui/button";
+import { PaginationControl } from "@/components/ui/pagination-control"; // Import du composant
 import Link from "next/link";
-import { Quote } from "lucide-react";
+import { Quote, Plus } from "lucide-react";
 
-export const dynamic = "force-dynamic";
-export default async function TestimoniesPage() {
-  const { data: testimonies } = await getPublicTestimonies();
+// Définition du type pour Next.js 15
+type SearchParams = Promise<{ [key: string]: string | undefined }>;
+
+export default async function TestimoniesPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const params = await searchParams;
+  const currentPage = Number(params.page) || 1;
+  const LIMIT = 6; // 6 témoignages par page
+
+  const { data: testimonies, metadata } = await getPublicTestimonies({ 
+    page: currentPage, 
+    limit: LIMIT 
+  });
 
   return (
     <div className="min-h-screen bg-white">
@@ -39,11 +56,22 @@ export default async function TestimoniesPage() {
       {/* Liste des témoignages */}
       <section className="py-20 px-4 md:px-8 max-w-7xl mx-auto">
         {testimonies && testimonies.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {testimonies.map((t) => (
-                    <TestimonyCard key={t.id} testimony={t} />
-                ))}
-            </div>
+            <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {testimonies.map((t) => (
+                        <TestimonyCard key={t.id} testimony={t} />
+                    ))}
+                </div>
+
+                {/* Contrôle de Pagination */}
+                {metadata && (
+                    <PaginationControl 
+                        totalPages={metadata.totalPages} 
+                        currentPage={metadata.currentPage}
+                        className="mt-12"
+                    />
+                )}
+            </>
         ) : (
             <div className="text-center py-20 bg-gray-50 rounded-2xl border border-dashed">
                 <p className="text-gray-500 text-lg">Aucun témoignage publié pour le moment.</p>

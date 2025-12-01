@@ -4,45 +4,29 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardDescription,
+  Card, CardHeader, CardTitle, CardContent, CardDescription,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  Church,
-  CircleUserRound,
-  CalendarRange,
-  Calendar1,
-  ClipboardList,
-  Users,
-  ShieldCheck,
-  ArrowRight,
-  LayoutDashboard,
-  Sparkles,
-  Quote
+  Church, CircleUserRound, CalendarRange, Calendar1, ClipboardList,
+  Users, ShieldCheck, ArrowRight, LayoutDashboard, Sparkles, Quote
 } from "lucide-react";
 import { checkUser } from "../actions/user";
 
 export default async function DashboardPage() {
   const user = await checkUser();
 
-  if (!user) {
-    redirect("/login");
-  }
+  if (!user) redirect("/login");
 
-
+  // @ts-ignore
   const role = user?.role;
-
+  // @ts-ignore
   const userName = user?.name || "Bienvenue";
- 
+  // @ts-ignore
   const userImage = user?.image;
 
-  // Configuration des cartes
   const allCards = [
-    // --- SECTION PERSONNELLE ---
+    // --- MON ESPACE (Tous) ---
     {
       section: "Mon Espace",
       items: [
@@ -53,32 +37,41 @@ export default async function DashboardPage() {
           icon: Church,
           color: "text-pink-600",
           bg: "bg-pink-50",
-          roles: ["REQUESTER", "INTERCESSOR", "LEADER", "ADMIN"],
+          roles: ["REQUESTER", "PRAYER_LEADER", "INTERCESSOR", "LEADER", "ADMIN"],
+        },
+        {
+          title: "Mes Témoignages",
+          description: "Partager ce que Dieu a fait.",
+          href: "/dashboard/user/testimonies",
+          icon: Sparkles,
+          color: "text-yellow-600",
+          bg: "bg-yellow-50",
+          roles: ["REQUESTER", "PRAYER_LEADER", "INTERCESSOR", "LEADER", "ADMIN"],
         },
         {
           title: "Mon Profil",
-          description: "Gérer mes infos et la sécurité.",
+          description: "Gérer mes infos et candidatures.",
           href: "/dashboard/user/profile",
           icon: CircleUserRound,
           color: "text-blue-600",
           bg: "bg-blue-50",
-          roles: ["REQUESTER", "INTERCESSOR", "LEADER", "ADMIN"],
+          roles: ["REQUESTER", "PRAYER_LEADER", "INTERCESSOR", "LEADER", "ADMIN"],
         },
       ]
     },
 
-    // --- SECTION INTERCESSEUR ---
+    // --- MINISTÈRE (Conducteurs & Intercesseurs) ---
     {
-      section: "Ministère d'Intercession",
+      section: "Espace Ministère",
       items: [
         {
           title: "Mon Planning",
-          description: "Mes créneaux de service.",
+          description: "Mes créneaux de service hebdo.",
           href: "/dashboard/user/intercessor/planning",
           icon: CalendarRange,
           color: "text-indigo-600",
           bg: "bg-indigo-50",
-          roles: ["INTERCESSOR", "LEADER", "ADMIN"],
+          roles: ["INTERCESSOR", "LEADER", "ADMIN"], // Pas PRAYER_LEADER
         },
         {
           title: "Disponibilités",
@@ -87,21 +80,22 @@ export default async function DashboardPage() {
           icon: Calendar1,
           color: "text-violet-600",
           bg: "bg-violet-50",
-          roles: ["INTERCESSOR", "LEADER", "ADMIN"],
+          roles: ["INTERCESSOR", "LEADER", "ADMIN"], // Pas PRAYER_LEADER
         },
         {
-          title: "Événements",
-          description: "Programmes spéciaux.",
+          title: "Événements Spéciaux",
+          description: "Programmes et temps forts.",
           href: "/dashboard/user/intercessor/events",
           icon: ClipboardList,
           color: "text-purple-600",
           bg: "bg-purple-50",
-          roles: ["INTERCESSOR", "LEADER", "ADMIN"],
+          // Accessible aux Conducteurs ET Intercesseurs
+          roles: ["PRAYER_LEADER", "INTERCESSOR", "LEADER", "ADMIN"], 
         },
       ]
     },
 
-    // --- SECTION LEADER ---
+    // --- LEADER ---
     {
       section: "Espace Leader",
       items: [
@@ -115,8 +109,8 @@ export default async function DashboardPage() {
           roles: ["LEADER", "ADMIN"],
         },
         {
-          title: "Planification",
-          description: "Gérer le planning hebdo.",
+          title: "Planification Hebdo",
+          description: "Gérer le planning récurrent.",
           href: "/dashboard/leader/planning",
           icon: CalendarRange,
           color: "text-amber-600",
@@ -134,7 +128,7 @@ export default async function DashboardPage() {
         },
         {
           title: "Équipe",
-          description: "Gérer les membres.",
+          description: "Gérer les membres et recrutements.",
           href: "/dashboard/leader/team",
           icon: Users,
           color: "text-rose-600",
@@ -144,7 +138,7 @@ export default async function DashboardPage() {
       ]
     },
 
-    // --- SECTION ADMIN ---
+    // --- ADMIN ---
     {
       section: "Administration",
       items: [
@@ -163,12 +157,9 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50/30">
-      
-      {/* --- HERO HEADER --- */}
+      {/* HEADER */}
       <div className="bg-white border-b border-gray-100 pb-12 pt-8 px-4 md:px-8 relative overflow-hidden">
-        {/* Décoration d'arrière-plan subtile */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-pink-50 to-indigo-50 rounded-full blur-3xl opacity-50 -z-10" />
-        
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="flex items-center gap-5">
             <div className="relative">
@@ -186,27 +177,17 @@ export default async function DashboardPage() {
                 </h1>
                 <p className="text-muted-foreground flex items-center gap-2 mt-1">
                     <Sparkles className="h-4 w-4 text-yellow-500" /> 
-                    Heureux de vous revoir sur l'espace de prière.
+                    Heureux de vous revoir.
                 </p>
             </div>
-          </div>
-
-          {/* Citation du jour (Statique pour l'instant) */}
-          <div className="hidden lg:block max-w-md bg-white/60 backdrop-blur-sm p-4 rounded-xl border border-gray-100 shadow-sm italic text-gray-600 text-sm relative">
-            <Quote className="h-8 w-8 text-indigo-100 absolute -top-3 -left-3 rotate-180" />
-            "La prière fervente du juste a une grande efficacité."
-            <span className="block text-right font-semibold text-indigo-900 not-italic mt-1 text-xs">— Jacques 5:16</span>
           </div>
         </div>
       </div>
 
-      {/* --- GRID CONTENT --- */}
+      {/* CARTES */}
       <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-10 -mt-6">
-        
         {allCards.map((section, idx) => {
-            // Filtrer les items de la section selon le rôle
-            const visibleItems = section.items.filter(item => item.roles.includes(role));
-            
+            const visibleItems = section.items.filter(item => item.roles.includes(role?? "undefined"));
             if (visibleItems.length === 0) return null;
 
             return (
@@ -214,13 +195,11 @@ export default async function DashboardPage() {
                     <h3 className="text-lg font-semibold text-gray-500 uppercase tracking-wider pl-1">
                         {section.section}
                     </h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {visibleItems.map((card) => (
                             <Link key={card.href} href={card.href} className="group block h-full">
                                 <Card className="h-full border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group-hover:border-indigo-100">
                                     <div className={`absolute top-0 right-0 w-24 h-24 ${card.bg} rounded-bl-full -mr-4 -mt-4 opacity-50 transition-transform group-hover:scale-110`} />
-                                    
                                     <CardHeader className="pb-2 relative">
                                         <div className={`w-12 h-12 ${card.bg} rounded-xl flex items-center justify-center mb-4 transition-colors group-hover:bg-white group-hover:shadow-sm`}>
                                             <card.icon className={`h-6 w-6 ${card.color}`} />
@@ -229,12 +208,10 @@ export default async function DashboardPage() {
                                             {card.title}
                                         </CardTitle>
                                     </CardHeader>
-                                    
                                     <CardContent>
                                         <CardDescription className="text-gray-500 mb-4 line-clamp-2">
                                             {card.description}
                                         </CardDescription>
-                                        
                                         <div className="flex items-center text-sm font-medium text-indigo-600 opacity-0 transform translate-x-[-10px] group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
                                             Accéder <ArrowRight className="ml-2 h-4 w-4" />
                                         </div>

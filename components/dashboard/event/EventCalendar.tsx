@@ -49,7 +49,7 @@ export function EventCalendar({ event, calendarData }: EventCalendarProps) {
       {/* En-tête Navigation */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl border shadow-sm">
         <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={prevWeek}><ChevronLeft className="h-4 w-4"/></Button>
+            <Button variant="outline" size="icon" onClick={prevWeek}><ChevronLeft className="h-4 w-4 "/></Button>
             <span className="font-semibold text-lg w-32 text-center capitalize">
                 {format(currentDate, "MMMM yyyy", { locale: fr })}
             </span>
@@ -62,6 +62,7 @@ export function EventCalendar({ event, calendarData }: EventCalendarProps) {
 
       {/* Grille Semaine */}
       <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+      <Button variant="outline" size="icon" onClick={prevWeek} className="md:hidden"><ChevronLeft className="h-4 w-4 "/></Button>
         {days.map((day) => {
             // Filtrer les événements pour ce jour
             const dayEvents = calendarData.filter(e => isSameDay(new Date(e.startTime), day));
@@ -153,6 +154,10 @@ export function EventCalendar({ event, calendarData }: EventCalendarProps) {
                 </div>
             )
         })}
+            <div className=" w-full flex justify-end">
+                <Button variant="outline" size="icon" onClick={nextWeek} className="md:hidden self-center"><ChevronRight className="h-4 w-4"/></Button>
+            </div>
+
       </div>
 
       <EventModal 
