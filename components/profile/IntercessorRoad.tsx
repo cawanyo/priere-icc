@@ -36,7 +36,7 @@ const STEPS_INTERCESSOR = [
 const STEPS_PRAYER_LEADER = [
   { id: "REQUESTER", label: "Demandeur", icon: UserCheck },
   { id: "PENDING", label: "En attente", icon: Mic2 }, // Étape spécifique !
-  { id: "APPROVED", label: "Conducteur de Prière", icon: Mic2 },
+  { id: "APPROVED", label: "Conducteur", icon: Mic2 },
 ];
 
 export function IntercessorJourney({ userRole, requestStatus, requestedRole }: JourneyProps) {
@@ -129,7 +129,7 @@ export function IntercessorJourney({ userRole, requestStatus, requestedRole }: J
                     <h4 className="font-bold text-lg text-pink-900">Intercesseur</h4>
                     <p className="text-sm text-gray-500 mt-2">
                         Engagez-vous dans la prière d'intercession pour soutenir l'église.<br/>
-                        <span className="text-xs font-semibold text-pink-600">(Vous devenez automatique conducteur de prière aussi)</span>
+                        <span className="text-xs font-semibold text-pink-600">(Vous devenez automatiquement un conducteur de prière aussi)</span>
                     </p>
                 </div>
                 <Button 
@@ -151,7 +151,7 @@ export function IntercessorJourney({ userRole, requestStatus, requestedRole }: J
   const statusColorClass = targetRole === "PRAYER_LEADER" ? "text-indigo-600" : "text-pink-600";
 
   return (
-    <div className="space-y-8 py-6">
+    <div className="space-y-8 py-6 px-2">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <h3 className="text-lg font-semibold text-gray-900">

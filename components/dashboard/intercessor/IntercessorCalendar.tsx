@@ -82,6 +82,7 @@ export function IntercessorCalendar() {
 
         {/* Grille Semaine */}
         <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+            <Button variant="outline" size="icon" onClick={prevWeek} className="md:hidden"><ChevronLeft className="h-4 w-4"/></Button>
             {days.map((day) => {
                 // LOGIQUE DE FILTRE MISE À JOUR
                 const dayEvents = events.filter(e => {
@@ -161,6 +162,9 @@ export function IntercessorCalendar() {
                     </div>
                 );
             })}
+            <div className="flex justify-end">
+                <Button variant="outline" size="icon" onClick={nextWeek}><ChevronRight className="h-4 w-4"/></Button>
+            </div>
         </div>
     </div>
   );

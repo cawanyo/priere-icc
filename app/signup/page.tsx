@@ -140,7 +140,7 @@ export default function SignupPage() {
           </div>
 
           <div className="mt-4 text-center text-sm">
-            Vous avez déjà un comte?{" "}
+            Vous avez déjà un compte?{" "}
             <Link href="/login" className="underline font-medium text-primary">
               Se connecter
             </Link>

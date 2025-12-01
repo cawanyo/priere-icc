@@ -11,10 +11,24 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
 
 export const metadata: Metadata = {
-  title: "Ministère de la prière",
-  description: "ICC Toulouse - Plateforme de sujets de prière et témoignages.",
-  icons: {
-    icon: '/image.png', // Path to your favicon in /public
+  title: "Ministère de la Prière ICC",
+  description: "Rejoignez la communauté de prière.",
+  // Ajoutez ceci :
+  openGraph: {
+    title: "Ministère de la Prière ICC",
+    description: "Rejoignez la communauté de prière.",
+    url: "",
+    siteName: "ICC Prière",
+    images: [
+      {
+        url: "icc.jpeg", // Chemin vers votre image dans public/
+        width: 1200,
+        height: 630,
+        alt: "Aperçu du Ministère de la Prière",
+      },
+    ],
+    locale: "fr_FR",
+    type: "website",
   },
 };
 

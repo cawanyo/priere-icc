@@ -83,6 +83,8 @@ export function IntercessorEventCalendar({ event, calendarData, currentUserId }:
 
       {/* Grille Semaine */}
       <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+        <Button variant="outline" size="icon" onClick={prevWeek} className="md:hidden"><ChevronLeft className="h-4 w-4"/></Button>
+
         {days.map((day) => {
             const isEventDay = isWithinInterval(day, {
                 start: new Date(event.startDate),
@@ -161,9 +163,13 @@ export function IntercessorEventCalendar({ event, calendarData, currentUserId }:
                             </Card>
                         )
                     })}
+
                 </div>
             )
         })}
+        <div className="flex justify-end">
+            <Button variant="outline" size="icon" onClick={nextWeek} className="md:hidden"><ChevronRight className="h-4 w-4"/></Button>
+        </div>
       </div>
 
       {/* MODALE D'INSCRIPTION */}

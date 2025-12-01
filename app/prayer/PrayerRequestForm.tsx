@@ -65,7 +65,10 @@ export function PrayerRequestForm({user}: {user?:UserType}) {
 
       toast.success("Votre sujet de prière a été envoyé avec succès !");
       form.reset();
-      router.push('/')
+      if(user)
+        router.push('/dashboard/user/prayer')
+      else
+        router.push('/')
     } catch (error) {
       toast.error("Impossible d'envoyer la requête. Veuillez réessayer.");
     }

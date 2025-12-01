@@ -222,7 +222,7 @@ export async function selfAssignToEventSlot(slotData: any) {
 
 // Se désinscrire d'un créneau
 export async function selfRemoveFromEventSlot(planningId: string) {
-  const user = await checkIntercessorAccess();
+  const user = await checkIntercessorOrPrayerLeaderAccess();
 
   try {
     await prisma.planning.update({

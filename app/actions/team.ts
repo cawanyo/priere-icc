@@ -46,9 +46,8 @@ export async function updateRoleRequestStatus(requestId: string, newStatus: stri
     if (!request) throw new Error("Demande introuvable");
 
     // 2. Mise à jour du statut de la demande
-    await prisma.roleRequest.update({
+    await prisma.roleRequest.delete({
       where: { id: requestId },
-      data: { status: newStatus },
     });
 
     // 3. Si "APPROVED", on promeut l'utilisateur avec le rôle qu'il a demandé
