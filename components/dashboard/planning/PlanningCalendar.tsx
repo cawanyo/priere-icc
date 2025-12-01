@@ -76,15 +76,15 @@ export function PlanningCalendar() {
     <div className="space-y-6">
         
         {/* Contrôles */}
-        <div className="flex items-center justify-between bg-white p-4 rounded-xl border shadow-sm">
-            <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-between bg-white p-4 rounded-xl border shadow-sm">
+            <div className="flex flex-wrap items-center gap-2">
                 <Button variant="outline" size="icon" onClick={prevWeek}><ChevronLeft className="h-4 w-4"/></Button>
                 <span className="font-semibold text-lg w-32 text-center">
                     {format(currentDate, "MMMM yyyy", { locale: fr })}
                 </span>
                 <Button variant="outline" size="icon" onClick={nextWeek}><ChevronRight className="h-4 w-4"/></Button>
             </div>
-            <div className="flex gap-2 w-full md:w-auto">
+            <div className="flex flex-wrap gap-2 w-full md:w-auto">
                 {/* BOUTON AJOUTÉ ICI */}
                 <DownloadPlanningButton 
                     events={events} // On passe la liste des événements récupérés
@@ -110,6 +110,8 @@ export function PlanningCalendar() {
 
         {/* Grille Semaine */}
         <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+            <Button variant="outline" size="icon" onClick={prevWeek} className="md:hidden"><ChevronLeft className="h-4 w-4"/></Button>
+
             {days.map((day) => {
                 const dayEvents = events.filter(e => isSameDay(new Date(e.startTime), day));
                 const isToday = isSameDay(day, new Date());
@@ -179,6 +181,9 @@ export function PlanningCalendar() {
                     </div>
                 );
             })}
+            <div className="flex justify-end md:hidden">
+                <Button variant="outline" size="icon" onClick={nextWeek}><ChevronRight className="h-4 w-4"/></Button>
+            </div>
         </div>
 
         <EventModal 

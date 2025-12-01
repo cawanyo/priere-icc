@@ -67,17 +67,40 @@ export async function updateRoleRequestStatus(requestId: string, newStatus: stri
 
 // --- GESTION DES MEMBRES ---
 
-export async function getTeamMembers() {
+export async function getTeamMembers(availabilityCheck?: { start: Date; end: Date }) {
   await checkLeaderAccess();
+  
   try {
-    // On récupère les deux types de membres
+    const whereClause: any = { 
+      role: { in: ["INTERCESSOR", "PRAYER_LEADER"] } 
+    };
+
+    // Si on cherche des dispos pour un créneau précis
+    if (availabilityCheck) {
+      whereClause.unavailabilities = {
+        none: {
+          AND: [
+            { startTime: { lt: availabilityCheck.end } },
+            { endTime: { gt: availabilityCheck.start } }
+          ]
+        }
+      };
+    }
+
     const members = await prisma.user.findMany({
-      where: { 
-        role: { in: ["INTERCESSOR", "PRAYER_LEADER"] } 
+      where: whereClause,
+      select: { 
+        id: true, 
+        name: true, 
+        email: true, 
+        phone: true, 
+        image: true, 
+        role: true, 
+        createdAt: true 
       },
-      select: { id: true, name: true, email: true, phone: true, image: true, role: true, createdAt: true },
       orderBy: { name: "asc" }
     });
+
     return { success: true, data: members };
   } catch (error) {
     return { success: false, error: "Erreur chargement équipe" };

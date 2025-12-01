@@ -11,6 +11,18 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { deletePlanningEvent, savePlanningEvent } from "@/app/actions/planing";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 interface EventModalProps {
   event: any | null; // L'événement sélectionné (contient la date complète)
   isOpen: boolean;
@@ -78,7 +90,7 @@ export function EventModal({ event, isOpen, onClose, onRefresh }: EventModalProp
 
   const handleDelete = async () => {
     if(!event.id || event.id.startsWith("virtual-")) return; 
-    if(!confirm("Supprimer cet événement ?")) return;
+
 
     setLoading(true);
     await deletePlanningEvent(event.id);
@@ -136,7 +148,27 @@ export function EventModal({ event, isOpen, onClose, onRefresh }: EventModalProp
 
         <DialogFooter className="flex justify-between sm:justify-between">
             {event && !event.isVirtual && (
-                <Button variant="destructive" onClick={handleDelete} disabled={loading}>Supprimer</Button>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive" disabled={loading}>
+                            Supprimer
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Cette action est irréversible. Cela supprimera définitivement cet événement du planning.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white">
+                                Confirmer la suppression
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             )}
             <div className="flex gap-2">
                 <Button variant="outline" onClick={onClose}>Annuler</Button>
