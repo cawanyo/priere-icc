@@ -91,7 +91,7 @@ export function EventFormModal({ isOpen, onClose, eventToEdit }: EventFormModalP
         return;
     }
 
-    alert(templates)
+    alert(templates[0].startTime)
 
     setLoading(true);
     let res;
