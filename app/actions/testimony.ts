@@ -7,6 +7,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { revalidatePath } from "next/cache";
 import * as z from "zod";
+import { checkLeaderAccess } from "./leader";
 
 // Schéma de validation serveur
 // On accepte 'any' pour audio/images car FormData renvoie des objets File difficiles à valider strictement avec Zod sans transformation préalable
@@ -146,5 +147,67 @@ export async function getUserTestimonies(options: PaginationOptions = {}) {
     return { success: true, data: testimonies, metadata: { totalPages, currentPage: page, totalCount } };
   } catch (error) {
     return { success: false, error: "Erreur chargement" };
+  }
+}
+
+
+
+export async function getAllTestimonies(options: { page?: number; limit?: number; status?: string } = {}) {
+  await checkLeaderAccess();
+  try {
+    const page = options.page || 1;
+    const limit = options.limit || 9;
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    if (options.status && options.status !== "ALL") {
+      where.status = options.status;
+    }
+
+    const totalCount = await prisma.testimony.count({ where });
+
+    const testimonies = await prisma.testimony.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      include: { 
+        images: true,
+        user: { select: { image: true, name: true, email: true } } 
+      },
+      skip,
+      take: limit,
+    });
+
+    const totalPages = Math.ceil(totalCount / limit);
+    return { success: true, data: testimonies, metadata: { totalPages, currentPage: page, totalCount } };
+  } catch (error) {
+    return { success: false, error: "Erreur chargement" };
+  }
+}
+
+
+
+export async function updateTestimonyStatus(id: string, status: string) {
+  await checkLeaderAccess();
+  try {
+    await prisma.testimony.update({
+      where: { id },
+      data: { status },
+    });
+    revalidatePath("/dashboard/leader/testimonies");
+    revalidatePath("/testimonies"); // Mettre à jour la page publique aussi
+    return { success: true, message: "Statut mis à jour" };
+  } catch (error) {
+    return { success: false, message: "Erreur mise à jour" };
+  }
+}
+
+export async function deleteTestimony(id: string) {
+  await checkLeaderAccess();
+  try {
+    await prisma.testimony.delete({ where: { id } });
+    revalidatePath("/dashboard/leader/testimonies");
+    return { success: true, message: "Témoignage supprimé" };
+  } catch (error) {
+    return { success: false, message: "Erreur suppression" };
   }
 }

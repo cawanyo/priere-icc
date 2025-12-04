@@ -135,6 +135,15 @@ export default async function DashboardPage() {
           bg: "bg-rose-50",
           roles: ["LEADER", "ADMIN"],
         },
+        {
+          title: "Gestion des témoignages",
+          description: "Gérer les témoignages.",
+          href: "/dashboard/leader/testimonies",
+          icon: Users,
+          color: "text-rose-600",
+          bg: "bg-rose-50",
+          roles: ["LEADER", "ADMIN"],
+        },
       ]
     },
 

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { prayerSchema } from "@/lib/validations/prayer";
+import { createNotification } from "@/app/actions/notifications";
 
 export async function POST(req: Request) {
   try {
@@ -29,6 +30,26 @@ export async function POST(req: Request) {
         userId: session?.user?.id, // Lie à l'utilisateur si connecté
       },
     });
+
+    const leaders = await prisma.user.findMany({
+      where: {
+        role: { in: ["LEADER", "ADMIN"] }
+      },
+      select: { id: true }
+    });
+
+    // // On envoie une notif à chacun
+    // const notifPromises = leaders.map(leader => 
+    //   createNotification(
+    //     leader.id,
+    //     "Nouvelle requête 🙏",
+    //     `Une nouvelle demande de prière (${subjectType}) a été déposée par ${prayer.name || "un visiteur"}.`,
+    //     "INFO",
+    //     "/dashboard/leader/prayer" // Lien direct vers le mur
+    //   )
+    // );
+
+    // await Promise.all(notifPromises);
 
     return NextResponse.json({ message: "Prière soumise avec succès", prayer }, { status: 201 });
   } catch (error) {

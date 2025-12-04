@@ -17,7 +17,9 @@ interface EventCalendarProps {
 
 export function EventCalendar({ event, calendarData }: EventCalendarProps) {
   // On commence le calendrier à la date de début de l'événement
-  const [currentDate, setCurrentDate] = useState(new Date(event.startDate));
+  const today = new Date()
+  const eventStartDate = new Date(event.startDate)
+  const [currentDate, setCurrentDate] = useState(today > eventStartDate ? today : eventStartDate);
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();

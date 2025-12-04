@@ -35,6 +35,7 @@ model User {
 
   role              Role      @default(REQUESTER)
 
+
   accounts      Account[]
   sessions      Session[]
   prayers       Prayer[]
@@ -42,6 +43,9 @@ model User {
   plannings     Planning[]
   unavailabilities Unavailability[]
   testimonies Testimony[]
+
+  notifications Notification[]
+  passwordResetTokens PasswordResetToken[]
  
 }
 
@@ -228,4 +232,32 @@ model TestimonyImage {
   url         String
   testimonyId String
   testimony   Testimony @relation(fields: [testimonyId], references: [id], onDelete: Cascade)
+}
+
+
+model Notification {
+  id        String   @id @default(cuid())
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title     String
+  message   String?
+  type      String   // Ex: "INFO", "SUCCESS", "WARNING", "ASSIGNMENT"
+  link      String?  // Lien vers la page concernée (ex: /dashboard/user/intercessor/planning)
+  
+  isRead    Boolean  @default(false)
+  
+  createdAt DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   // Le code à 6 chiffres
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([userId, token]) // Un code est unique pour un utilisateur donné
 }

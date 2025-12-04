@@ -6,7 +6,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { revalidatePath } from "next/cache";
 import { addDays, startOfWeek, endOfWeek, setHours, setMinutes, getDay, format } from "date-fns";
-
+import { sendSMS } from "@/lib/sms";
+import { fr } from "date-fns/locale";
 // Vérification accès Leader
 async function checkLeader() {
   const session = await getServerSession(authOptions);
@@ -119,48 +120,89 @@ export async function createRecurringSchedule(data: any) {
 export async function savePlanningEvent(data: any) {
   await checkLeader();
 
-  // AJOUT DE specialEventId dans la déstructuration
   const { id, title, description, startTime, endTime, intercessorIds, recurringId, specialEventId } = data;
-
   const connectIntercessors = intercessorIds.map((id: string) => ({ id }));
 
+  // Date formatée pour le SMS (ex: "Lundi 24 Oct à 19h00")
+  const dateStr = format(new Date(startTime), "EEEE d MMM 'à' HH'h'mm", { locale: fr });
+
   if (id && !id.startsWith("virtual-")) {
-    // UPDATE
+    // --- CAS UPDATE : On notifie seulement les nouveaux ---
+    
+    // 1. Récupérer l'état actuel pour comparer
+    const currentEvent = await prisma.planning.findUnique({
+      where: { id },
+      include: { intercessors: true }
+    });
+
+    const currentIds = currentEvent?.intercessors.map(u => u.id) || [];
+    // Trouver les IDs qui sont dans la nouvelle liste MAIS PAS dans l'ancienne
+    const newIds = intercessorIds.filter((uid: string) => !currentIds.includes(uid));
+
     await prisma.planning.update({
       where: { id },
       data: {
-        title,
-        description,
+        title, description,
         startTime: new Date(startTime),
         endTime: new Date(endTime),
-        intercessors: {
-          set: connectIntercessors 
-        }
+        intercessors: { set: connectIntercessors }
       }
     });
+
+    // 2. Envoyer les SMS aux nouveaux
+    if (newIds.length > 0) {
+      const newIntercessors = await prisma.user.findMany({
+        where: { id: { in: newIds } },
+        select: { phone: true, name: true }
+      });
+
+      // Envoi asynchrone (on n'attend pas la fin pour répondre au client)
+      newIntercessors.forEach(user => {
+        if (user.phone) {
+          sendSMS(
+            user.phone, 
+            `Bonjour ${user.name}, LE MDPI vous informa que vous êtes de service le  ${dateStr} à ${startTime}. Merci de consulter le planing. Excellente journée !`
+          );
+        }
+      });
+    }
+
   } else {
-    // CREATE
+    // --- CAS CREATE : On notifie tout le monde ---
+    
     await prisma.planning.create({
       data: {
-        title,
-        description,
+        title, description,
         startTime: new Date(startTime),
         endTime: new Date(endTime),
         recurringId: recurringId || null,
-        specialEventId: specialEventId || null, // AJOUT ICI
-        intercessors: {
-          connect: connectIntercessors
-        }
+        specialEventId: specialEventId || null,
+        intercessors: { connect: connectIntercessors }
       }
     });
+
+    // Récupérer les numéros
+    if (intercessorIds.length > 0) {
+      const users = await prisma.user.findMany({
+        where: { id: { in: intercessorIds } },
+        select: { phone: true, name: true }
+      });
+
+      users.forEach(user => {
+        if (user.phone) {
+          sendSMS(
+            user.phone, 
+            `Bonjour ${user.name}, vous avez été programmé pour "${title}" le ${dateStr}.`
+          );
+        }
+      });
+    }
   }
 
-  // On revalide les deux chemins possibles pour être sûr
   revalidatePath("/dashboard/leader/planning");
   revalidatePath("/dashboard/leader/events"); 
   return { success: true };
 }
-
 export async function deletePlanningEvent(id: string) {
     await checkLeader();
     await prisma.planning.delete({ where: { id } });

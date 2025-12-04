@@ -5,7 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { revalidatePath } from "next/cache";
-
+import { sendSMS } from "@/lib/sms";
+import { createNotification } from "./notifications";
 async function checkLeaderAccess() {
   const session = await getServerSession(authOptions);
   // @ts-ignore
@@ -41,25 +42,60 @@ export async function getRoleRequests() {
 export async function updateRoleRequestStatus(requestId: string, newStatus: string) {
   await checkLeaderAccess();
   try {
-    // 1. Récupérer la demande pour connaître le rôle visé
-    const request = await prisma.roleRequest.findUnique({ where: { id: requestId } });
+    // 1. Récupérer la demande pour connaître le rôle visé ET les infos utilisateur (téléphone)
+    const request = await prisma.roleRequest.findUnique({ 
+        where: { id: requestId },
+        include: { user: true } // Important pour avoir le numéro de téléphone
+    });
+    
     if (!request) throw new Error("Demande introuvable");
 
-    // 2. Mise à jour du statut de la demande
-    await prisma.roleRequest.delete({
+    // 2. Mise à jour du statut
+    await prisma.roleRequest.update({
       where: { id: requestId },
+      data: { status: newStatus },
     });
 
-    // 3. Si "APPROVED", on promeut l'utilisateur avec le rôle qu'il a demandé
+    const roleLabel = request.role === "PRAYER_LEADER" ? "Conducteur de prière" : "Intercesseur";
+    // 3. Gestion de la promotion et Notification
     if (newStatus === "APPROVED") {
+      // Promotion
       await prisma.user.update({
         where: { id: request.userId },
-        data: { role: request.role } // INTERCESSOR ou PRAYER_LEADER
+        data: { role: request.role }
       });
+
+      // Notification SMS
+
+      await createNotification(
+        request.userId,
+        "Candidature acceptée 🎉",
+        `Félicitations ! Vous avez officiellement rejoint l'équipe en tant que ${roleLabel}.`,
+        "SUCCESS",
+        "/dashboard/user/profile" // Lien vers le profil pour voir le statut
+      );
+
+      if (request.user.phone) {
+        const roleLabel = request.role === "PRAYER_LEADER" ? "Conducteur de prière" : "Intercesseur";
+        await sendSMS(
+            request.user.phone,
+            `Félicitations ${request.user.name} ! Votre demande pour rejoindre l'équipe des ${roleLabel}s a été validée. Bienvenue dans le ministère !`
+        );
+      }
+    } else if (newStatus === "REJECTED" && request.user.phone) {
+        await createNotification(
+            request.userId,
+            "Mise à jour candidature",
+            `Votre demande pour devenir ${roleLabel} n'a pas été retenue pour le moment.`,
+            "INFO",
+            "/dashboard/user/profile"
+        );
+        // Optionnel : Notifier le refus
+        await sendSMS(request.user.phone, `Bonjour ${request.user.name}, Votre demande a été rejeté. Rapprochez-vous d'un leader pour échanger.`);
     }
 
     revalidatePath("/dashboard/leader/team");
-    return { success: true, message: "Statut mis à jour." };
+    return { success: true, message: "Statut mis à jour et notification envoyée." };
   } catch (error) {
     return { success: false, message: "Erreur opération." };
   }
@@ -72,7 +108,7 @@ export async function getTeamMembers(availabilityCheck?: { start: Date; end: Dat
   
   try {
     const whereClause: any = { 
-      role: { in: ["INTERCESSOR", "PRAYER_LEADER"] } 
+      role: { in: ["INTERCESSOR", "PRAYER_LEADER", "LEADER"] } 
     };
 
     // Si on cherche des dispos pour un créneau précis

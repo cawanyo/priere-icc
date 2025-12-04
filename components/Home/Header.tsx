@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
+import { NotificationBell } from "../layout/notifications";
 
 export function Header() {
   const pathname = usePathname();
@@ -97,92 +98,95 @@ export function Header() {
             
 
             {/* --- MENU MOBILE & UTILISATEUR --- */}
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    {session?.user ? (
-                    <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-full border border-gray-100 shadow-sm">
-                        <Avatar className="h-full w-full">
-                            <AvatarImage src={session.user.image || ""} alt={session.user.name || "User"} />
-                            <AvatarFallback className="bg-indigo-50 text-indigo-700 font-semibold">
-                                {session.user.name?.slice(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                        </Avatar>
-                    </Button> )
-                    :
-                    <Button variant="ghost" size="icon" className="md:hidden">
-                        <Menu className="h-6 w-6 text-gray-700"/>
-                    </Button>
-                    }
-                </DropdownMenuTrigger>
-                
-                <DropdownMenuContent className="w-56 mt-2" align="end" forceMount>
+            <div className="flex items-center gap-2">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        {session?.user ? (
+                        <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-full border border-gray-100 shadow-sm">
+                            <Avatar className="h-full w-full">
+                                <AvatarImage src={session.user.image || ""} alt={session.user.name || "User"} />
+                                <AvatarFallback className="bg-indigo-50 text-indigo-700 font-semibold">
+                                    {session.user.name?.slice(0, 2).toUpperCase()}
+                                </AvatarFallback>
+                            </Avatar>
+                        </Button> )
+                        :
+                        <Button variant="ghost" size="icon" className="md:hidden">
+                            <Menu className="h-6 w-6 text-gray-700"/>
+                        </Button>
+                        }
+                    </DropdownMenuTrigger>
                     
-                    {/* Navigation Mobile */}
-                    <div className="md:hidden">
-                        {navigation.map((item) => (
-                            <DropdownMenuItem key={`mobile-${item.href}`} asChild>
-                                <Link href={item.href} className={pathname === item.href ? "text-pink-600 font-medium" : ""}>
-                                    {item.name}
-                                </Link>
-                            </DropdownMenuItem>
-                        ))}
-                        {session?.user && (
-                            <DropdownMenuItem asChild>
-                                <Link href="/dashboard" className="text-pink-600 font-medium">
-                                    Dashboard
-                                </Link>
-                            </DropdownMenuItem>
-                        )}
-                        <DropdownMenuSeparator />
-                    </div>
-                    
-                    {/* Menu Utilisateur Connecté */}
-                    {session?.user ? (
-                        <>
-                            <DropdownMenuLabel className="font-normal">
-                                <div className="flex flex-col space-y-1">
-                                    <p className="text-sm font-medium leading-none text-indigo-900">{session.user.name}</p>
-                                    <p className="text-xs leading-none text-muted-foreground truncate">{session.user.email}</p>
-                                </div>
-                            </DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            
-                            <DropdownMenuItem asChild className="cursor-pointer">
-                                <Link href="/dashboard/user/profile">
-                                    <User className="mr-2 h-4 w-4" /> Mon Profil
-                                </Link>
-                            </DropdownMenuItem>
-
-                            {/* Section Admin (Conditionnelle) */}
-                            {session.user.role === "ADMIN" && (
-                                <DropdownMenuItem asChild className="cursor-pointer bg-red-50 text-red-700 focus:bg-red-100 focus:text-red-800 mt-1">
-                                    <Link href="/dashboard/admin/users">
-                                        <ShieldCheck className="mr-2 h-4 w-4" /> Administration
+                    <DropdownMenuContent className="w-56 mt-2" align="end" forceMount>
+                        
+                        {/* Navigation Mobile */}
+                        <div className="md:hidden">
+                            {navigation.map((item) => (
+                                <DropdownMenuItem key={`mobile-${item.href}`} asChild>
+                                    <Link href={item.href} className={pathname === item.href ? "text-pink-600 font-medium" : ""}>
+                                        {item.name}
+                                    </Link>
+                                </DropdownMenuItem>
+                            ))}
+                            {session?.user && (
+                                <DropdownMenuItem asChild>
+                                    <Link href="/dashboard" className="text-pink-600 font-medium">
+                                        Dashboard
                                     </Link>
                                 </DropdownMenuItem>
                             )}
-
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600 focus:text-red-600 cursor-pointer focus:bg-red-50" onClick={() => signOut({ callbackUrl: "/" })}>
-                                <LogOut className="mr-2 h-4 w-4" /> Se déconnecter
-                            </DropdownMenuItem>
-                        </>
-                    ) : (
-                        // Menu Mobile Non Connecté
-                        <div className="md:hidden">
-                            <DropdownMenuItem asChild>
-                                <Link href="/login">Connexion</Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild className="font-semibold text-pink-600">
-                                <Link href="/signup">S'inscrire</Link>
-                            </DropdownMenuItem>
                         </div>
-                    )}
-                    
-                </DropdownMenuContent>
-            </DropdownMenu>
-        </div>
+                        
+                        {/* Menu Utilisateur Connecté */}
+                        {session?.user ? (
+                            <>
+                                <DropdownMenuLabel className="font-normal">
+                                    <div className="flex flex-col space-y-1">
+                                        <p className="text-sm font-medium leading-none text-indigo-900">{session.user.name}</p>
+                                        <p className="text-xs leading-none text-muted-foreground truncate">{session.user.email}</p>
+                                    </div>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                
+                                <DropdownMenuItem asChild className="cursor-pointer">
+                                    <Link href="/dashboard/user/profile">
+                                        <User className="mr-2 h-4 w-4" /> Mon Profil
+                                    </Link>
+                                </DropdownMenuItem>
 
+                                {/* Section Admin (Conditionnelle) */}
+                                {session.user.role === "ADMIN" && (
+                                    <DropdownMenuItem asChild className="cursor-pointer bg-red-50 text-red-700 focus:bg-red-100 focus:text-red-800 mt-1">
+                                        <Link href="/dashboard/admin/users">
+                                            <ShieldCheck className="mr-2 h-4 w-4" /> Administration
+                                        </Link>
+                                    </DropdownMenuItem>
+                                )}
+
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="text-red-600 focus:text-red-600 cursor-pointer focus:bg-red-50" onClick={() => signOut({ callbackUrl: "/" })}>
+                                    <LogOut className="mr-2 h-4 w-4" /> Se déconnecter
+                                </DropdownMenuItem>
+                            </>
+                        ) : (
+                            // Menu Mobile Non Connecté
+                            <div className="md:hidden">
+                                <DropdownMenuItem asChild>
+                                    <Link href="/login">Connexion</Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild className="font-semibold text-pink-600">
+                                    <Link href="/signup">S'inscrire</Link>
+                                </DropdownMenuItem>
+                            </div>
+                        )}
+                        
+                    </DropdownMenuContent>
+                </DropdownMenu>
+               {session?.user && <NotificationBell /> } 
+            </div>
+        </div>
+        
       </div>
     </header>
   );
