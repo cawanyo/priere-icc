@@ -28,6 +28,7 @@ export async function updateProfile(data: z.infer<typeof profileSchema>) {
       data: {
         name: validatedData.name,
         phone: validatedData.phone || null,
+        email: validatedData.email
       },
     });
 

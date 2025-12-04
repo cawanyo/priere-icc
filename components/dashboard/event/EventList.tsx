@@ -59,11 +59,7 @@ export function EventList({ events }: { events: any[] }) {
         endDate: format(new Date(event.endDate), "yyyy-MM-dd"),
     });
 
-    // Conversion des templates stockés (Date) vers le format input time (HH:mm)
-    // Note: Dans une vraie app, il faudrait récupérer les templates depuis le serveur si 'events' ne les contient pas
-    // Ici, supposons que 'events' inclut les templates via l'include Prisma, sinon il faut refetch
-    // Pour l'instant, si vous n'avez pas les templates dans la liste, l'édition des templates sera vide.
-    // Il faudrait modifier getSpecialEvents pour inclure { templates: true }
+
     if (event.templates) {
         setTemplates(event.templates.map((t: any) => ({
             title: t.title,

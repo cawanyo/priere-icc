@@ -44,6 +44,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
     defaultValues: {
       name: user.name || "",
       phone: user.phone || "",
+      email: user.email || ""
     },
   });
 
@@ -66,11 +67,19 @@ export function ProfileForm({ user }: ProfileFormProps) {
         {/* Champs en lecture seule */}
         <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
-                <FormLabel className="text-muted-foreground">Adresse Email</FormLabel>
-                <div className="flex items-center h-11 w-full rounded-md border border-input bg-muted/50 px-3 text-sm text-muted-foreground">
-                    <Mail className="mr-2 h-4 w-4 opacity-50" />
-                    {user.email}
-                </div>
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                      <FormItem>
+                      <FormLabel>Nom complet</FormLabel>
+                      <FormControl>
+                          <IconInput startIcon={User} placeholder="Votre nom" {...field} className="h-11" />
+                      </FormControl>
+                      <FormMessage />
+                      </FormItem>
+                  )}
+            />
             </div>
             <div className="space-y-2">
                 <FormLabel className="text-muted-foreground">Rôle</FormLabel>

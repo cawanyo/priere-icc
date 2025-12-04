@@ -32,6 +32,7 @@ export type LoginFormValues = z.infer<typeof loginFormSchema>;
 export const profileSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères."),
   phone: z.string().optional().or(z.literal("")),
+  email: z.email("Email incorrect")
 });
 
 export const passwordSchema = z.object({
