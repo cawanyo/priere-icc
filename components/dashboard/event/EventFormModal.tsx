@@ -91,6 +91,11 @@ export function EventFormModal({ isOpen, onClose, eventToEdit }: EventFormModalP
         return;
     }
 
+    console.log(eventToEdit, "event to edit")
+    console.log(templates, "templates")
+
+    console.log(formData)
+
     setLoading(true);
     let res;
     
