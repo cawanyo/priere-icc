@@ -46,7 +46,7 @@ export async function createSpecialEvent(data: any) {
   });
 
   revalidatePath("/dashboard/leader/events");
-  return { success: true };
+  return { success: true, message:'Evenement créé' };
 }
 
 export async function getSpecialEvents() {
