@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { revalidatePath } from "next/cache";
 import { addDays, format, isSameDay } from "date-fns";
+import { SpecialEventWithPlaning } from "@/lib/types";
 
 async function checkLeader() {
   const session = await getServerSession(authOptions);
@@ -19,6 +20,32 @@ async function checkLeader() {
 
 // --- GESTION DES ÉVÉNEMENTS ---
 
+export async function createPlaningForEvent({event, templates}: {event:any, templates:any}) {
+  let current = event.startDate;
+    const end = event.endDate;
+    
+    const records: any[] = [];
+    
+    while (current <= end) {
+      for (const t of templates) {
+        records.push({
+          title: t.title,
+          startTime: t.startTime,
+          endTime: t.endTime,
+          date: current,
+          specialEventId: event.id,
+        });
+      }
+      current = addDays(current, 1);
+    }
+    
+    // Create all records in one efficient batch
+    await prisma.planning.createMany({
+      data: records,
+    });
+    
+}
+
 export async function createSpecialEvent(data: any) {
   await checkLeader();
   
@@ -29,7 +56,7 @@ export async function createSpecialEvent(data: any) {
     a.startTime.localeCompare(b.startTime)
   );
 
-  await prisma.specialEvent.create({
+  const event = await prisma.specialEvent.create({
     data: {
       title,
       description,
@@ -38,12 +65,16 @@ export async function createSpecialEvent(data: any) {
       templates: {
         create: sortedTemplates.map((t: any) => ({
           title: t.title,
-          startTime: new Date(`1970-01-01T${t.startTime}:00`),
-          endTime: new Date(`1970-01-01T${t.endTime}:00`),
+          startTime: t.startTime,
+          endTime: t.endTime,
         }))
       }
     }
   });
+  if(event){
+    createPlaningForEvent({event, templates})
+    
+  }
 
   revalidatePath("/dashboard/leader/events");
   return { success: true, message:'Evenement créé' };
@@ -54,8 +85,7 @@ export async function getSpecialEvents() {
   const events = await prisma.specialEvent.findMany({
     orderBy: { startDate: 'desc' },
     include: { 
-        _count: { select: { plannings: true } },
-        templates: true
+        templates: true,
         }
   });
   return { success: true, data: events };
@@ -64,61 +94,17 @@ export async function getSpecialEvents() {
 export async function getEventDetails(eventId: string) {
   await checkLeader();
   
-  const event = await prisma.specialEvent.findUnique({
+  const event: SpecialEventWithPlaning | null = await prisma.specialEvent.findUnique({
     where: { id: eventId },
     include: { 
         // On trie aussi les templates à la récupération pour être sûr
-        templates: { orderBy: { startTime: 'asc' } } 
-    }
-  });
+        plannings: {include: {intercessors: true}}
 
+      } 
+    
+  });
   if (!event) return { success: false, error: "Événement introuvable" };
-
-  const realPlannings = await prisma.planning.findMany({
-    where: { specialEventId: eventId },
-    include: { intercessors: { select: { id: true, name: true, image: true } } }
-  });
-
-  // GÉNÉRATION DU CALENDRIER
-  const allSlots = [];
-  let current = new Date(event.startDate);
-  const end = new Date(event.endDate);
-
-  while (current <= end) {
-    for (const template of event.templates) {
-      const slotStart = new Date(current);
-      slotStart.setHours(template.startTime.getHours(), template.startTime.getMinutes());
-      
-      const slotEnd = new Date(current);
-      slotEnd.setHours(template.endTime.getHours(), template.endTime.getMinutes());
-
-      const real = realPlannings.find(p => 
-        isSameDay(p.startTime, current) && 
-        p.startTime.getHours() === slotStart.getHours() &&
-        p.startTime.getMinutes() === slotStart.getMinutes()
-      );
-
-      if (real) {
-        allSlots.push({ ...real, isVirtual: false, templateId: template.id });
-      } else {
-        allSlots.push({
-          id: `virtual-${template.id}-${format(current, 'yyyy-MM-dd')}`,
-          isVirtual: true,
-          title: template.title,
-          startTime: slotStart,
-          endTime: slotEnd,
-          intercessors: [],
-          specialEventId: event.id
-        });
-      }
-    }
-    current = addDays(current, 1);
-  }
-
-  // TRI FINAL DU CALENDRIER COMPLET (Par date ET par heure)
-  allSlots.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-
-  return { success: true, event, calendar: allSlots };
+  return { success: true, event};
 }
 
 
@@ -128,15 +114,13 @@ export async function updateSpecialEvent(data: any) {
   
   const { id, title, description, startDate, endDate, templates } = data;
 
-  // Tri des templates par heure
-  console.log(templates)
   const sortedTemplates = [...templates].sort((a: any, b: any) => 
     a.startTime.localeCompare(b.startTime)
   );
 
 
     // 1. Mettre à jour les infos de l'événement
-    await prisma.specialEvent.update({
+    const event = await prisma.specialEvent.update({
       where: { id },
       data: {
         title,
@@ -146,8 +130,7 @@ export async function updateSpecialEvent(data: any) {
       }
     });
 
-    // 2. Remplacer les templates (Supprimer tout + Créer tout)
-    // C'est la méthode la plus propre pour gérer les ajouts/suppressions/modifs multiples
+    // update templates
     await prisma.eventTemplate.deleteMany({
       where: { specialEventId: id }
     });
@@ -157,11 +140,18 @@ export async function updateSpecialEvent(data: any) {
         data: sortedTemplates.map((t: any) => ({
           specialEventId: id,
           title: t.title,
-          startTime: new Date(`1970-01-01T${t.startTime}:00`),
-          endTime: new Date(`1970-01-01T${t.endTime}:00`),
+          startTime: t.startTime,
+          endTime: t.endTime,
         }))
       });
     }
+
+    //update planings
+    await prisma.planning.deleteMany({
+      where: {specialEventId: id}
+    })
+
+    createPlaningForEvent({event, templates} )
   
 
   revalidatePath("/dashboard/leader/events");

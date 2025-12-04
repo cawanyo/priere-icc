@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { addDays, startOfWeek, endOfWeek, setHours, setMinutes, getDay, format } from "date-fns";
 import { sendSMS } from "@/lib/sms";
 import { fr } from "date-fns/locale";
+import { PlaningWithIntercessor } from "@/lib/types";
 // Vérification accès Leader
 async function checkLeader() {
   const session = await getServerSession(authOptions);
@@ -25,72 +26,26 @@ export async function getPlanningEvents(startDate: Date, endDate: Date) {
   await checkLeader();
 
   // 1. Récupérer les événements "Réels" (Planning) dans la plage
-  const realPlannings = await prisma.planning.findMany({
+  const realPlannings:PlaningWithIntercessor[] = await prisma.planning.findMany({
     where: {
-      startTime: { gte: startDate },
-      endTime: { lte: endDate },
+      date: { gte: startDate, lte: endDate },
+      specialEventId: null
     },
     include: {
-      intercessors: { select: { id: true, name: true, image: true } }
+      intercessors: true 
     }
+    
   });
 
-  // 2. Récupérer les modèles récurrents (RecurringSchedule)
-  const recurringSchedules = await prisma.recurringSchedule.findMany();
-
-  // 3. Générer les occurrences "Virtuelles" pour la plage de dates
-  const virtualEvents = [];
-  
-  // On parcourt chaque jour de la plage demandée
-  let current = new Date(startDate);
-  while (current <= endDate) {
-    const dayIndex = getDay(current); // 0-6
-
-    // On cherche les modèles qui correspondent à ce jour de la semaine
-    const schedulesForDay = recurringSchedules.filter(s => s.dayOfWeek === dayIndex);
-
-    for (const schedule of schedulesForDay) {
-      // Vérifier s'il existe DÉJÀ un événement réel lié à ce modèle pour ce jour précis
-      // On compare les dates (sans les heures) ou via l'ID de récurrence si on l'a stocké
-      // Pour simplifier ici : on regarde si un event réel existe ce jour là avec le même recurringId
-      // Ou on part du principe que si le leader a créé un event ce jour là, ça remplace.
-      
-      const startOfDay = new Date(current);
-      startOfDay.setHours(schedule.startTime.getHours(), schedule.startTime.getMinutes());
-      
-      const endOfDay = new Date(current);
-      endOfDay.setHours(schedule.endTime.getHours(), schedule.endTime.getMinutes());
-
-      const exists = realPlannings.find(p => 
-        p.recurringId === schedule.id && 
-        p.startTime.getDate() === current.getDate() &&
-        p.startTime.getMonth() === current.getMonth()
-      );
-
-      if (!exists) {
-        // Création de l'événement virtuel
-        virtualEvents.push({
-          id: `virtual-${schedule.id}-${format(current, 'yyyy-MM-dd')}`, // ID temporaire unique
-          isVirtual: true, // Indicateur pour le frontend
-          recurringId: schedule.id,
-          title: schedule.title,
-          description: schedule.description,
-          startTime: startOfDay,
-          endTime: endOfDay,
-          intercessors: [] // Pas d'intercesseurs par défaut sur un virtuel
-        });
-      }
-    }
-    current = addDays(current, 1);
-  }
-
   // Fusionner et trier
-  const allEvents = [...realPlannings, ...virtualEvents].sort((a, b) => 
+  const allEvents = realPlannings.sort((a, b) => 
     new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
   );
 
   return { success: true, data: allEvents };
 }
+
+
 
 // --- ACTIONS D'ÉCRITURE ---
 
@@ -99,16 +54,15 @@ export async function createRecurringSchedule(data: any) {
   await checkLeader();
   
   // data: { title, description, dayOfWeek, startTime (HH:mm), endTime (HH:mm) }
-  const start = new Date(`1970-01-01T${data.startTime}:00`);
-  const end = new Date(`1970-01-01T${data.endTime}:00`);
+  
 
   await prisma.recurringSchedule.create({
     data: {
       title: data.title,
       description: data.description,
       dayOfWeek: parseInt(data.dayOfWeek),
-      startTime: start,
-      endTime: end,
+      startTime: data.startTime,
+      endTime: data.endTime,
     }
   });
   
@@ -120,15 +74,12 @@ export async function createRecurringSchedule(data: any) {
 export async function savePlanningEvent(data: any) {
   await checkLeader();
 
-  const { id, title, description, startTime, endTime, intercessorIds, recurringId, specialEventId } = data;
+  const { id, title, description, startTime, endTime, intercessorIds, recurringId, specialEventId, date } = data;
   const connectIntercessors = intercessorIds.map((id: string) => ({ id }));
 
-  // Date formatée pour le SMS (ex: "Lundi 24 Oct à 19h00")
-  const dateStr = format(new Date(startTime), "EEEE d MMM 'à' HH'h'mm", { locale: fr });
 
-  if (id && !id.startsWith("virtual-")) {
-    // --- CAS UPDATE : On notifie seulement les nouveaux ---
-    
+
+  if (id) {
     // 1. Récupérer l'état actuel pour comparer
     const currentEvent = await prisma.planning.findUnique({
       where: { id },
@@ -143,8 +94,8 @@ export async function savePlanningEvent(data: any) {
       where: { id },
       data: {
         title, description,
-        startTime: new Date(startTime),
-        endTime: new Date(endTime),
+        startTime: startTime,
+        endTime: endTime,
         intercessors: { set: connectIntercessors }
       }
     });
@@ -161,7 +112,7 @@ export async function savePlanningEvent(data: any) {
         if (user.phone) {
           sendSMS(
             user.phone, 
-            `Bonjour ${user.name}, LE MDPI vous informa que vous êtes de service le  ${dateStr} à ${startTime}. Merci de consulter le planing. Excellente journée !`
+            `Bonjour ${user.name}, LE MDPI vous informa que vous êtes de service le  ${ format(date,  "dd:MM:yyyy")},  à ${startTime}. Merci de consulter le planing. Excellente journée !`
           );
         }
       });
@@ -173,11 +124,12 @@ export async function savePlanningEvent(data: any) {
     await prisma.planning.create({
       data: {
         title, description,
-        startTime: new Date(startTime),
-        endTime: new Date(endTime),
+        startTime: startTime,
+        endTime: endTime,
         recurringId: recurringId || null,
         specialEventId: specialEventId || null,
-        intercessors: { connect: connectIntercessors }
+        intercessors: { connect: connectIntercessors },
+        date: date
       }
     });
 
@@ -192,7 +144,7 @@ export async function savePlanningEvent(data: any) {
         if (user.phone) {
           sendSMS(
             user.phone, 
-            `Bonjour ${user.name}, vous avez été programmé pour "${title}" le ${dateStr}.`
+            `Bonjour ${user.name}, vous avez été programmé pour "${title}" le ${ format(date, 'DD:mm:yyy')}.`
           );
         }
       });

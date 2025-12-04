@@ -11,8 +11,9 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import Link from "next/link";
 import { EventFormModal } from "./EventFormModal"; // Import du nouveau composant
+import { SpecialEventWithTemplate } from "@/lib/types";
 
-export function EventList({ events }: { events: any[] }) {
+export function EventList({ events }: { events: SpecialEventWithTemplate[] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any | null>(null);
 

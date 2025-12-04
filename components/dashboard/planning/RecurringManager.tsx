@@ -195,8 +195,7 @@ export function RecurringManager({ isOpen, onClose, onRefresh }: RecurringManage
                     )}
                     {schedules.map((item) => {
                         // Formattage de l'heure
-                        const start = new Date(item.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                        const end = new Date(item.endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        
                         const dayLabel = DAYS.find(d => d.value === item.dayOfWeek.toString())?.label || "Jour inconnu";
 
                         return (
@@ -207,7 +206,7 @@ export function RecurringManager({ isOpen, onClose, onRefresh }: RecurringManage
                                         <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-medium">
                                             {dayLabel}
                                         </span>
-                                        <span>{start} - {end}</span>
+                                        <span>{item.startTime} - {item.endTime}</span>
                                     </div>
                                 </div>
                                 <Button 

@@ -136,8 +136,8 @@ model Planning {
   id            String   @id @default(cuid())
   
   // Date et Heure précises de l'événement réel
-  startTime     DateTime
-  endTime       DateTime
+  startTime     String
+  endTime       String
   
   title         String   
   description   String?
@@ -150,6 +150,7 @@ model Planning {
 
   intercessors  User[]   
 
+  date          DateTime
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -164,8 +165,8 @@ model RecurringSchedule {
   
   // Pour stocker l'heure, on utilise DateTime (on ignorera la date) ou String "HH:mm"
   // DateTime est plus simple pour les comparaisons Prisma, on utilisera une date fixe (ex: 1970-01-01)
-  startTime   DateTime 
-  endTime     DateTime 
+  startTime   String
+  endTime     String
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -199,8 +200,9 @@ model EventTemplate {
   title          String       // Ex: "Session du Soir"
   
   // On stocke l'heure sur une date fictive (ex: 1970-01-01)
-  startTime      DateTime 
-  endTime        DateTime 
+  startTime      String
+  endTime        String 
+
 
   specialEventId String
   specialEvent   SpecialEvent @relation(fields: [specialEventId], references: [id], onDelete: Cascade)

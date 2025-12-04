@@ -9,6 +9,7 @@ import { Plus, Trash2, Clock, ArrowDownAZ, Loader2 } from "lucide-react";
 import { createSpecialEvent, updateSpecialEvent } from "@/app/actions/event";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { SpecialEventWithTemplate } from "@/lib/types";
 
 type Template = {
   title: string;
@@ -19,7 +20,7 @@ type Template = {
 interface EventFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  eventToEdit?: any | null; // Si présent, on est en mode édition
+  eventToEdit?: SpecialEventWithTemplate | null; // Si présent, on est en mode édition
 }
 
 export function EventFormModal({ isOpen, onClose, eventToEdit }: EventFormModalProps) {
@@ -51,8 +52,8 @@ export function EventFormModal({ isOpen, onClose, eventToEdit }: EventFormModalP
         if (eventToEdit.templates && eventToEdit.templates.length > 0) {
             setTemplates(eventToEdit.templates.map((t: any) => ({
                 title: t.title,
-                startTime: format(new Date(t.startTime), "HH:mm"),
-                endTime: format(new Date(t.endTime), "HH:mm"),
+                startTime: t.startTime,
+                endTime: t.endTime,
             })));
         } else {
             setTemplates([{ title: "Session", startTime: "09:00", endTime: "10:00" }]);

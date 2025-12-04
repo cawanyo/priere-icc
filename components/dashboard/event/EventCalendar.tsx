@@ -9,18 +9,19 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Plus, CalendarCheck } from "lucide-react";
 import { EventModal } from "../planning/EventModal"; // Réutilisation de la modale
 import { useRouter } from "next/navigation";
+import { Planing, PlaningWithIntercessor, SpecialEventWithPlaning } from "@/lib/types";
 
 interface EventCalendarProps {
-  event: any;
-  calendarData: any[];
+  specialEvent: SpecialEventWithPlaning;
+ 
 }
 
-export function EventCalendar({ event, calendarData }: EventCalendarProps) {
+export function EventCalendar({specialEvent }: EventCalendarProps) {
   // On commence le calendrier à la date de début de l'événement
   const today = new Date()
-  const eventStartDate = new Date(event.startDate)
+  const eventStartDate = new Date(specialEvent.startDate)
   const [currentDate, setCurrentDate] = useState(today > eventStartDate ? today : eventStartDate);
-  const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState< PlaningWithIntercessor | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
 
@@ -32,9 +33,10 @@ export function EventCalendar({ event, calendarData }: EventCalendarProps) {
     router.refresh();
   };
 
-  const handleEventClick = (evt: any) => {
+  const handleEventClick = (evt: PlaningWithIntercessor, day: Date) => {
     setSelectedEvent(evt);
     setIsModalOpen(true);
+    setCurrentDate(day)
   };
 
   // Générer les jours de la semaine affichée
@@ -67,12 +69,12 @@ export function EventCalendar({ event, calendarData }: EventCalendarProps) {
       <Button variant="outline" size="icon" onClick={prevWeek} className="md:hidden"><ChevronLeft className="h-4 w-4 "/></Button>
         {days.map((day) => {
             // Filtrer les événements pour ce jour
-            const dayEvents = calendarData.filter(e => isSameDay(new Date(e.startTime), day));
+            const dayEvents = specialEvent.plannings.filter(e => isSameDay(e.date, day));
             
             // Vérifier si le jour est DANS la période de l'événement
             const isEventDay = isWithinInterval(day, {
-                start: new Date(event.startDate),
-                end: new Date(event.endDate)
+                start: new Date(specialEvent.startDate),
+                end: new Date(specialEvent.endDate)
             });
 
             return (
@@ -95,19 +97,16 @@ export function EventCalendar({ event, calendarData }: EventCalendarProps) {
                     {dayEvents.map(evt => (
                         <Card 
                             key={evt.id}
-                            onClick={() => handleEventClick(evt)}
+                            onClick={() => handleEventClick(evt, day)}
                             className={`p-3 cursor-pointer hover:shadow-md transition-all border-l-4 text-left space-y-1 bg-white
-                                ${evt.isVirtual 
-                                    ? 'border-l-gray-300 border-dashed opacity-80' 
-                                    : 'border-l-pink-500'
-                                }`}
+                                `}
                         >
                             <div className="flex justify-between items-start">
                                 <span className="font-semibold text-sm truncate w-full">{evt.title}</span>
-                                {!evt.isVirtual && <CalendarCheck className="h-3 w-3 text-pink-500 shrink-0 ml-1" />}
+                                <CalendarCheck className="h-3 w-3 text-pink-500 shrink-0 ml-1" />
                             </div>
                             <p className="text-xs text-gray-500">
-                                {format(new Date(evt.startTime), "HH:mm")} - {format(new Date(evt.endTime), "HH:mm")}
+                                {evt.startTime} - {evt.endTime}
                             </p>
 
                             {/* Avatars Intercesseurs */}
@@ -130,29 +129,7 @@ export function EventCalendar({ event, calendarData }: EventCalendarProps) {
                         </Card>
                     ))}
 
-                    {/* Bouton "+" (Uniquement si le jour fait partie de l'événement) */}
-                    {isEventDay && (
-                        <div 
-                            className="flex-1 min-h-[40px] rounded hover:bg-gray-200/50 cursor-pointer flex items-center justify-center group transition-colors mt-2"
-                            onClick={() => {
-                                const start = new Date(day);
-                                start.setHours(9, 0, 0, 0); 
-                                const end = new Date(start);
-                                end.setHours(10, 0, 0, 0);
-                                setSelectedEvent({
-                                    isVirtual: true,
-                                    startTime: start,
-                                    endTime: end,
-                                    title: "Session Spéciale",
-                                    intercessors: [],
-                                    specialEventId: event.id // Lien crucial pour le backend
-                                });
-                                setIsModalOpen(true);
-                            }}
-                        >
-                            <Plus className="h-4 w-4 text-gray-300 group-hover:text-gray-500" />
-                        </div>
-                    )}
+                    
                 </div>
             )
         })}
@@ -167,6 +144,7 @@ export function EventCalendar({ event, calendarData }: EventCalendarProps) {
           onClose={() => setIsModalOpen(false)}
           event={selectedEvent}
           onRefresh={handleRefresh}
+          date= {currentDate}
       />
     </div>
   );

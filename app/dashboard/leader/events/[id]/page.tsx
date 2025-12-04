@@ -10,9 +10,9 @@ import { EventCalendar } from "@/components/dashboard/event/EventCalendar";
 // Note: Pour Next.js 15, les params sont une Promise
 export default async function EventPlanningPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { event, calendar, success } = await getEventDetails(id);
+  const { event: specialEvent, success } = await getEventDetails(id);
 
-  if (!success || !event) return <div>Événement introuvable</div>;
+  if (!success || !specialEvent) return <div>Événement introuvable</div>;
 
   return (
     <div className="flex-1 space-y-6 p-8 pt-6 bg-gray-50/30 min-h-screen">
@@ -24,13 +24,13 @@ export default async function EventPlanningPage({ params }: { params: Promise<{ 
                 <Link href="/dashboard/leader/events"><ArrowLeft className="h-6 w-6" /></Link>
             </Button>
             <div>
-                <h2 className="text-2xl font-serif font-bold text-indigo-900">{event.title}</h2>
+                <h2 className="text-2xl font-serif font-bold text-indigo-900">{specialEvent.title}</h2>
                 <p className="text-sm text-muted-foreground">Gestion du planning spécifique</p>
             </div>
         </div>
 
         {/* --- BOUTON D'EXPORT PDF --- */}
-        <div>
+        {/* <div>
             <DownloadPlanningButton 
                 events={calendar || []} // On passe tout le calendrier de l'événement
                 title={event.title}
@@ -39,11 +39,11 @@ export default async function EventPlanningPage({ params }: { params: Promise<{ 
                 endDate={new Date(event.endDate)}
                 fileName={`programme-${event.title.toLowerCase().replace(/\s+/g, '-')}.pdf`}
             />
-        </div>
+        </div> */}
       </div>
 
       {/* Le calendrier interactif */}
-      <EventCalendar event={event} calendarData={calendar || []} />
+      <EventCalendar specialEvent={specialEvent} />
     </div>
   );
 }

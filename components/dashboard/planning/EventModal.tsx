@@ -22,16 +22,19 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { PlaningWithIntercessor } from "@/lib/types";
 
 interface EventModalProps {
-  event: any | null; // L'événement sélectionné (contient la date complète)
+  event: PlaningWithIntercessor | null; // L'événement sélectionné (contient la date complète)
   isOpen: boolean;
   onClose: () => void;
   onRefresh: () => void;
+  date: Date
 }
 
-export function EventModal({ event, isOpen, onClose, onRefresh }: EventModalProps) {
+export function EventModal({ event, isOpen, onClose, onRefresh, date}: EventModalProps) {
   const [formData, setFormData] = useState({
+    date: format(date, "yyyy-MM-dd"),
     title: "",
     description: "",
     startTime: "", // Stockera "HH:mm"
@@ -43,11 +46,12 @@ export function EventModal({ event, isOpen, onClose, onRefresh }: EventModalProp
   useEffect(() => {
     if (event) {
       setFormData({
+        date: format(date, "yyyy-MM-dd"),
         title: event.title || "",
         description: event.description || "",
         // On extrait juste l'heure pour l'affichage
-        startTime: format(new Date(event.startTime), "HH:mm"),
-        endTime: format(new Date(event.endTime), "HH:mm"),
+        startTime: event.startTime,
+        endTime: event.endTime,
         intercessorIds: event.intercessors ? event.intercessors.map((i: any) => i.id) : []
       });
     }
@@ -56,24 +60,17 @@ export function EventModal({ event, isOpen, onClose, onRefresh }: EventModalProp
   const handleSave = async () => {
     setLoading(true);
 
-    // Fonction utilitaire pour remettre l'heure dans la date d'origine
-    const mergeDateAndTime = (baseDate: Date, timeStr: string) => {
-        const date = new Date(baseDate);
-        const [hours, minutes] = timeStr.split(':').map(Number);
-        date.setHours(hours, minutes, 0, 0);
-        return date;
-    };
-
     const payload = {
-        id: event.id,
-        recurringId: event.recurringId,
-        specialEventId: event.specialEventId,
+        id: event?.id,
+        recurringId: event?.recurringId,
+        specialEventId: event?.specialEventId,
         title: formData.title,
         description: formData.description,
         // On fusionne la date originale avec la nouvelle heure
-        startTime: mergeDateAndTime(new Date(event.startTime), formData.startTime),
-        endTime: mergeDateAndTime(new Date(event.endTime), formData.endTime),
-        intercessorIds: formData.intercessorIds
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        intercessorIds: formData.intercessorIds,
+        date: formData.date
     };
     
     const res = await savePlanningEvent(payload);
@@ -89,8 +86,8 @@ export function EventModal({ event, isOpen, onClose, onRefresh }: EventModalProp
   };
 
   const handleDelete = async () => {
-    if(!event.id || event.id.startsWith("virtual-")) return; 
-
+   
+    if(!event) return ;
 
     setLoading(true);
     await deletePlanningEvent(event.id);
@@ -104,13 +101,17 @@ export function EventModal({ event, isOpen, onClose, onRefresh }: EventModalProp
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{event?.isVirtual ? "Créer le créneau" : "Modifier le créneau"}</DialogTitle>
+          <DialogTitle>{"Modifier le créneau"}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4 py-4">
             <div className="grid gap-2">
                 <Label>Titre</Label>
                 <Input value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
+            </div>
+            <div className="grid gap-2">
+                <Label>Date</Label>
+                <Input value={formData.date}  type={"date"} onChange={e => setFormData({...formData, date: e.target.value})} />
             </div>
             
             <div className="grid grid-cols-2 gap-4">
@@ -147,7 +148,7 @@ export function EventModal({ event, isOpen, onClose, onRefresh }: EventModalProp
         </div>
 
         <DialogFooter className="flex justify-between sm:justify-between">
-            {event && !event.isVirtual && (
+            {event  && (
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
                         <Button variant="destructive" disabled={loading}>

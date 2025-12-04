@@ -11,13 +11,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getPlanningEvents } from "@/app/actions/planing";
 import { RecurringManager } from "./RecurringManager";
 import { DownloadPlanningButton } from "@/components/pdf/DownloadPlanningButton"; // Import du bouton
+import { PlaningWithIntercessor } from "@/lib/types";
 export function PlanningCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<PlaningWithIntercessor[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRecurringOpen, setIsRecurringOpen] = useState(false);
-
+  const [modalDate, setModalDate] = useState(new Date())
 
   const startOfWeekDate = startOfWeek(currentDate, { weekStartsOn: 1 });
   const endOfWeekDate = endOfWeek(currentDate, { weekStartsOn: 1 });
@@ -37,31 +38,24 @@ export function PlanningCalendar() {
     loadEvents();
   }, [currentDate]);
 
-  // Navigation
+
   const nextWeek = () => setCurrentDate(addWeeks(currentDate, 1));
   const prevWeek = () => setCurrentDate(addWeeks(currentDate, -1));
 
   // Création d'un nouvel événement vierge
   const handleCreateNew = () => {
-    const start = new Date(currentDate);
-    start.setHours(9, 0, 0, 0); // Par défaut 9h aujourd'hui (ou début de semaine)
-    const end = new Date(start);
-    end.setHours(10, 0, 0, 0);
-
-    setSelectedEvent({
-        isVirtual: true, // Considéré comme nouveau
-        startTime: start,
-        endTime: end,
-        title: "",
-        intercessors: []
-    });
+    setModalDate(new Date())
+    console.log(new Date(), modalDate)
     setIsModalOpen(true);
   };
 
-  const handleEventClick = (event: any) => {
+  const handleEventClick = (event: any, day: Date) => {
     setSelectedEvent(event);
+    setModalDate(day)
     setIsModalOpen(true);
   };
+
+
 
   // Groupement par jour pour l'affichage
   const days = [];
@@ -94,6 +88,7 @@ export function PlanningCalendar() {
                     endDate={endOfWeekDate}
                     fileName={`planning-semaine-${format(startOfWeekDate, "ww")}.pdf`}
                 />
+
                 <Button 
                     variant="outline" 
                     onClick={() => setIsRecurringOpen(true)}
@@ -113,7 +108,7 @@ export function PlanningCalendar() {
             <Button variant="outline" size="icon" onClick={prevWeek} className="md:hidden"><ChevronLeft className="h-4 w-4"/></Button>
 
             {days.map((day) => {
-                const dayEvents = events.filter(e => isSameDay(new Date(e.startTime), day));
+                const dayEvents = events.filter(e => isSameDay(e.date, day));
                 const isToday = isSameDay(day, new Date());
 
                 return (
@@ -132,13 +127,13 @@ export function PlanningCalendar() {
                         {dayEvents.map((evt) => (
                             <Card 
                                 key={evt.id} 
-                                onClick={() => handleEventClick(evt)}
-                                className={`p-3 cursor-pointer hover:shadow-md transition-all border-l-4 text-left space-y-2 ${evt.isVirtual ? 'border-l-gray-300 opacity-70 border-dashed border' : 'border-l-indigo-500 border-indigo-100'}`}
+                                onClick={() => handleEventClick(evt, evt.date)}
+                                className={`p-3 cursor-pointer hover:shadow-md transition-all border-l-4 text-left space-y-2 `}
                             >
                                 <div>
                                     <p className="font-semibold text-sm text-gray-900 truncate">{evt.title}</p>
                                     <p className="text-xs text-gray-500">
-                                        {format(new Date(evt.startTime), "HH:mm")} - {format(new Date(evt.endTime), "HH:mm")}
+                                        {`${evt.startTime} - ${evt.endTime} `}
                                     </p>
                                 </div>
                                 
@@ -167,14 +162,7 @@ export function PlanningCalendar() {
                         {/* Zone vide cliquable pour ajouter */}
                         <div 
                             className="flex-1 min-h-[50px] rounded hover:bg-gray-100/50 cursor-pointer flex items-center justify-center group"
-                            onClick={() => {
-                                const start = new Date(day);
-                                start.setHours(12, 0, 0, 0);
-                                const end = new Date(start);
-                                end.setHours(13, 0, 0, 0);
-                                setSelectedEvent({ isVirtual: true, startTime: start, endTime: end, title: "Nouveau", intercessors: [] });
-                                setIsModalOpen(true);
-                            }}
+                            onClick={() => handleEventClick(null, day)}
                         >
                             <Plus className="h-5 w-5 text-gray-300 group-hover:text-gray-400" />
                         </div>
@@ -187,6 +175,7 @@ export function PlanningCalendar() {
         </div>
 
         <EventModal 
+            date = {modalDate}
             isOpen={isModalOpen} 
             onClose={() => setIsModalOpen(false)} 
             event={selectedEvent} 

@@ -4,7 +4,6 @@ import { EventList } from "@/components/dashboard/event/EventList";
 
 export default async function EventsPage() {
   const { data: events } = await getSpecialEvents();
-
   return (
     <div className="flex-1 space-y-8 p-8 pt-6 bg-gray-50/30 min-h-screen">
       <div>
