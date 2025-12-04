@@ -129,14 +129,14 @@ export async function updateSpecialEvent(data: any) {
   const { id, title, description, startDate, endDate, templates } = data;
 
   // Tri des templates par heure
+  console.log(templates)
   const sortedTemplates = [...templates].sort((a: any, b: any) => 
     a.startTime.localeCompare(b.startTime)
   );
 
-  // On utilise une transaction pour garantir l'intégrité
-  await prisma.$transaction(async (tx) => {
+
     // 1. Mettre à jour les infos de l'événement
-    await tx.specialEvent.update({
+    await prisma.specialEvent.update({
       where: { id },
       data: {
         title,
@@ -148,12 +148,12 @@ export async function updateSpecialEvent(data: any) {
 
     // 2. Remplacer les templates (Supprimer tout + Créer tout)
     // C'est la méthode la plus propre pour gérer les ajouts/suppressions/modifs multiples
-    await tx.eventTemplate.deleteMany({
+    await prisma.eventTemplate.deleteMany({
       where: { specialEventId: id }
     });
 
     if (sortedTemplates.length > 0) {
-      await tx.eventTemplate.createMany({
+      await prisma.eventTemplate.createMany({
         data: sortedTemplates.map((t: any) => ({
           specialEventId: id,
           title: t.title,
@@ -162,7 +162,7 @@ export async function updateSpecialEvent(data: any) {
         }))
       });
     }
-  });
+  
 
   revalidatePath("/dashboard/leader/events");
   return { success: true, message: "Événement mis à jour" };
