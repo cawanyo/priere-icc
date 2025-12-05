@@ -1,8 +1,9 @@
-export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic"; // Toujours important pour que les données soient fraîches
 
-import { getUsers, getAdminStats } from "@/app/actions/admin"; // Import getUsers
+import { Suspense } from "react"; // <--- IMPORT IMPORTANT
+import { getUsers, getAdminStats } from "@/app/actions/admin";
 
-import { PaginationControl } from "@/components/ui/pagination-control"; // Import Pagination
+import { PaginationControl } from "@/components/ui/pagination-control";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,12 +14,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
 import { UserActions } from "@/components/admin/UserActions";
 import { Role } from "@prisma/client";
+import { Loader2 } from "lucide-react";
 import { AdminStats } from "@/components/admin/AdminSats";
 import { UserFilters } from "@/components/admin/UseFilter";
 
-// Helper couleurs (inchangé)
+// Helper couleurs
 const getRoleBadgeColor = (role: Role) => {
   switch (role) {
     case "ADMIN": return "destructive";
@@ -48,7 +51,6 @@ export default async function AdminUsersPage({
   const params = await searchParams;
   const currentPage = Number(params.page) || 1;
   
-  // Récupération des données avec filtres
   const [usersRes, stats] = await Promise.all([
     getUsers({
         page: currentPage,
@@ -68,18 +70,18 @@ export default async function AdminUsersPage({
         <div>
             <h2 className="text-3xl font-serif font-bold tracking-tight text-indigo-900">Gestion des Utilisateurs</h2>
             <p className="text-muted-foreground">
-                Consultez et gérez les membres de la plateforme ({metadata?.totalCount || 0} total).
+                Consultez et gérez les membres ({metadata?.totalCount || 0} total).
             </p>
         </div>
       </div>
 
-      {/* Statistiques (Toujours visibles) */}
       <AdminStats stats={stats} />
 
-      {/* Filtres */}
-      <UserFilters />
+      {/* --- CORRECTION : SUSPENSE POUR LES FILTRES --- */}
+      <Suspense fallback={<div className="h-20 bg-white rounded-lg border animate-pulse" />}>
+        <UserFilters />
+      </Suspense>
 
-      {/* Tableau */}
       <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
         <Table>
           <TableHeader className="bg-gray-50">
@@ -88,7 +90,7 @@ export default async function AdminUsersPage({
               <TableHead>Identité</TableHead>
               <TableHead>Contact</TableHead>
               <TableHead>Rôle</TableHead>
-              <TableHead>Date d'inscription</TableHead>
+              <TableHead>Date</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -138,7 +140,7 @@ export default async function AdminUsersPage({
             ) : (
                 <TableRow>
                     <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                        Aucun utilisateur trouvé pour ces critères.
+                        Aucun utilisateur trouvé.
                     </TableCell>
                 </TableRow>
             )}
@@ -146,13 +148,15 @@ export default async function AdminUsersPage({
         </Table>
       </div>
 
-      {/* Pagination */}
+      {/* --- CORRECTION : SUSPENSE POUR LA PAGINATION --- */}
       {metadata && (
-        <PaginationControl 
-            totalPages={metadata.totalPages} 
-            currentPage={metadata.currentPage} 
-            className="justify-end"
-        />
+        <Suspense fallback={<div className="flex justify-end py-4"><Loader2 className="h-5 w-5 animate-spin text-gray-400"/></div>}>
+            <PaginationControl 
+                totalPages={metadata.totalPages} 
+                currentPage={metadata.currentPage} 
+                className="justify-end"
+            />
+        </Suspense>
       )}
     </div>
   );

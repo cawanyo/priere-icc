@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { format, isSameDay, startOfWeek, addWeeks, isWithinInterval } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -56,12 +55,12 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
         <div className="flex items-center gap-2">
             <Button variant="outline" size="icon" onClick={prevWeek}><ChevronLeft className="h-4 w-4 "/></Button>
             <span className="font-semibold text-lg w-32 text-center capitalize">
-                {format(currentDate, "MMMM yyyy", { locale: fr })}
+                {format(currentDate, "MMMM yyyy")}
             </span>
             <Button variant="outline" size="icon" onClick={nextWeek}><ChevronRight className="h-4 w-4"/></Button>
         </div>
         <div className="text-sm text-gray-500 font-medium">
-            Semaine du {format(days[0], "d")} au {format(days[6], "d MMM", { locale: fr })}
+            Semaine du {format(days[0], "d")} au {format(days[6], "d MMM")}
         </div>
       </div>
 
@@ -93,7 +92,7 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
                     {/* En-tête Jour */}
                     <div className="text-center mb-2">
                         <span className="block text-xs font-semibold text-gray-500 uppercase">
-                            {format(day, "EEEE", { locale: fr })}
+                            {format(day, "EEEE")}
                         </span>
                         <span className={`block text-xl font-bold ${isEventDay ? 'text-indigo-900' : 'text-gray-400'}`}>
                             {format(day, "d")}

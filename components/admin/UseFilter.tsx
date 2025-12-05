@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,27 +11,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, X, Filter } from "lucide-react";
+import { Search, X, Filter, Loader2 } from "lucide-react";
 
 export function UserFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  
+  // État local pour l'input
   const [searchValue, setSearchValue] = useState(searchParams.get("search") || "");
+  const [isSearching, setIsSearching] = useState(false);
 
+  // Fonction de mise à jour de l'URL
   const updateFilter = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     if (value && value !== "ALL") {
       params.set(key, value);
-      params.set("page", "1"); // Retour page 1 si filtre change
+      params.set("page", "1"); // Retour page 1 à chaque nouvelle recherche
     } else {
       params.delete(key);
     }
     router.push(`?${params.toString()}`);
   };
 
-  const handleSearch = () => {
-    updateFilter("search", searchValue);
-  };
+  // --- EFFET DE RECHERCHE LIVE (DEBOUNCE) ---
+  useEffect(() => {
+    // Si la valeur locale est différente de l'URL (l'utilisateur a tapé quelque chose)
+    const currentQuery = searchParams.get("search") || "";
+    
+    if (searchValue !== currentQuery) {
+        setIsSearching(true); // Petit indicateur visuel
+        
+        const timer = setTimeout(() => {
+            updateFilter("search", searchValue);
+            setIsSearching(false);
+        }, 500); // Délai de 500ms
+
+        return () => clearTimeout(timer); // Nettoyage si l'utilisateur tape encore
+    }
+  }, [searchValue, searchParams]); // Dépendances
 
   const resetFilters = () => {
     setSearchValue("");
@@ -43,22 +60,26 @@ export function UserFilters() {
   return (
     <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-lg border shadow-sm mb-6">
       
-      {/* Barre de Recherche */}
+      {/* Barre de Recherche Live */}
       <div className="flex w-full sm:max-w-md items-center space-x-2">
         <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            {/* Icône changeante : Loupe ou Spinner */}
+            <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400">
+                {isSearching ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                    <Search className="h-4 w-4" />
+                )}
+            </div>
+            
             <Input 
                 type="text" 
                 placeholder="Rechercher par nom ou email..." 
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 className="pl-9 bg-gray-50"
             />
         </div>
-        <Button size="sm" onClick={handleSearch} className="bg-indigo-900 hover:bg-indigo-800">
-            Rechercher
-        </Button>
       </div>
 
       {/* Filtre Rôle */}
