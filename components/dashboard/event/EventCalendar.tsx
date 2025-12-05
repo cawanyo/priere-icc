@@ -25,6 +25,7 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
 
+  console.log(specialEvent)
   // Navigation
   const nextWeek = () => setCurrentDate(addWeeks(currentDate, 1));
   const prevWeek = () => setCurrentDate(addWeeks(currentDate, -1));
@@ -70,7 +71,13 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
         {days.map((day) => {
             // Filtrer les événements pour ce jour
             const dayEvents = specialEvent.plannings.filter(e => isSameDay(e.date, day));
-            
+            dayEvents.sort((a,b) => {
+
+                const [aH, aM] = a.startTime.split(":").map(Number);
+                const [bH, bM] = b.startTime.split(":").map(Number);
+
+                return aH - bH || aM - bM;
+            })
             // Vérifier si le jour est DANS la période de l'événement
             const isEventDay = isWithinInterval(day, {
                 start: new Date(specialEvent.startDate),

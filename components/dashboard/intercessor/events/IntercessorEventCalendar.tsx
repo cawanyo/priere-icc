@@ -99,6 +99,13 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
                 return isDayMatch && isAssigned;
             });
 
+            dayEvents.sort((a,b) => {
+
+                const [aH, aM] = a.startTime.split(":").map(Number);
+                const [bH, bM] = b.startTime.split(":").map(Number);
+
+                return aH - bH || aM - bM;
+            })
             return (
                 <div 
                     key={day.toISOString()} 

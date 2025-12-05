@@ -25,6 +25,7 @@ export function IntercessorCalendar() {
         setEvents(res.data ?? []);
         setCurrentUserId(res.currentUserId?? "");
     }
+
   };
 
   useEffect(() => {
@@ -40,6 +41,8 @@ export function IntercessorCalendar() {
     dayIter.setDate(dayIter.getDate() + 1);
   }
 
+
+  console.log(events)
   return (
     <div className="space-y-6">
         

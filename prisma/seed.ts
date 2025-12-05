@@ -24,6 +24,11 @@ async function main() {
 
   // console.log({ admin });
   // const prayer = await prisma.prayer.deleteMany()
+
+
+  const a = await prisma.planning.deleteMany(
+    {where: {specialEventId: null}}
+  )
 }
 
 main()
