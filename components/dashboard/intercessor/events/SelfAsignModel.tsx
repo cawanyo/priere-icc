@@ -59,7 +59,7 @@ export function SelfAssignModal({ event, isOpen, onClose, isAssigned }: SelfAssi
             {isAssigned ? "Se retirer du créneau" : "S'inscrire au créneau"}
           </DialogTitle>
           <DialogDescription>
-            {format(new Date(event.startTime), "EEEE d MMMM", { locale: fr })} • {format(new Date(event.startTime), "HH:mm")} - {format(new Date(event.endTime), "HH:mm")}
+            {format(new Date(event.date), "EEEE d MMMM", { locale: fr })} • {event.startTime} - {event.endTime}
           </DialogDescription>
         </DialogHeader>
 

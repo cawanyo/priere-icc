@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 
 export default async function IntercessorEventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { event, calendar, currentUserId, success } = await getIntercessorEventDetails(id);
+  const { event, currentUserId, success } = await getIntercessorEventDetails(id);
 
   if (!success || !event) return <div>Événement introuvable</div>;
 
@@ -24,7 +24,6 @@ export default async function IntercessorEventDetailPage({ params }: { params: P
 
       <IntercessorEventCalendar 
         event={event} 
-        calendarData={calendar || []} 
         currentUserId={currentUserId || ""} 
       />
     </div>

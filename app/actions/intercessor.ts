@@ -41,60 +41,16 @@ export async function getIntercessorPlanning(startDate: Date, endDate: Date) {
     // 1. Récupérer les événements "Réels" (Planning)
     const realPlannings = await prisma.planning.findMany({
       where: {
-        startTime: { gte: startDate },
-        endTime: { lte: endDate },
+        date: { gte: startDate, lte: endDate },
+        specialEventId: null
       },
       include: {
-        intercessors: {
-          select: { id: true, name: true, image: true }
-        }
+        intercessors: true
       }
     });
 
-    // 2. Récupérer les modèles récurrents
-    const recurringSchedules = await prisma.recurringSchedule.findMany();
-
-    // 3. Générer les occurrences "Virtuelles"
-    const virtualEvents: any[] = [];
-    
-    let current = new Date(startDate);
-    while (current <= endDate) {
-      const dayIndex = getDay(current); // 0-6
-
-      const schedulesForDay = recurringSchedules.filter(s => s.dayOfWeek === dayIndex);
-
-      for (const schedule of schedulesForDay) {
-        // Calcul des dates précises pour ce jour
-        const startOfDay = new Date(current);
-        startOfDay.setHours(schedule.startTime.getHours(), schedule.startTime.getMinutes());
-        
-        const endOfDay = new Date(current);
-        endOfDay.setHours(schedule.endTime.getHours(), schedule.endTime.getMinutes());
-
-        // Vérifier si un événement réel remplace déjà cette occurrence
-        const exists = realPlannings.find(p => 
-          p.recurringId === schedule.id && 
-          p.startTime.getDate() === current.getDate() &&
-          p.startTime.getMonth() === current.getMonth()
-        );
-
-        if (!exists) {
-          virtualEvents.push({
-            id: `virtual-${schedule.id}-${format(current, 'yyyy-MM-dd')}`,
-            isVirtual: true, // Marqueur important
-            title: schedule.title,
-            description: schedule.description,
-            startTime: startOfDay,
-            endTime: endOfDay,
-            intercessors: [] // Pas d'intercesseurs sur un virtuel
-          });
-        }
-      }
-      current = addDays(current, 1);
-    }
-
     // 4. Fusionner et trier
-    const allEvents = [...realPlannings, ...virtualEvents].sort((a, b) => 
+    const allEvents = realPlannings.sort((a, b) => 
       new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
     );
 
@@ -124,58 +80,14 @@ export async function getIntercessorEventDetails(eventId: string) {
   
   const event = await prisma.specialEvent.findUnique({
     where: { id: eventId },
-    include: { templates: true }
+    include: {plannings: {include: {intercessors: true}}}
   });
 
   if (!event) return { success: false, error: "Événement introuvable" };
 
-  const realPlannings = await prisma.planning.findMany({
-    where: { specialEventId: eventId },
-    include: { 
-        intercessors: { select: { id: true, name: true, image: true } } 
-    }
-  });
+ 
 
-  const allSlots = [];
-  let current = new Date(event.startDate);
-  const end = new Date(event.endDate);
-
-  while (current <= end) {
-    for (const template of event.templates) {
-      const slotStart = new Date(current);
-      slotStart.setHours(template.startTime.getHours(), template.startTime.getMinutes());
-      
-      const slotEnd = new Date(current);
-      slotEnd.setHours(template.endTime.getHours(), template.endTime.getMinutes());
-
-      const real = realPlannings.find(p => 
-        isSameDay(p.startTime, current) && 
-        p.startTime.getHours() === slotStart.getHours() &&
-        p.startTime.getMinutes() === slotStart.getMinutes()
-      );
-
-      if (real) {
-        allSlots.push({ ...real, isVirtual: false });
-      } else {
-        allSlots.push({
-          id: `virtual-${template.id}-${format(current, 'yyyy-MM-dd')}`,
-          isVirtual: true,
-          title: template.title,
-          startTime: slotStart,
-          endTime: slotEnd,
-          // --- CORRECTION ICI : AJOUT DE L'ID DE L'ÉVÉNEMENT ---
-          specialEventId: event.id, 
-          // -----------------------------------------------------
-          intercessors: []
-        });
-      }
-    }
-    current = addDays(current, 1);
-  }
-
-  allSlots.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-
-  return { success: true, event, calendar: allSlots, currentUserId: user.id };
+  return { success: true, event, currentUserId: user.id };
 }
 
 
@@ -186,22 +98,7 @@ export async function selfAssignToEventSlot(slotData: any) {
   try {
     const { id, isVirtual, specialEventId, title, description, startTime, endTime, recurringId } = slotData;
 
-    if (isVirtual) {
-      // C'est un créneau virtuel (non existant en base Planning) -> On le crée
-      await prisma.planning.create({
-        data: {
-          title,
-          description,
-          startTime: new Date(startTime),
-          endTime: new Date(endTime),
-          specialEventId: specialEventId,
-          recurringId: recurringId || null,
-          intercessors: {
-            connect: { id: user.id } // On connecte l'utilisateur courant
-          }
-        }
-      });
-    } else {
+    
       // C'est un créneau réel -> On met à jour la liste des intercesseurs
       await prisma.planning.update({
         where: { id },
@@ -211,7 +108,7 @@ export async function selfAssignToEventSlot(slotData: any) {
           }
         }
       });
-    }
+    
 
     revalidatePath("/dashboard/user/intercessor/events");
     return { success: true, message: "Vous êtes inscrit sur ce créneau." };

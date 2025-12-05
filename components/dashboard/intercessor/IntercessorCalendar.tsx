@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, UserCheck, Repeat, Filter } from "lucide-react"; // Ajout icône Filter
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { PlaningWithIntercessor } from "@/lib/types";
 
 export function IntercessorCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<PlaningWithIntercessor[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showMyPlanningOnly, setShowMyPlanningOnly] = useState(false); // NOUVEL ÉTAT
 
@@ -29,7 +30,6 @@ export function IntercessorCalendar() {
   useEffect(() => {
     loadEvents();
   }, [currentDate]);
-
   const nextWeek = () => setCurrentDate(addWeeks(currentDate, 1));
   const prevWeek = () => setCurrentDate(addWeeks(currentDate, -1));
 
@@ -86,7 +86,7 @@ export function IntercessorCalendar() {
             {days.map((day) => {
                 // LOGIQUE DE FILTRE MISE À JOUR
                 const dayEvents = events.filter(e => {
-                    const isTodayEvent = isSameDay(new Date(e.startTime), day);
+                    const isTodayEvent = isSameDay(e.date, day);
                     if (!showMyPlanningOnly) return isTodayEvent; // Si pas de filtre, on garde tout
                     
                     // Si filtre actif, on garde seulement si l'user est assigné
@@ -116,7 +116,6 @@ export function IntercessorCalendar() {
                         ) : (
                             dayEvents.map((evt) => {
                                 const isAssigned = evt.intercessors?.some((u: any) => u.id === currentUserId);
-                                const isVirtual = evt.isVirtual;
 
                                 return (
                                     <Card 
@@ -124,8 +123,7 @@ export function IntercessorCalendar() {
                                         className={`p-3 text-left space-y-2 border-l-4 shadow-sm transition-all
                                             ${isAssigned 
                                                 ? 'border-l-pink-500 bg-pink-50/40 border-pink-100 ring-1 ring-pink-100' 
-                                                : isVirtual 
-                                                    ? 'border-l-gray-300 border-dashed bg-gray-50/50 opacity-80'
+
                                                     : 'border-l-indigo-300 border-gray-100'
                                             }`}
                                     >
@@ -135,10 +133,9 @@ export function IntercessorCalendar() {
                                                     {evt.title}
                                                 </p>
                                                 {isAssigned && <UserCheck className="h-3 w-3 text-pink-600 shrink-0" />}
-                                                {isVirtual && <Repeat className="h-3 w-3 text-gray-400 shrink-0" />}
                                             </div>
                                             <p className="text-[10px] text-gray-500 font-medium mt-0.5">
-                                                {format(new Date(evt.startTime), "HH:mm")} - {format(new Date(evt.endTime), "HH:mm")}
+                                                {evt.startTime} - {evt.endTime}
                                             </p>
                                         </div>
                                         
@@ -162,7 +159,7 @@ export function IntercessorCalendar() {
                     </div>
                 );
             })}
-            <div className="flex justify-end">
+            <div className="flex justify-end md:hidden">
                 <Button variant="outline" size="icon" onClick={nextWeek}><ChevronRight className="h-4 w-4"/></Button>
             </div>
         </div>

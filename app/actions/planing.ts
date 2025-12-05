@@ -129,7 +129,7 @@ export async function savePlanningEvent(data: any) {
         recurringId: recurringId || null,
         specialEventId: specialEventId || null,
         intercessors: { connect: connectIntercessors },
-        date: date
+        date: new Date(date)
       }
     });
 

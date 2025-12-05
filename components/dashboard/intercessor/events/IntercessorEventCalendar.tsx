@@ -9,14 +9,14 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, CalendarCheck, UserCheck, Filter, PlusCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { SelfAssignModal } from "./SelfAsignModel";
+import { SpecialEventWithPlaning } from "@/lib/types";
 
 interface IntercessorEventCalendarProps {
-  event: any;
-  calendarData: any[];
+  event: SpecialEventWithPlaning;
   currentUserId: string;
 }
 
-export function IntercessorEventCalendar({ event, calendarData, currentUserId }: IntercessorEventCalendarProps) {
+export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEventCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date(event.startDate));
   const [showMyPlanningOnly, setShowMyPlanningOnly] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<any | null>(null); // Créneau sélectionné
@@ -91,8 +91,8 @@ export function IntercessorEventCalendar({ event, calendarData, currentUserId }:
                 end: new Date(event.endDate)
             });
 
-            const dayEvents = calendarData.filter(e => {
-                const isDayMatch = isSameDay(new Date(e.startTime), day);
+            const dayEvents = event.plannings.filter(e => {
+                const isDayMatch = isSameDay(e.date, day);
                 if (!showMyPlanningOnly) return isDayMatch;
                 const isAssigned = e.intercessors?.some((u: any) => u.id === currentUserId);
                 return isDayMatch && isAssigned;
@@ -115,7 +115,6 @@ export function IntercessorEventCalendar({ event, calendarData, currentUserId }:
 
                     {dayEvents.map(evt => {
                         const isAssigned = evt.intercessors?.some((u: any) => u.id === currentUserId);
-                        const isVirtual = evt.isVirtual;
 
                         return (
                             <Card 
@@ -123,9 +122,7 @@ export function IntercessorEventCalendar({ event, calendarData, currentUserId }:
                                 onClick={() => handleSlotClick(evt)} // Clic activé !
                                 className={`p-3 text-left space-y-1 border-l-4 shadow-sm cursor-pointer hover:shadow-md transition-all group
                                     ${isAssigned 
-                                        ? 'border-l-pink-500 bg-pink-50/40 border-pink-100 ring-1 ring-pink-100' 
-                                        : isVirtual 
-                                            ? 'border-l-gray-300 border-dashed opacity-70 bg-white hover:opacity-100' 
+                                        ? 'border-l-pink-500 bg-pink-50/40 border-pink-100 ring-1 ring-pink-100'  
                                             : 'border-l-indigo-300 border-gray-100 bg-white'
                                     }`}
                             >
@@ -141,7 +138,7 @@ export function IntercessorEventCalendar({ event, calendarData, currentUserId }:
                                     )}
                                 </div>
                                 <p className="text-xs text-gray-500">
-                                    {format(new Date(evt.startTime), "HH:mm")} - {format(new Date(evt.endTime), "HH:mm")}
+                                    {evt.startTime} - {evt.endTime}
                                 </p>
 
                                 {evt.intercessors && evt.intercessors.length > 0 ? (
