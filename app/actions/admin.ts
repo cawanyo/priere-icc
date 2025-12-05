@@ -6,6 +6,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { Role } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { createNotification } from "./notifications";
+import { sendSMS } from "@/lib/sms";
 
 // Vérification de sécurité
 export async function checkAdmin() {
@@ -45,10 +47,25 @@ export async function deleteUser(userId: string) {
 export async function updateUserRole(userId: string, newRole: Role) {
   await checkAdmin();
   try {
-    await prisma.user.update({
+    const user = await prisma.user.update({
       where: { id: userId },
       data: { role: newRole },
     });
+
+
+    if(user){
+      await createNotification(
+        userId,
+        "Mise à jour Profil",
+        `Vous avez maintenant le profil ${newRole} sur la plateforme du MDPI`,
+        "INFO",
+        "/dashboard/user/profile"
+      );
+      // Optionnel : Notifier le refus
+      if(user.phone)
+        await sendSMS(user.phone, `Bonjour ${user.name}, Vous avez maintenant le profil ${newRole} sur la plateforme du MDPI.`);
+    }
+
     revalidatePath("/dashboard/admin/users");
     return { success: true, message: "Rôle mis à jour" };
   } catch (error) {

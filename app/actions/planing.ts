@@ -9,6 +9,7 @@ import { addDays, startOfWeek, endOfWeek, setHours, setMinutes, getDay, format }
 import { sendSMS } from "@/lib/sms";
 import { fr } from "date-fns/locale";
 import { PlaningWithIntercessor } from "@/lib/types";
+import { createNotification } from "./notifications";
 // Vérification accès Leader
 async function checkLeader() {
   const session = await getServerSession(authOptions);
@@ -104,18 +105,30 @@ export async function savePlanningEvent(data: any) {
     if (newIds.length > 0) {
       const newIntercessors = await prisma.user.findMany({
         where: { id: { in: newIds } },
-        select: { phone: true, name: true }
+        select: { phone: true, name: true, id:true }
       });
 
       // Envoi asynchrone (on n'attend pas la fin pour répondre au client)
-      newIntercessors.forEach(user => {
+
+      await Promise.all(newIntercessors.map(async (user) => {
+        await createNotification(
+        user.id,
+        "Programme",
+        `Vous êtes de service  le ${ format(date,  "dd:MM:yyyy")} à ${startTime}`,
+        "INFO",
+        `/dashboard/user/intercessor/events/${specialEventId}`
+        );
         if (user.phone) {
-          sendSMS(
+          await sendSMS(
             user.phone, 
-            `Bonjour ${user.name}, LE MDPI vous informa que vous êtes de service le  ${ format(date,  "dd:MM:yyyy")},  à ${startTime}. Merci de consulter le planing. Excellente journée !`
+            `Bonjour ${user.name}, LE MDPI vous informe que vous êtes de service le  ${ format(date,  "dd:MM:yyyy")},  à ${startTime}. Merci de consulter le planing. Excellente journée !`
           );
         }
-      });
+        }
+      )
+
+    
+    )
     }
 
   } else {

@@ -113,12 +113,15 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
                             {evt.intercessors && evt.intercessors.length > 0 ? (
                                 <div className="flex -space-x-2 overflow-hidden pt-2">
                                     {evt.intercessors.map((u: any) => (
-                                        <Avatar key={u.id} className="inline-block h-6 w-6 rounded-full ring-2 ring-white">
-                                            <AvatarImage src={u.image} />
-                                            <AvatarFallback className="text-[9px] bg-indigo-100 text-indigo-700">
-                                                {u.name?.slice(0,1)}
-                                            </AvatarFallback>
-                                        </Avatar>
+                                        <div key={u.id} className="flex items-center gap-1">
+                                            <Avatar key={u.id} className="inline-block h-4 w-4 rounded-full ring-2 ring-white">
+                                                <AvatarImage src={u.image} />
+                                                <AvatarFallback className="text-[9px] bg-indigo-100 text-indigo-700">
+                                                    {u.name?.slice(0,1)}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <p className="text-[8px]">{u.name}</p>
+                                        </div>
                                     ))}
                                 </div>
                             ) : (

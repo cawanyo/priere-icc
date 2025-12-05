@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { format, isSameDay, startOfWeek, addWeeks, isWithinInterval } from "date-fns";
+import { format, isSameDay, startOfWeek, addWeeks, isWithinInterval, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,6 +27,7 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
   const nextWeek = () => setCurrentDate(addWeeks(currentDate, 1));
   const prevWeek = () => setCurrentDate(addWeeks(currentDate, -1));
 
+  const canChangePosition = new Date() < addDays(event.startDate, -5)
   const handleSlotClick = (slot: any) => {
     setSelectedSlot(slot);
     setIsModalOpen(true);
@@ -119,7 +120,7 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
                         return (
                             <Card 
                                 key={evt.id}
-                                onClick={() => handleSlotClick(evt)} // Clic activé !
+                                onClick={() => canChangePosition && handleSlotClick(evt)} // Clic activé !
                                 className={`p-3 text-left space-y-1 border-l-4 shadow-sm cursor-pointer hover:shadow-md transition-all group
                                     ${isAssigned 
                                         ? 'border-l-pink-500 bg-pink-50/40 border-pink-100 ring-1 ring-pink-100'  
@@ -144,12 +145,15 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
                                 {evt.intercessors && evt.intercessors.length > 0 ? (
                                     <div className="flex -space-x-2 overflow-hidden pt-2">
                                         {evt.intercessors.map((u: any) => (
-                                            <Avatar key={u.id} className={`inline-block h-6 w-6 rounded-full ring-2 ${isAssigned ? 'ring-pink-50' : 'ring-white'}`}>
-                                                <AvatarImage src={u.image} />
-                                                <AvatarFallback className="text-[9px] bg-indigo-100 text-indigo-700">
-                                                    {u.name?.slice(0,1)}
-                                                </AvatarFallback>
-                                            </Avatar>
+                                           <div key={u.id} className="flex items-center gap-1">
+                                                <Avatar key={u.id} className="inline-block h-4 w-4 rounded-full ring-2 ring-white">
+                                                    <AvatarImage src={u.image} />
+                                                    <AvatarFallback className="text-[9px] bg-indigo-100 text-indigo-700">
+                                                        {u.name?.slice(0,1)}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <p className="text-[8px]">{u.name}</p>
+                                            </div>
                                         ))}
                                     </div>
                                 ) : (
