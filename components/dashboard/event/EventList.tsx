@@ -7,7 +7,7 @@ import { Plus, Calendar, ArrowRight, Trash2, MoreVertical, Edit } from "lucide-r
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { deleteSpecialEvent } from "@/app/actions/event";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import Link from "next/link";
 import { EventFormModal } from "./EventFormModal"; // Import du nouveau composant
 import { SpecialEventWithTemplate } from "@/lib/types";
@@ -75,11 +75,11 @@ export function EventList({ events }: { events: SpecialEventWithTemplate[] }) {
                         <div className="text-sm text-gray-500 flex items-center mb-4 bg-gray-50 p-2 rounded-md w-fit">
                             <Calendar className="h-4 w-4 mr-2 text-pink-500" />
                             <span className="font-medium">
-                                {format(new Date(evt.startDate), "d MMM")}
+                                {format(evt.startDate, "d MMM")}
                             </span>
                             <span className="mx-1.5">-</span>
                             <span className="font-medium">
-                                {format(new Date(evt.endDate), "d MMM yyyy")}
+                                {format(evt.endDate, "d MMM yyyy") }
                             </span>
                         </div>
                         
