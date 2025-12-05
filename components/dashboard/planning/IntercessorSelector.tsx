@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { getTeamMembers } from "@/app/actions/team"; // On réutilise cette action !
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface IntercessorSelectorProps {
   selectedIds: string[];
@@ -60,27 +61,29 @@ export function IntercessorSelector({ selectedIds, onChange }: IntercessorSelect
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0">
+        <PopoverContent className="w-full p-0 pointer-events-auto">
           <Command>
             <CommandInput placeholder="Rechercher un membre..." />
-            <CommandList>
+            <CommandList >
                 <CommandEmpty>Aucun membre trouvé.</CommandEmpty>
                 <CommandGroup>
-                {members.map((member) => (
-                    <CommandItem
-                    key={member.id}
-                    value={member.name}
-                    onSelect={() => toggleSelection(member.id)}
-                    >
-                    <Check
-                        className={cn(
-                        "mr-2 h-4 w-4",
-                        selectedIds.includes(member.id) ? "opacity-100" : "opacity-0"
-                        )}
-                    />
-                    {member.name}
-                    </CommandItem>
-                ))}
+                  <ScrollArea>
+                    {members.map((member) => (
+                        <CommandItem
+                        key={member.id}
+                        value={member.name}
+                        onSelect={() => toggleSelection(member.id)}
+                        >
+                        <Check
+                            className={cn(
+                            "mr-2 h-4 w-4",
+                            selectedIds.includes(member.id) ? "opacity-100" : "opacity-0"
+                            )}
+                        />
+                        {member.name}
+                        </CommandItem>
+                    ))} 
+                </ScrollArea>
                 </CommandGroup>
             </CommandList>
           </Command>

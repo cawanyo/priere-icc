@@ -11,10 +11,11 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { SpecialEventWithTemplate } from "@/lib/types";
 
-type Template = {
+export type Template = {
   title: string;
   startTime: string;
   endTime: string;
+  id?: string 
 };
 
 interface EventFormModalProps {
@@ -50,10 +51,11 @@ export function EventFormModal({ isOpen, onClose, eventToEdit }: EventFormModalP
         });
 
         if (eventToEdit.templates && eventToEdit.templates.length > 0) {
-            setTemplates(eventToEdit.templates.map((t: any) => ({
+            setTemplates(eventToEdit.templates.map((t) => ({
                 title: t.title,
                 startTime: t.startTime,
                 endTime: t.endTime,
+                id: t.id
             })));
         } else {
             setTemplates([{ title: "Session", startTime: "09:00", endTime: "10:00" }]);
@@ -107,6 +109,7 @@ export function EventFormModal({ isOpen, onClose, eventToEdit }: EventFormModalP
             ...formData,
             templates
         });
+        
     }
 
     setLoading(false);

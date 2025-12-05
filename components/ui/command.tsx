@@ -88,9 +88,10 @@ function CommandList({
 }: React.ComponentProps<typeof CommandPrimitive.List>) {
   return (
     <CommandPrimitive.List
+    onWheel={(e) => e.stopPropagation()}
       data-slot="command-list"
       className={cn(
-        "max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto",
+        "max-h-[300px] overflow-y-auto overflow-x-hidden pointer-events-auto overscroll-contain",
         className
       )}
       {...props}

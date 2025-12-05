@@ -6,7 +6,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { revalidatePath } from "next/cache";
 import { addDays, format, isSameDay } from "date-fns";
-import { SpecialEventWithPlaning } from "@/lib/types";
+import { SpecialEventWithPlaning, SpecialEventWithTemplate, TemplatePrisma } from "@/lib/types";
+import { Template } from "@/components/dashboard/event/EventFormModal";
+import { SpecialEvent } from "@prisma/client";
 
 async function checkLeader() {
   const session = await getServerSession(authOptions);
@@ -20,7 +22,7 @@ async function checkLeader() {
 
 // --- GESTION DES ÉVÉNEMENTS ---
 
-export async function createPlaningForEvent({event, templates}: {event:any, templates:any}) {
+export async function createPlaningForEvent(event:SpecialEvent, templates:TemplatePrisma[] ) {
   let current = event.startDate;
     const end = event.endDate;
     
@@ -34,16 +36,41 @@ export async function createPlaningForEvent({event, templates}: {event:any, temp
           endTime: t.endTime,
           date: current,
           specialEventId: event.id,
+          templateId: t.id
         });
       }
       current = addDays(current, 1);
     }
     
     // Create all records in one efficient batch
-    await prisma.planning.createMany({
-      data: records,
-    });
+    if (records.length > 0) {
+      await prisma.planning.createMany({
+        data: records,
+      });}
     
+}
+
+export async function updateTemplate(event:SpecialEvent, template:TemplatePrisma){
+
+  const t = await prisma.eventTemplate.update({
+    where: {id: template.id},
+    data: {
+      title: template.title,
+      startTime: template.startTime,
+      endTime: template.endTime
+    }
+  })
+
+  await prisma.planning.updateMany({
+    where: {
+      templateId: t.id
+    },
+    data: {
+      startTime: template.startTime,
+      endTime: template.endTime,
+      title: template.title
+    }
+  })
 }
 
 export async function createSpecialEvent(data: any) {
@@ -69,13 +96,14 @@ export async function createSpecialEvent(data: any) {
           endTime: t.endTime,
         }))
       }
-    }
+    },
+    include:{templates:true}
   });
-  if(event){
-    createPlaningForEvent({event, templates})
-    
+  if(!event){
+    return { success: false, message:'Evenement non créé' };
   }
 
+  await createPlaningForEvent(event, event.templates)
   revalidatePath("/dashboard/leader/events");
   return { success: true, message:'Evenement créé' };
 }
@@ -114,11 +142,6 @@ export async function updateSpecialEvent(data: any) {
   
   const { id, title, description, startDate, endDate, templates } = data;
 
-  const sortedTemplates = [...templates].sort((a: any, b: any) => 
-    a.startTime.localeCompare(b.startTime)
-  );
-
-
     // 1. Mettre à jour les infos de l'événement
     const event = await prisma.specialEvent.update({
       where: { id },
@@ -131,27 +154,39 @@ export async function updateSpecialEvent(data: any) {
     });
 
     // update templates
+    const templateIds = templates.map((t: any) => t.id).filter((id:any) => id);
+
+    // 2. Delete templates that has been removed 
     await prisma.eventTemplate.deleteMany({
-      where: { specialEventId: id }
+      where: {
+        specialEventId: id,
+        id: { notIn: templateIds }
+      },
+    });
+    await prisma.planning.deleteMany({
+      where: {
+        specialEventId: id,
+        templateId: { notIn: templateIds},
+      },
     });
 
-    if (sortedTemplates.length > 0) {
-      await prisma.eventTemplate.createMany({
-        data: sortedTemplates.map((t: any) => ({
-          specialEventId: id,
-          title: t.title,
-          startTime: t.startTime,
-          endTime: t.endTime,
-        }))
-      });
-    }
 
-    //update planings
-    await prisma.planning.deleteMany({
-      where: {specialEventId: id}
-    })
-
-    createPlaningForEvent({event, templates} )
+    for( const t of templates){
+      const exist = await prisma.eventTemplate.findFirst({where: {id:t.id ?? ""}})
+      if (exist) 
+        await updateTemplate(event, t);
+      else {
+        const templateCreated = await prisma.eventTemplate.create({
+          data: {
+            startTime: t.startTime,
+            endTime: t.endTime,
+            title: t.title,
+            specialEventId: event.id
+          }     
+        });
+        await createPlaningForEvent(event, [templateCreated])
+        }
+      }  
   
 
   revalidatePath("/dashboard/leader/events");

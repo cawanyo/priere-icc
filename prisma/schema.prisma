@@ -148,6 +148,9 @@ model Planning {
   specialEventId String?
   specialEvent   SpecialEvent? @relation(fields: [specialEventId], references: [id])
 
+  templateId    String?
+  template      EventTemplate? @relation(fields: [templateId], references: [id])
+
   intercessors  User[]   
 
   date          DateTime
@@ -206,6 +209,8 @@ model EventTemplate {
 
   specialEventId String
   specialEvent   SpecialEvent @relation(fields: [specialEventId], references: [id], onDelete: Cascade)
+
+  plannings Planning[]
 }
 
 

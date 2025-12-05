@@ -12,6 +12,10 @@ export type SpecialEventWithTemplate = Prisma.SpecialEventGetPayload<{
   };
 }>;
 
+export type SpecialEvent = Prisma.SpecialEventGetPayload<{
+
+}>;
+
 export type PlaningWithIntercessor = Prisma.PlanningGetPayload<{
   include: {
     intercessors: true
@@ -21,3 +25,5 @@ export type PlaningWithIntercessor = Prisma.PlanningGetPayload<{
 export type Planing = Prisma.PlanningGetPayload<{
 
 }>
+
+export type TemplatePrisma = Prisma.EventTemplateGetPayload<{}>

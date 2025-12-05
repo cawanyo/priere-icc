@@ -143,12 +143,15 @@ export function IntercessorCalendar() {
                                         {evt.intercessors && evt.intercessors.length > 0 && (
                                             <div className="flex -space-x-2 overflow-hidden pt-1">
                                                 {evt.intercessors.map((u: any) => (
-                                                    <Avatar key={u.id} className={`inline-block h-6 w-6 rounded-full ring-2 ${isAssigned ? 'ring-pink-50' : 'ring-white'}`}>
-                                                        <AvatarImage src={u.image} />
-                                                        <AvatarFallback className="text-[9px] bg-indigo-100 text-indigo-700">
-                                                            {u.name?.slice(0,1)}
-                                                        </AvatarFallback>
-                                                    </Avatar>
+                                                    <div className="flex items-center gap-1" key={u.id}>
+                                                        <Avatar key={u.id} className={`inline-block h-6 w-6 rounded-full ring-2 ${isAssigned ? 'ring-pink-50' : 'ring-white'}`}>
+                                                            <AvatarImage src={u.image} />
+                                                            <AvatarFallback className="text-[9px] bg-indigo-100 text-indigo-700">
+                                                                {u.name?.slice(0,1)}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <p className=" text-[9px]">{u.name.slice(0, 20)}</p>
+                                                    </div>
                                                 ))}
                                             </div>
                                         )}

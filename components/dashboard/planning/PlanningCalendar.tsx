@@ -45,7 +45,6 @@ export function PlanningCalendar() {
   // Création d'un nouvel événement vierge
   const handleCreateNew = () => {
     setModalDate(new Date())
-    console.log(new Date(), modalDate)
     setIsModalOpen(true);
   };
 

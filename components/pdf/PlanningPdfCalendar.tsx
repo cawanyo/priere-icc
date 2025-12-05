@@ -2,16 +2,15 @@
 "use client";
 
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, addWeeks, differenceInMinutes, setMinutes, setHours } from "date-fns";
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, addWeeks } from "date-fns";
 import { fr } from "date-fns/locale";
-// Assurez-vous que ce type correspond à votre schéma Prisma mis à jour
-import { PlaningWithIntercessor } from "@/lib/types"; 
+import { PlaningWithIntercessor } from "@/lib/types"; // Assurez-vous que ce chemin est correct
 
-// --- CONFIGURATION ---
-const NORMAL_HOUR_HEIGHT = 45; 
-const COLLAPSED_HEIGHT = 15;   
-const START_HOUR_DAY = 0;      
-const END_HOUR_DAY = 24;       
+// --- CONFIGURATION DU DESIGN ---
+const NORMAL_HOUR_HEIGHT = 50; // Hauteur d'une heure occupée (en points)
+const COLLAPSED_HEIGHT = 15;   // Hauteur d'une zone vide compressée
+const START_HOUR_DAY = 0;      // 00:00
+const END_HOUR_DAY = 24;       // 24:00
 
 const styles = StyleSheet.create({
   page: {
@@ -33,7 +32,7 @@ const styles = StyleSheet.create({
   docTitle: { fontSize: 14, color: "#1e1b4b", fontWeight: "bold", textTransform: "uppercase" },
   subTitle: { fontSize: 10, color: "#6b7280", marginTop: 2 },
   
-  // Grille
+  // Grille Semaine
   weekContainer: {
     flexDirection: "row",
     borderLeftWidth: 1,
@@ -41,20 +40,20 @@ const styles = StyleSheet.create({
     borderColor: "#e5e7eb",
   },
   
-  // Axe Temps
+  // Colonne Axe Temps (Gauche)
   timeAxisColumn: {
     width: 35,
     borderRightWidth: 1,
     borderColor: "#e5e7eb",
-    paddingTop: 26, 
+    paddingTop: 26, // S'aligne avec la hauteur du header jour
     backgroundColor: "#f9fafb",
   },
   timeLabel: {
     position: "absolute",
     right: 6,
     fontSize: 7,
-    color: "#9ca3af",
-    transform: "translateY(-4)",
+    color: "#6b7280",
+    transform: "translateY(-4)", // Centrage vertical sur la ligne
   },
   collapsedLabel: {
     width: "100%",
@@ -81,7 +80,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  dayName: { fontSize: 8, color: "#6b7280", textTransform: "uppercase", fontWeight: "bold" },
+  dayName: { fontSize: 8, color: "#4b5563", textTransform: "uppercase", fontWeight: "bold" },
   dayNumber: { fontSize: 10, color: "#1f2937", fontWeight: "bold" },
 
   // Grille de fond
@@ -91,27 +90,53 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
   },
   collapsedBlock: {
-    backgroundColor: "#fcfcfc",
+    backgroundColor: "#fcfcfc", // Gris très léger pour les zones vides
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
     borderStyle: "dashed",
   },
 
-  // Événements
+  // --- BLOCS ÉVÉNEMENTS ---
   eventBox: {
     position: "absolute",
     left: 2,
     right: 2,
-    backgroundColor: "#eef2ff",
+    backgroundColor: "#e0e7ff", // Indigo-100
     borderRadius: 3,
     padding: 3,
     borderLeftWidth: 3,
-    borderLeftColor: "#4f46e5",
+    borderLeftColor: "#4f46e5", // Indigo-600
     overflow: "hidden",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "flex-start",
   },
+  virtualEventBox: {
+    backgroundColor: "#ffffff", 
+    borderLeftColor: "#9ca3af",
+    borderWidth: 1,
+    borderStyle: "dashed",
+    opacity: 0.9,
+  },
+  
   eventTimeText: { fontSize: 6, color: "#4338ca", fontWeight: "bold", marginBottom: 1 },
   eventTitle: { fontSize: 7, color: "#1e1b4b", fontWeight: "bold", marginBottom: 1 },
-  intercessorsText: { fontSize: 5, color: "#4b5563" },
+  
+  // Liste des personnes
+  intercessorsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 2,
+    marginTop: 2,
+  },
+  intercessorBadge: {
+    fontSize: 6,
+    color: "#1e1b4b",
+    backgroundColor: "rgba(255,255,255,0.8)",
+    paddingHorizontal: 3,
+    paddingVertical: 1,
+    borderRadius: 2,
+  },
 
   footer: {
     marginTop: "auto",
@@ -122,14 +147,18 @@ const styles = StyleSheet.create({
   },
 });
 
+// Extension du type pour inclure la propriété virtuelle si besoin
+type CalendarEvent = PlaningWithIntercessor & { isVirtual?: boolean };
+
 interface PdfProps {
   title: string;
   subtitle: string;
-  events: PlaningWithIntercessor[];
+  events: CalendarEvent[];
   startDate: Date;
   endDate: Date;
 }
 
+// Structure d'un segment de temps pour l'axe Y
 type TimeSegment = {
   startHour: number;
   endHour: number;
@@ -138,57 +167,53 @@ type TimeSegment = {
   yStart: number;
 };
 
-// Helper pour convertir "Date + HH:mm" en objet Date complet
-const getEventDate = (baseDate: Date | string, timeStr: string) => {
-  const date = new Date(baseDate);
-  const [hours, minutes] = timeStr.split(':').map(Number);
-  date.setHours(hours, minutes, 0, 0);
-  return date;
-};
-
 export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDate }: PdfProps) {
   
   const weeks = [];
   let currentStart = startOfWeek(startDate, { weekStartsOn: 1 });
   
+  // Découpage en semaines
   while (currentStart <= endDate || weeks.length === 0) {
     const currentEnd = endOfWeek(currentStart, { weekStartsOn: 1 });
     const days = eachDayOfInterval({ start: currentStart, end: currentEnd });
     
-    // Filtrer les événements de la semaine via leur champ 'date'
+    // Filtrer les événements de la semaine
+    // On compare la date du jour (evt.date)
     const weekEvents = events.filter(e => {
       const d = new Date(e.date);
       return d >= currentStart && d <= currentEnd;
     });
 
-    // --- 1. CALCUL DES HEURES OCCUPÉES ---
+    // --- 1. CALCUL DES HEURES OCCUPÉES (Smart Axis) ---
+    // On crée une carte des 24h : true = occupée, false = vide
     const activeHours = new Array(24).fill(false);
 
     weekEvents.forEach(evt => {
-        // Parsing manuel des heures strings "HH:mm"
-        const [startHStr, startMStr] = evt.startTime.split(':');
+        // Parsing des heures "HH:mm"
+        const [startHStr] = evt.startTime.split(':');
         const [endHStr, endMStr] = evt.endTime.split(':');
         
-        const startH = parseInt(startHStr);
-        let endH = parseInt(endHStr);
-        const endM = parseInt(endMStr);
+        const startH = parseInt(startHStr, 10);
+        let endH = parseInt(endHStr, 10);
+        const endM = parseInt(endMStr, 10);
 
-        // Si ça finit à 10h30, on considère l'heure 10 comme occupée, jusqu'à 11h
+        // Si l'événement finit à 10h30, l'heure 10 est occupée jusqu'à 11h
         if (endM > 0) endH++; 
 
+        // Marquer les heures occupées
         for (let h = startH; h < endH; h++) {
             if (h >= 0 && h < 24) activeHours[h] = true;
         }
     });
 
-    // --- 2. CONSTRUCTION DES SEGMENTS ---
+    // --- 2. CRÉATION DES SEGMENTS (Normal vs Collapsed) ---
     const segments: TimeSegment[] = [];
     let currentY = 0;
-    let h = 0;
+    let h = START_HOUR_DAY;
 
-    while (h < 24) {
+    while (h < END_HOUR_DAY) {
         if (activeHours[h]) {
-            // Heure active -> Segment Normal
+            // Heure occupée -> Segment Normal (Grand)
             segments.push({
                 startHour: h,
                 endHour: h + 1,
@@ -199,12 +224,13 @@ export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDat
             currentY += NORMAL_HOUR_HEIGHT;
             h++;
         } else {
-            // Heure vide -> Segment Collapsed
+            // Heure vide -> Chercher la fin du trou
             let endEmpty = h + 1;
-            while (endEmpty < 24 && !activeHours[endEmpty]) {
+            while (endEmpty < END_HOUR_DAY && !activeHours[endEmpty]) {
                 endEmpty++;
             }
             
+            // Créer un segment compressé (Petit)
             segments.push({
                 startHour: h,
                 endHour: endEmpty,
@@ -224,7 +250,7 @@ export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDat
       totalHeight: currentY,
       days: days.map(day => ({
         date: day,
-        // On ne garde que les events de ce jour précis
+        // Associer les événements à leur jour précis
         events: weekEvents.filter(e => isSameDay(new Date(e.date), day))
       }))
     });
@@ -233,15 +259,17 @@ export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDat
     currentStart = addWeeks(currentStart, 1);
   }
 
-  // --- 3. FONCTION DE POSITIONNEMENT ---
+  // --- 3. FONCTION DE POSITIONNEMENT (Y) ---
   const getYPosition = (timeStr: string, segments: TimeSegment[]) => {
     const [h, m] = timeStr.split(':').map(Number);
 
+    // Trouver le segment correspondant à l'heure H
     const segment = segments.find(s => h >= s.startHour && h < s.endHour);
+    
     if (!segment) return 0;
 
     if (segment.type === 'normal') {
-        // Position proportionnelle dans l'heure
+        // Position proportionnelle aux minutes
         return segment.yStart + (m / 60) * segment.height;
     } else {
         // Position au début du bloc compressé
@@ -252,7 +280,7 @@ export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDat
   const calculateHeight = (startStr: string, endStr: string, segments: TimeSegment[]) => {
       const y1 = getYPosition(startStr, segments);
       const y2 = getYPosition(endStr, segments);
-      return Math.max(y2 - y1, 15); // Min 15px
+      return Math.max(y2 - y1, 15); // Minimum 15px de hauteur
   };
 
   return (
@@ -260,6 +288,7 @@ export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDat
       {weeks.map((week, idx) => (
         <Page key={idx} size="A4" orientation="landscape" style={styles.page}>
           
+          {/* En-tête */}
           <View style={styles.header}>
             <View style={styles.titleSection}>
               <Text style={styles.docTitle}>{title}</Text>
@@ -267,12 +296,13 @@ export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDat
                 {subtitle} • Semaine du {format(week.start, "d MMM", { locale: fr })} au {format(week.end, "d MMM yyyy", { locale: fr })}
               </Text>
             </View>
-            <Text style={{ fontSize: 8, color: "#6b7280" }}>Semaine {idx + 1}/{weeks.length}</Text>
+            <Text style={{ fontSize: 8, color: "#6b7280" }}>Semaine {idx + 1}</Text>
           </View>
 
+          {/* Grille Semaine */}
           <View style={[styles.weekContainer, { height: week.totalHeight + 26 }]}>
             
-            {/* Axe des Heures */}
+            {/* Colonne Axe Temps */}
             <View style={styles.timeAxisColumn}>
                 {week.segments.map((seg, i) => (
                     <View key={i} style={{ height: seg.height, borderBottomWidth: 1, borderBottomColor: "#e5e7eb", position: "relative" }}>
@@ -281,7 +311,8 @@ export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDat
                         ) : (
                             <Text style={styles.collapsedLabel}>{seg.startHour}h-{seg.endHour}h</Text>
                         )}
-                        {/* Afficher la dernière heure pour le dernier segment */}
+                        
+                        {/* Afficher la dernière heure du dernier segment normal */}
                         {i === week.segments.length - 1 && seg.type === 'normal' && (
                              <Text style={[styles.timeLabel, { bottom: -4 }]}>{seg.endHour}:00</Text>
                         )}
@@ -292,12 +323,14 @@ export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDat
             {/* Colonnes Jours */}
             {week.days.map((day, dayIdx) => (
               <View key={dayIdx} style={styles.dayColumn}>
+                
+                {/* Header Jour */}
                 <View style={styles.dayHeader}>
                   <Text style={styles.dayName}>{format(day.date, "EEE", { locale: fr })}</Text>
                   <Text style={styles.dayNumber}>{format(day.date, "d")}</Text>
                 </View>
 
-                {/* Fond de grille */}
+                {/* Lignes de fond */}
                 <View style={{ position: "absolute", top: 26, left: 0, right: 0 }}>
                     {week.segments.map((seg, i) => (
                         <View 
@@ -310,31 +343,43 @@ export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDat
                     ))}
                 </View>
 
-                {/* Événements */}
+                {/* Blocs Événements */}
                 <View style={{ position: "relative", top: 0, width: "100%", height: week.totalHeight }}>
                   {day.events.map((evt, evtIdx) => {
-                    // Calcul basé sur les chaînes "HH:mm"
                     const startY = getYPosition(evt.startTime, week.segments);
                     const height = calculateHeight(evt.startTime, evt.endTime, week.segments);
+
+                    // Logique d'affichage conditionnel selon la place dispo
+                    const showTime = height >= 30;
+                    const showIntercessors = height >= 45;
 
                     return (
                         <View 
                             key={evtIdx} 
                             style={[
                                 styles.eventBox, 
+                                evt.isVirtual ? styles.virtualEventBox : {},
                                 { top: startY, height: height }
                             ]}
                         >
-                            <Text style={styles.eventTimeText}>
-                                {evt.startTime} - {evt.endTime}
-                            </Text>
                             <Text style={styles.eventTitle}>
                                 {evt.title}
                             </Text>
-                            {evt.intercessors && evt.intercessors.length > 0 && (
-                                <Text style={styles.intercessorsText}>
-                                    {evt.intercessors.map((u: any) => u.name.split(' ')[0]).join(', ')}
+
+                            {showTime && (
+                                <Text style={styles.eventTimeText}>
+                                    {evt.startTime} - {evt.endTime}
                                 </Text>
+                            )}
+                            
+                            {showIntercessors && evt.intercessors && evt.intercessors.length > 0 && (
+                                <View style={styles.intercessorsContainer}>
+                                    {evt.intercessors.map((u: any, i: number) => (
+                                        <Text key={i} style={styles.intercessorBadge}>
+                                            {u.name.split(' ')[0]}
+                                        </Text>
+                                    ))}
+                                </View>
                             )}
                         </View>
                     );
@@ -345,7 +390,7 @@ export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDat
           </View>
 
           <View style={styles.footer} fixed>
-            <Text>ICC Ministère de la Prière • {format(new Date(), "dd/MM/yyyy")}</Text>
+            <Text>ICC Ministère de la Prière • Généré le {format(new Date(), "dd/MM/yyyy à HH:mm")}</Text>
           </View>
         </Page>
       ))}

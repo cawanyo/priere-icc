@@ -79,7 +79,7 @@ export async function updateRoleRequestStatus(requestId: string, newStatus: stri
         const roleLabel = request.role === "PRAYER_LEADER" ? "Conducteur de prière" : "Intercesseur";
         await sendSMS(
             request.user.phone,
-            `Félicitations ${request.user.name} ! Votre demande pour rejoindre l'équipe des ${roleLabel}s a été validée. Bienvenue dans le ministère !`
+            `Félicitations ${request.user.name} ! Nous sommes ravis de vous informer que votre demande pour rejoindre l’équipe des ${roleLabel}s a été acceptée. Bienvenue dans notre ministère !`
         );
       }
     } else if (newStatus === "REJECTED" && request.user.phone) {
