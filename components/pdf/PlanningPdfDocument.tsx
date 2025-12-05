@@ -1,11 +1,10 @@
 /* eslint-disable jsx-a11y/alt-text */
 "use client";
 
-import { Document, Page, Text, View, StyleSheet, Font } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-
-// On peut enregistrer des polices si besoin, ici on utilise celles par défaut (Helvetica)
+import { PlaningWithIntercessor } from "@/lib/types";
 
 const styles = StyleSheet.create({
   page: {
@@ -131,7 +130,8 @@ const styles = StyleSheet.create({
 interface PdfProps {
   title: string;
   subtitle: string;
-  events: any[];
+  // On utilise le type générique combiné à 'any' pour les propriétés virtuelles (isVirtual)
+  events: (PlaningWithIntercessor & { isVirtual?: boolean })[];
   startDate: Date;
   endDate: Date;
 }
@@ -143,16 +143,19 @@ export function PlanningPdfDocument({ title, subtitle, events, startDate, endDat
   const current = new Date(startDate);
   
   while (current <= endDate) {
+    // Filtrer les événements pour ce jour
     const dayEvents = events
       .filter((e) => {
-        const evtDate = new Date(e.startTime);
+        // On utilise e.date (qui est un objet Date) au lieu de e.startTime
+        const evtDate = new Date(e.date);
         return (
           evtDate.getDate() === current.getDate() &&
           evtDate.getMonth() === current.getMonth() &&
           evtDate.getFullYear() === current.getFullYear()
         );
       })
-      .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+      // Tri par chaîne de caractères "HH:mm" (ex: "08:00" < "09:30")
+      .sort((a, b) => a.startTime.localeCompare(b.startTime));
 
     days.push({
       date: new Date(current),
@@ -173,14 +176,12 @@ export function PlanningPdfDocument({ title, subtitle, events, startDate, endDat
             <Text style={styles.docTitle}>{title}</Text>
             <Text style={styles.subTitle}>{subtitle}</Text>
           </View>
-          {/* Vous pourriez ajouter un logo ici avec <Image src="..." /> */}
         </View>
 
         {/* Contenu par jour */}
         {days.map((day, dayIndex) => (
           <View key={dayIndex} style={styles.dayContainer} wrap={false}> 
-            {/* wrap={false} évite de couper un jour au milieu */}
-            
+            {/* Header du jour */}
             <View style={styles.dayHeader}>
               <Text style={styles.dayTitle}>
                 {format(day.date, "EEEE d MMMM", { locale: fr })}
@@ -190,18 +191,24 @@ export function PlanningPdfDocument({ title, subtitle, events, startDate, endDat
               </Text>
             </View>
 
+            <View>
+              <Text>Test</Text>
+            </View>
+            {/* Liste des événements */}
             {day.events.length > 0 ? (
-              day.events.map((evt: any, idx: number) => (
+              day.events.map((evt, idx) => (
                 <View 
                     key={idx} 
                     style={[styles.eventRow, idx === day.events.length - 1 ? styles.lastEventRow : {}]}
                 >
+                  {/* Colonne Heure (Directement la string HH:mm) */}
                   <Text style={styles.timeCol}>
-                    {format(new Date(evt.startTime), "HH:mm")}
+                    {evt.startTime}
                     {"\n"}-{"\n"}
-                    {format(new Date(evt.endTime), "HH:mm")}
+                    {evt.endTime}
                   </Text>
                   
+                  {/* Colonne Infos */}
                   <View style={styles.infoCol}>
                     <Text style={styles.eventTitle}>{evt.title}</Text>
                     {evt.description && (
@@ -212,6 +219,7 @@ export function PlanningPdfDocument({ title, subtitle, events, startDate, endDat
                     )}
                   </View>
 
+                  {/* Colonne Intercesseurs */}
                   <View style={styles.peopleCol}>
                     {evt.intercessors && evt.intercessors.length > 0 ? (
                       evt.intercessors.map((u: any, i: number) => (

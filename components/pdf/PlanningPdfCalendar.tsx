@@ -2,14 +2,16 @@
 "use client";
 
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, addWeeks } from "date-fns";
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, addWeeks, differenceInMinutes, setMinutes, setHours } from "date-fns";
 import { fr } from "date-fns/locale";
+// Assurez-vous que ce type correspond à votre schéma Prisma mis à jour
+import { PlaningWithIntercessor } from "@/lib/types"; 
 
 // --- CONFIGURATION ---
-const NORMAL_HOUR_HEIGHT = 40; // Hauteur d'une heure "active" (visible)
-const COLLAPSED_HEIGHT = 15;   // Hauteur d'un bloc d'heures vides
-const START_HOUR_DAY = 0;      // 00:00
-const END_HOUR_DAY = 24;       // 24:00
+const NORMAL_HOUR_HEIGHT = 45; 
+const COLLAPSED_HEIGHT = 15;   
+const START_HOUR_DAY = 0;      
+const END_HOUR_DAY = 24;       
 
 const styles = StyleSheet.create({
   page: {
@@ -52,7 +54,7 @@ const styles = StyleSheet.create({
     right: 6,
     fontSize: 7,
     color: "#9ca3af",
-    transform: "translateY(-4)", // Centrer sur la ligne
+    transform: "translateY(-4)",
   },
   collapsedLabel: {
     width: "100%",
@@ -107,13 +109,6 @@ const styles = StyleSheet.create({
     borderLeftColor: "#4f46e5",
     overflow: "hidden",
   },
-  virtualEventBox: {
-    backgroundColor: "#fafafa", 
-    borderLeftColor: "#9ca3af",
-    borderLeftWidth: 2,
-    borderStyle: "dashed",
-    opacity: 0.9,
-  },
   eventTimeText: { fontSize: 6, color: "#4338ca", fontWeight: "bold", marginBottom: 1 },
   eventTitle: { fontSize: 7, color: "#1e1b4b", fontWeight: "bold", marginBottom: 1 },
   intercessorsText: { fontSize: 5, color: "#4b5563" },
@@ -130,7 +125,7 @@ const styles = StyleSheet.create({
 interface PdfProps {
   title: string;
   subtitle: string;
-  events: any[];
+  events: PlaningWithIntercessor[];
   startDate: Date;
   endDate: Date;
 }
@@ -140,7 +135,15 @@ type TimeSegment = {
   endHour: number;
   type: 'normal' | 'collapsed';
   height: number;
-  yStart: number; // Position Y accumulée depuis le haut
+  yStart: number;
+};
+
+// Helper pour convertir "Date + HH:mm" en objet Date complet
+const getEventDate = (baseDate: Date | string, timeStr: string) => {
+  const date = new Date(baseDate);
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  date.setHours(hours, minutes, 0, 0);
+  return date;
 };
 
 export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDate }: PdfProps) {
@@ -152,31 +155,31 @@ export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDat
     const currentEnd = endOfWeek(currentStart, { weekStartsOn: 1 });
     const days = eachDayOfInterval({ start: currentStart, end: currentEnd });
     
-    // Filtrer les événements de la semaine
-    const weekEvents = events.filter(e => 
-      new Date(e.startTime) >= currentStart && new Date(e.endTime) <= currentEnd
-    );
+    // Filtrer les événements de la semaine via leur champ 'date'
+    const weekEvents = events.filter(e => {
+      const d = new Date(e.date);
+      return d >= currentStart && d <= currentEnd;
+    });
 
     // --- 1. CALCUL DES HEURES OCCUPÉES ---
-    // On crée un tableau de 24 booléens (true = occupé)
     const activeHours = new Array(24).fill(false);
 
     weekEvents.forEach(evt => {
-        const start = new Date(evt.startTime);
-        const end = new Date(evt.endTime);
+        // Parsing manuel des heures strings "HH:mm"
+        const [startHStr, startMStr] = evt.startTime.split(':');
+        const [endHStr, endMStr] = evt.endTime.split(':');
         
-        let startH = start.getHours();
-        let endH = end.getHours();
-        if (end.getMinutes() > 0) endH++; // Si ça finit à 10h30, on inclut l'heure 10
+        const startH = parseInt(startHStr);
+        let endH = parseInt(endHStr);
+        const endM = parseInt(endMStr);
 
-        // On marque les heures occupées
+        // Si ça finit à 10h30, on considère l'heure 10 comme occupée, jusqu'à 11h
+        if (endM > 0) endH++; 
+
         for (let h = startH; h < endH; h++) {
             if (h >= 0 && h < 24) activeHours[h] = true;
         }
     });
-
-    // Optionnel : Ajouter un "padding" (si 10h est occupé, afficher 9h et 11h aussi pour aérer ?)
-    // Pour l'instant, on reste strict sur la demande : "keep only plage that contains program"
 
     // --- 2. CONSTRUCTION DES SEGMENTS ---
     const segments: TimeSegment[] = [];
@@ -185,9 +188,7 @@ export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDat
 
     while (h < 24) {
         if (activeHours[h]) {
-            // C'est une heure active -> Segment Normal
-            // On regroupe les heures actives consécutives pour simplifier la grille ?
-            // Non, on crée un segment par heure pour avoir les lignes de grille
+            // Heure active -> Segment Normal
             segments.push({
                 startHour: h,
                 endHour: h + 1,
@@ -198,8 +199,7 @@ export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDat
             currentY += NORMAL_HOUR_HEIGHT;
             h++;
         } else {
-            // C'est une heure vide -> Segment Collapsed
-            // On cherche la fin du bloc vide
+            // Heure vide -> Segment Collapsed
             let endEmpty = h + 1;
             while (endEmpty < 24 && !activeHours[endEmpty]) {
                 endEmpty++;
@@ -224,7 +224,8 @@ export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDat
       totalHeight: currentY,
       days: days.map(day => ({
         date: day,
-        events: events.filter(e => isSameDay(new Date(e.startTime), day))
+        // On ne garde que les events de ce jour précis
+        events: weekEvents.filter(e => isSameDay(new Date(e.date), day))
       }))
     });
 
@@ -232,26 +233,26 @@ export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDat
     currentStart = addWeeks(currentStart, 1);
   }
 
-  // --- 3. FONCTION DE POSITIONNEMENT (Projection Temps -> Pixels) ---
-  const getYPosition = (date: Date, segments: TimeSegment[]) => {
-    const h = date.getHours();
-    const m = date.getMinutes();
+  // --- 3. FONCTION DE POSITIONNEMENT ---
+  const getYPosition = (timeStr: string, segments: TimeSegment[]) => {
+    const [h, m] = timeStr.split(':').map(Number);
 
-    // Trouver le segment qui contient cette heure
     const segment = segments.find(s => h >= s.startHour && h < s.endHour);
-    
-    if (!segment) return 0; // Sécurité
+    if (!segment) return 0;
 
     if (segment.type === 'normal') {
-        // Dans une heure normale (hauteur 40), on place proportionnellement aux minutes
-        // Note: Si le segment fait plusieurs heures (ex: aggrégation), il faudrait ajuster
-        // Ici on a fait des segments de 1h pour les normaux, donc c'est simple :
+        // Position proportionnelle dans l'heure
         return segment.yStart + (m / 60) * segment.height;
     } else {
-        // Dans un segment compressé, on place au début (ou milieu)
-        // Les événements ne devraient pas être ici théoriquement
+        // Position au début du bloc compressé
         return segment.yStart;
     }
+  };
+
+  const calculateHeight = (startStr: string, endStr: string, segments: TimeSegment[]) => {
+      const y1 = getYPosition(startStr, segments);
+      const y2 = getYPosition(endStr, segments);
+      return Math.max(y2 - y1, 15); // Min 15px
   };
 
   return (
@@ -276,13 +277,11 @@ export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDat
                 {week.segments.map((seg, i) => (
                     <View key={i} style={{ height: seg.height, borderBottomWidth: 1, borderBottomColor: "#e5e7eb", position: "relative" }}>
                         {seg.type === 'normal' ? (
-                            // Label en haut de la ligne
                             <Text style={[styles.timeLabel, { top: -4 }]}>{seg.startHour}:00</Text>
                         ) : (
-                            <Text style={styles.collapsedLabel}>{seg.startHour}h - {seg.endHour}h</Text>
+                            <Text style={styles.collapsedLabel}>{seg.startHour}h-{seg.endHour}h</Text>
                         )}
-                        
-                        {/* Afficher l'heure de fin du dernier segment normal si c'est la fin de journée */}
+                        {/* Afficher la dernière heure pour le dernier segment */}
                         {i === week.segments.length - 1 && seg.type === 'normal' && (
                              <Text style={[styles.timeLabel, { bottom: -4 }]}>{seg.endHour}:00</Text>
                         )}
@@ -293,8 +292,6 @@ export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDat
             {/* Colonnes Jours */}
             {week.days.map((day, dayIdx) => (
               <View key={dayIdx} style={styles.dayColumn}>
-                
-                {/* Header Jour */}
                 <View style={styles.dayHeader}>
                   <Text style={styles.dayName}>{format(day.date, "EEE", { locale: fr })}</Text>
                   <Text style={styles.dayNumber}>{format(day.date, "d")}</Text>
@@ -316,21 +313,20 @@ export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDat
                 {/* Événements */}
                 <View style={{ position: "relative", top: 0, width: "100%", height: week.totalHeight }}>
                   {day.events.map((evt, evtIdx) => {
-                    const startY = getYPosition(new Date(evt.startTime), week.segments);
-                    const endY = getYPosition(new Date(evt.endTime), week.segments);
-                    const height = Math.max(endY - startY, 15); // Min 15px pour visibilité
+                    // Calcul basé sur les chaînes "HH:mm"
+                    const startY = getYPosition(evt.startTime, week.segments);
+                    const height = calculateHeight(evt.startTime, evt.endTime, week.segments);
 
                     return (
                         <View 
                             key={evtIdx} 
                             style={[
                                 styles.eventBox, 
-                                evt.isVirtual ? styles.virtualEventBox : {},
                                 { top: startY, height: height }
                             ]}
                         >
                             <Text style={styles.eventTimeText}>
-                                {format(new Date(evt.startTime), "HH:mm")} - {format(new Date(evt.endTime), "HH:mm")}
+                                {evt.startTime} - {evt.endTime}
                             </Text>
                             <Text style={styles.eventTitle}>
                                 {evt.title}

@@ -30,16 +30,16 @@ export default async function EventPlanningPage({ params }: { params: Promise<{ 
         </div>
 
         {/* --- BOUTON D'EXPORT PDF --- */}
-        {/* <div>
+        <div>
             <DownloadPlanningButton 
-                events={calendar || []} // On passe tout le calendrier de l'événement
-                title={event.title}
+                events={specialEvent.plannings || []} // On passe tout le calendrier de l'événement
+                title={specialEvent.title}
                 subtitle="Programme Spécial"
-                startDate={new Date(event.startDate)}
-                endDate={new Date(event.endDate)}
-                fileName={`programme-${event.title.toLowerCase().replace(/\s+/g, '-')}.pdf`}
+                startDate={new Date(specialEvent.startDate)}
+                endDate={new Date(specialEvent.endDate)}
+                fileName={`programme-${specialEvent.title.toLowerCase().replace(/\s+/g, '-')}.pdf`}
             />
-        </div> */}
+        </div>
       </div>
 
       {/* Le calendrier interactif */}
