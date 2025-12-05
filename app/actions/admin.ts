@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache";
 import { createNotification } from "./notifications";
 import { sendSMS } from "@/lib/sms";
 
+
 // Vérification de sécurité
 export async function checkAdmin() {
   const session = await getServerSession(authOptions);
@@ -81,4 +82,64 @@ export async function getAdminStats() {
   const requesters = await prisma.user.count({ where: { role: "REQUESTER" } });
 
   return { totalUsers, intercessors, admins, requesters };
+}
+
+// app/actions/admin.ts
+// ... (checkAdmin, deleteUser, updateUserRole, getAdminStats restent inchangés) ...
+
+// --- NOUVELLE FONCTION : Récupération des utilisateurs ---
+
+export type UserFilters = {
+  page?: number;
+  limit?: number;
+  search?: string;
+  role?: string;
+};
+
+export async function getUsers(options: UserFilters = {}) {
+  await checkAdmin();
+  try {
+    const page = options.page || 1;
+    const limit = options.limit || 10;
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+
+    // 1. Recherche (Nom ou Email)
+    if (options.search) {
+      where.OR = [
+        { name: { contains: options.search, mode: 'insensitive' } },
+        { email: { contains: options.search, mode: 'insensitive' } },
+      ];
+    }
+
+    // 2. Filtre par Rôle
+    if (options.role && options.role !== "ALL") {
+      where.role = options.role as Role;
+    }
+
+    // Exécution en parallèle (Données + Compte total)
+    const [users, totalCount] = await prisma.$transaction([
+      prisma.user.findMany({
+        where,
+        select: {
+          id: true, name: true, email: true, role: true, phone: true, image: true, createdAt: true,
+        },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.user.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(totalCount / limit);
+    return { 
+        success: true, 
+        data: users, 
+        metadata: { totalPages, currentPage: page, totalCount } 
+    };
+
+  } catch (error) {
+    return { success: false, error: "Erreur lors du chargement des utilisateurs." };
+  }
 }

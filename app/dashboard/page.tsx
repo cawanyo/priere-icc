@@ -82,24 +82,6 @@ export default async function DashboardPage() {
       roles: ["PRAYER_LEADER"],
       items: [
         {
-          title: "Mon Planning",
-          description: "Mes créneaux de service hebdo.",
-          href: "/dashboard/user/intercessor/planning",
-          icon: CalendarRange,
-          color: "text-indigo-600",
-          bg: "bg-indigo-50",
-          requiredRoles: ["INTERCESSOR", "LEADER", "ADMIN"], // Spécifique à cet item
-        },
-        {
-          title: "Disponibilités",
-          description: "Signaler mes absences.",
-          href: "/dashboard/user/intercessor/availability",
-          icon: Calendar1,
-          color: "text-violet-600",
-          bg: "bg-violet-50",
-          requiredRoles: ["INTERCESSOR", "LEADER", "ADMIN"],
-        },
-        {
           title: "Événements Spéciaux",
           description: "Programmes et temps forts.",
           href: "/dashboard/user/intercessor/events",
