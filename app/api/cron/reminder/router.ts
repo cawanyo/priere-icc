@@ -19,18 +19,13 @@ export async function GET(req: Request) {
     // 1. Définir la plage de "Demain"
     const today = new Date();
     const tomorrow = addDays(today, 1);
-    const startOfTomorrow = startOfDay(tomorrow);
-    const endOfTomorrow = endOfDay(tomorrow);
 
     console.log(`[CRON] Lancement des rappels pour le ${format(tomorrow, "dd/MM/yyyy")}`);
 
     // 2. Récupérer les événements de demain avec les intercesseurs
     const events = await prisma.planning.findMany({
       where: {
-        startTime: {
-          gte: startOfTomorrow,
-          lte: endOfTomorrow
-        }
+        date: tomorrow
       },
       include: {
         intercessors: {
@@ -43,7 +38,7 @@ export async function GET(req: Request) {
 
     // 3. Boucler et envoyer
     for (const event of events) {
-      const timeStr = format(new Date(event.startTime), "HH'h'mm");
+      const timeStr = event.startTime;
       
       for (const user of event.intercessors) {
         if (user.phone) {
