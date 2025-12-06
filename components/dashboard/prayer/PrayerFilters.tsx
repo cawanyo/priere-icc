@@ -97,6 +97,7 @@ export function PrayerFilters({ filters, onFilterChange }: PrayerFiltersProps) {
                 <SelectItem value="Famille">Famille</SelectItem>
                 <SelectItem value="Santé">Santé</SelectItem>
                 <SelectItem value="Travail">Travail</SelectItem>
+                
                 {/* ... autres */}
             </SelectContent>
             </Select>
