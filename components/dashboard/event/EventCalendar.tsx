@@ -62,8 +62,8 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
         </div>
         <div className="text-sm text-gray-500 font-medium">
             Semaine du {formatUtcDate(days[0], "d")} au {formatUtcDate(days[6], "d MMM")}
-            Aujourd'hui {formatUtcDate(today, "d")}
-            Aujourd'hui test {format(new Date(), "d")}
+            Aujourd'hui {formatUtcDate(specialEvent.startDate, "d")}
+            Aujourd'hui test {format(specialEvent.startDate, "d")}
 
         </div>
       </div>
