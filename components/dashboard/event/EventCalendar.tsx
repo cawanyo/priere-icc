@@ -50,6 +50,7 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
     days.push(normalizeDate(new Date(dayIter)));
     dayIter.setDate(dayIter.getDate() + 1);
   }
+  console.log(specialEvent.plannings)
 
   return (
     <div className="space-y-6">
@@ -65,9 +66,6 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
         </div>
         <div className="text-sm text-gray-500 font-medium">
             Semaine du {formatUtcDate(days[0], "d")} au {formatUtcDate(days[6], "d MMM")}
-            {
-                days.map((day) => format(day, "d"))
-            }
         </div>
       </div>
 
@@ -99,7 +97,7 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
                     {/* En-tête Jour */}
                     <div className="text-center mb-2">
                         <span className="block text-xs font-semibold text-gray-500 uppercase">
-                            {formatUtcDate(day, "EEEE")} {isEventDay} {format(day,"d")}, {format(eventEndDate, "d")}, {format(eventEndDate, "d")}
+                            {formatUtcDate(day, "EEEE")} {isEventDay} {format(day,"d")? "vrai" : "faux"}
                         </span>
                         <span className={`block text-xl font-bold ${isEventDay ? 'text-indigo-900' : 'text-gray-400'}`}>
                             {formatUtcDate(day, "d")}
