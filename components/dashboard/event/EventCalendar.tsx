@@ -20,6 +20,9 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
   // On commence le calendrier à la date de début de l'événement
   const today = normalizeDate(new Date())
   const eventStartDate = normalizeDate(specialEvent.startDate)
+  const eventEndDate = normalizeDate(specialEvent.endDate)
+
+
   const [currentDate, setCurrentDate] = useState(today > eventStartDate ? today : eventStartDate);
   const [selectedEvent, setSelectedEvent] = useState< PlaningWithIntercessor | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -63,8 +66,8 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
         <div className="text-sm text-gray-500 font-medium">
             Semaine du {formatUtcDate(days[0], "d")} au {formatUtcDate(days[6], "d MMM")}
             Aujourd'hui {formatUtcDate(specialEvent.startDate, "d")}
-            Aujourd'hui test {format(specialEvent.startDate, "d")}
-
+            Aujourd'hui test {format(eventStartDate, "d")}
+            Aujourd'hui test {format(eventEndDate, "d")}
         </div>
       </div>
 
@@ -83,8 +86,8 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
             })
             // Vérifier si le jour est DANS la période de l'événement
             const isEventDay = isWithinInterval(day, {
-                start: normalizeDate(specialEvent.startDate),
-                end: normalizeDate(specialEvent.endDate)
+                start: eventStartDate,
+                end: eventEndDate
             });
 
             return (
