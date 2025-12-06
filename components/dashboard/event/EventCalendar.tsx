@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Plus, CalendarCheck } from "lucide-react";
 import { EventModal } from "../planning/EventModal"; // Réutilisation de la modale
 import { useRouter } from "next/navigation";
-import { Planing, PlaningWithIntercessor, SpecialEventWithPlaning } from "@/lib/types";
+import {  PlaningWithIntercessor, SpecialEventWithPlaning } from "@/lib/types";
 import { formatUtcDate, normalizeDate } from "@/lib/utils";
 
 interface EventCalendarProps {
@@ -19,14 +19,13 @@ interface EventCalendarProps {
 export function EventCalendar({specialEvent }: EventCalendarProps) {
   // On commence le calendrier à la date de début de l'événement
   const today = normalizeDate(new Date())
-  const eventStartDate = normalizeDate(new Date(specialEvent.startDate))
+  const eventStartDate = normalizeDate(specialEvent.startDate)
   const [currentDate, setCurrentDate] = useState(today > eventStartDate ? today : eventStartDate);
   const [selectedEvent, setSelectedEvent] = useState< PlaningWithIntercessor | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
 
 
-  console.log(specialEvent)
   // Navigation
   const nextWeek = () => setCurrentDate(addWeeks(currentDate, 1));
   const prevWeek = () => setCurrentDate(addWeeks(currentDate, -1));
@@ -63,6 +62,9 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
         </div>
         <div className="text-sm text-gray-500 font-medium">
             Semaine du {formatUtcDate(days[0], "d")} au {formatUtcDate(days[6], "d MMM")}
+            Aujourd'hui {formatUtcDate(today, "d")}
+            Aujourd'hui test {format(new Date(), "d")}
+
         </div>
       </div>
 
