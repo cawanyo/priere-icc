@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { format, isSameDay, startOfWeek, addWeeks, isWithinInterval } from "date-fns";
+import { format, isSameDay, startOfWeek, addWeeks, isWithinInterval, startOfDay } from "date-fns";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { EventModal } from "../planning/EventModal"; // Réutilisation de la mod
 import { useRouter } from "next/navigation";
 import {  PlaningWithIntercessor, SpecialEventWithPlaning } from "@/lib/types";
 import { formatUtcDate, normalizeDate } from "@/lib/utils";
+import { start } from "repl";
 
 interface EventCalendarProps {
   specialEvent: SpecialEventWithPlaning;
@@ -83,7 +84,7 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
                 return aH - bH || aM - bM;
             })
             // Vérifier si le jour est DANS la période de l'événement
-            const isEventDay = isWithinInterval(day, {
+            const isEventDay = isWithinInterval(startOfDay(day), {
                 start: eventStartDate,
                 end: eventEndDate
             });
@@ -97,7 +98,7 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
                     {/* En-tête Jour */}
                     <div className="text-center mb-2">
                         <span className="block text-xs font-semibold text-gray-500 uppercase">
-                            {formatUtcDate(day, "EEEE")} {isEventDay? "vrai" : "faux"} {format(day,"d")}
+                            {formatUtcDate(day, "EEEE")} {isEventDay? "vrai": "faux"}
                         </span>
                         <span className={`block text-xl font-bold ${isEventDay ? 'text-indigo-900' : 'text-gray-400'}`}>
                             {formatUtcDate(day, "d")}
