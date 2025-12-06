@@ -75,7 +75,7 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
       <Button variant="outline" size="icon" onClick={prevWeek} className="md:hidden"><ChevronLeft className="h-4 w-4 "/></Button>
         {days.map((day) => {
             // Filtrer les événements pour ce jour
-            const dayEvents = specialEvent.plannings.filter(e => isSameDay(e.date, day));
+            const dayEvents = specialEvent.plannings.filter(e => isSameDay(startOfDay(e.date), startOfDay(day)));
             dayEvents.sort((a,b) => {
 
                 const [aH, aM] = a.startTime.split(":").map(Number);
