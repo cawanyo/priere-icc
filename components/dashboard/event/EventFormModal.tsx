@@ -95,6 +95,7 @@ export function EventFormModal({ isOpen, onClose, eventToEdit }: EventFormModalP
         return;
     }
 
+    console.log(templates)
 
     setLoading(true);
     const startDateObj = normalizeDate(formData.startDate);

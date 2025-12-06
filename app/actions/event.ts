@@ -22,9 +22,8 @@ async function checkLeader() {
 
 // --- GESTION DES ÉVÉNEMENTS ---
 
-export async function createPlaningForEvent(event:SpecialEvent, templates:TemplatePrisma[] ) {
-  let current = event.startDate;
-    const end = event.endDate;
+export async function createPlaningForEvent(event:SpecialEvent, templates:TemplatePrisma[], start: Date, end:Date ) {
+  let current = start;
     
     const records: any[] = [];
     
@@ -103,7 +102,7 @@ export async function createSpecialEvent(data: any) {
     return { success: false, message:'Evenement non créé' };
   }
 
-  await createPlaningForEvent(event, event.templates)
+  await createPlaningForEvent(event, event.templates, event.startDate, event.endDate)
   revalidatePath("/dashboard/leader/events");
   return { success: true, message:'Evenement créé' };
 }
@@ -143,6 +142,10 @@ export async function updateSpecialEvent(data: any) {
   const { id, title, description, startDate, endDate, templates } = data;
 
     // 1. Mettre à jour les infos de l'événement
+    const oldEvent = await prisma.specialEvent.findFirst({
+      where: {id},
+    });
+
     const event = await prisma.specialEvent.update({
       where: { id },
       data: {
@@ -152,6 +155,7 @@ export async function updateSpecialEvent(data: any) {
         endDate: new Date(endDate),
       }
     });
+
 
     // update templates
     const templateIds = templates.map((t: any) => t.id).filter((id:any) => id);
@@ -163,14 +167,15 @@ export async function updateSpecialEvent(data: any) {
         id: { notIn: templateIds }
       },
     });
+
     await prisma.planning.deleteMany({
       where: {
         specialEventId: id,
-        templateId: { notIn: templateIds},
+        templateId: { notIn: templateIds}
       },
-    });
+    })
 
-
+    const newTemplates = []
     for( const t of templates){
       const exist = await prisma.eventTemplate.findFirst({where: {id:t.id ?? ""}})
       if (exist) 
@@ -184,10 +189,33 @@ export async function updateSpecialEvent(data: any) {
             specialEventId: event.id
           }     
         });
-        await createPlaningForEvent(event, [templateCreated])
+          newTemplates.push(t)
         }
       }  
+    await createPlaningForEvent(event, newTemplates, event.startDate, event.endDate)
   
+
+    await prisma.planning.deleteMany({
+      where: {
+        specialEventId: event.id,
+        OR: [
+          { date: { lt: event.startDate } },
+          { date: { gt: event.endDate } }
+        ]
+      }
+    })
+    
+    const newEvent = await prisma.specialEvent.findFirst({
+      where: {id},
+      include: { templates: true}
+    });
+
+
+
+    if(newEvent && oldEvent){
+      await createPlaningForEvent(event, newEvent.templates, newEvent?.startDate, addDays(oldEvent.startDate, -1))
+      await createPlaningForEvent(event, newEvent.templates,  addDays(oldEvent.endDate, 1), newEvent.endDate)
+    }
 
   revalidatePath("/dashboard/leader/events");
   return { success: true, message: "Événement mis à jour" };
