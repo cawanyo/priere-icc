@@ -9,6 +9,7 @@ import { ChevronLeft, ChevronRight, Plus, CalendarCheck } from "lucide-react";
 import { EventModal } from "../planning/EventModal"; // Réutilisation de la modale
 import { useRouter } from "next/navigation";
 import { Planing, PlaningWithIntercessor, SpecialEventWithPlaning } from "@/lib/types";
+import { formatUtcDate, normalizeDate } from "@/lib/utils";
 
 interface EventCalendarProps {
   specialEvent: SpecialEventWithPlaning;
@@ -17,12 +18,13 @@ interface EventCalendarProps {
 
 export function EventCalendar({specialEvent }: EventCalendarProps) {
   // On commence le calendrier à la date de début de l'événement
-  const today = new Date()
-  const eventStartDate = new Date(specialEvent.startDate)
+  const today = normalizeDate(new Date())
+  const eventStartDate = normalizeDate(new Date(specialEvent.startDate))
   const [currentDate, setCurrentDate] = useState(today > eventStartDate ? today : eventStartDate);
   const [selectedEvent, setSelectedEvent] = useState< PlaningWithIntercessor | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
+
 
   console.log(specialEvent)
   // Navigation
@@ -41,9 +43,9 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
 
   // Générer les jours de la semaine affichée
   const days = [];
-  let dayIter = startOfWeek(currentDate, { weekStartsOn: 1 }); // Lundi
+  let dayIter = startOfWeek(currentDate, { weekStartsOn: 1 });
   for(let i=0; i<7; i++) {
-    days.push(new Date(dayIter));
+    days.push(normalizeDate(new Date(dayIter)));
     dayIter.setDate(dayIter.getDate() + 1);
   }
 
@@ -55,12 +57,12 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
         <div className="flex items-center gap-2">
             <Button variant="outline" size="icon" onClick={prevWeek}><ChevronLeft className="h-4 w-4 "/></Button>
             <span className="font-semibold text-lg w-32 text-center capitalize">
-                {format(currentDate, "MMMM yyyy")}
+                {formatUtcDate(currentDate, "MMMM yyyy")}
             </span>
             <Button variant="outline" size="icon" onClick={nextWeek}><ChevronRight className="h-4 w-4"/></Button>
         </div>
         <div className="text-sm text-gray-500 font-medium">
-            Semaine du {format(days[0], "d")} au {format(days[6], "d MMM")}
+            Semaine du {formatUtcDate(days[0], "d")} au {formatUtcDate(days[6], "d MMM")}
         </div>
       </div>
 
@@ -79,8 +81,8 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
             })
             // Vérifier si le jour est DANS la période de l'événement
             const isEventDay = isWithinInterval(day, {
-                start: new Date(specialEvent.startDate),
-                end: new Date(specialEvent.endDate)
+                start: normalizeDate(specialEvent.startDate),
+                end: normalizeDate(specialEvent.endDate)
             });
 
             return (
@@ -92,10 +94,10 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
                     {/* En-tête Jour */}
                     <div className="text-center mb-2">
                         <span className="block text-xs font-semibold text-gray-500 uppercase">
-                            {format(day, "EEEE")}
+                            {formatUtcDate(day, "EEEE")}
                         </span>
                         <span className={`block text-xl font-bold ${isEventDay ? 'text-indigo-900' : 'text-gray-400'}`}>
-                            {format(day, "d")}
+                            {formatUtcDate(day, "d")}
                         </span>
                     </div>
 

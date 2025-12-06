@@ -15,3 +15,9 @@ export const formatUtcDate = (dateInput: Date | string, formatStr: string) => {
   const adjustedDate = new Date(date.getTime() + userTimezoneOffset);
   return format(adjustedDate, formatStr, { locale: fr });
 };
+
+
+export const normalizeDate = (dateInput: Date | string) => {
+  const d = new Date(dateInput);
+  return new Date(d.valueOf() + d.getTimezoneOffset() * 60000);
+};
