@@ -97,7 +97,7 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
                     {/* En-tête Jour */}
                     <div className="text-center mb-2">
                         <span className="block text-xs font-semibold text-gray-500 uppercase">
-                            {formatUtcDate(day, "EEEE")} {isEventDay} {format(day,"d")? "vrai" : "faux"}
+                            {formatUtcDate(day, "EEEE")} {isEventDay? "vrai" : "faux"} {format(day,"d")}
                         </span>
                         <span className={`block text-xl font-bold ${isEventDay ? 'text-indigo-900' : 'text-gray-400'}`}>
                             {formatUtcDate(day, "d")}
