@@ -1,31 +1,38 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { startOfWeek, endOfWeek, addWeeks, format, isSameDay } from "date-fns";
+import { startOfWeek, endOfWeek, addWeeks, format, isSameDay, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalIcon, Users, Repeat } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Repeat, Users } from "lucide-react";
 import { EventModal } from "./EventModal";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getPlanningEvents } from "@/app/actions/planing";
+import { getPlanningEvents } from "@/app/actions/planing"; // Vérifiez l'orthographe (planning vs planing)
 import { RecurringManager } from "./RecurringManager";
-import { DownloadPlanningButton } from "@/components/pdf/DownloadPlanningButton"; // Import du bouton
+import { DownloadPlanningButton } from "@/components/pdf/DownloadPlanningButton";
 import { PlaningWithIntercessor } from "@/lib/types";
+import { normalizeDate } from "@/lib/utils";
+
 export function PlanningCalendar() {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  // On normalise dès l'initialisation pour éviter les décalages jour J
+  const [currentDate, setCurrentDate] = useState(() => normalizeDate(new Date()));
+
   const [events, setEvents] = useState<PlaningWithIntercessor[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRecurringOpen, setIsRecurringOpen] = useState(false);
-  const [modalDate, setModalDate] = useState(new Date())
+  
+  // Date passée à la modale (doit être normalisée)
+  const [modalDate, setModalDate] = useState(() => normalizeDate(new Date()));
 
   const startOfWeekDate = startOfWeek(currentDate, { weekStartsOn: 1 });
   const endOfWeekDate = endOfWeek(currentDate, { weekStartsOn: 1 });
 
   // Charger les données de la semaine
   const loadEvents = async () => {
-    const start = startOfWeek(currentDate, { weekStartsOn: 1 }); // Lundi
+    // startOfWeek renvoie une date locale, on l'utilise telle quelle pour la requête
+    const start = startOfWeek(currentDate, { weekStartsOn: 1 }); 
     const end = endOfWeek(currentDate, { weekStartsOn: 1 });
     
     const res = await getPlanningEvents(start, end);
@@ -38,32 +45,34 @@ export function PlanningCalendar() {
     loadEvents();
   }, [currentDate]);
 
-
   const nextWeek = () => setCurrentDate(addWeeks(currentDate, 1));
   const prevWeek = () => setCurrentDate(addWeeks(currentDate, -1));
 
-  // Création d'un nouvel événement vierge
+  // Création via le bouton principal (date d'aujourd'hui par défaut)
   const handleCreateNew = () => {
-    setModalDate(new Date())
+    setSelectedEvent(null);
+    setModalDate(normalizeDate(new Date()));
     setIsModalOpen(true);
   };
 
+  // Clic sur un événement ou une case vide (+ dans la case)
   const handleEventClick = (event: any, day: Date) => {
+    // 1. On définit l'événement (ou null si c'est une création)
     setSelectedEvent(event);
-    setModalDate(day)
+    
+    // 2. On force la date normalisée (UTC visuel) pour la modale
+    const normalizedDay = normalizeDate(day);
+    setModalDate(normalizedDay);
+    
+    // 3. On ouvre
     setIsModalOpen(true);
   };
 
-
-
-  // Groupement par jour pour l'affichage
-  const days = [];
-  let dayIter = startOfWeek(currentDate, { weekStartsOn: 1 });
-  for(let i=0; i<7; i++) {
-    days.push(new Date(dayIter));
-    dayIter = addWeeks(dayIter, 0); // Astuce pour cloner ou addDays(dayIter, 1)
-    dayIter.setDate(dayIter.getDate() + 1);
-  }
+  // Génération propre des 7 jours de la semaine
+  const days = Array.from({ length: 7 }).map((_, i) => {
+    // On prend le lundi de la semaine courante et on ajoute i jours
+    return normalizeDate(addDays(startOfWeekDate, i));
+  });
 
   return (
     <div className="space-y-6">
@@ -72,15 +81,14 @@ export function PlanningCalendar() {
         <div className="flex flex-wrap items-center justify-between bg-white p-4 rounded-xl border shadow-sm">
             <div className="flex flex-wrap items-center gap-2">
                 <Button variant="outline" size="icon" onClick={prevWeek}><ChevronLeft className="h-4 w-4"/></Button>
-                <span className="font-semibold text-lg w-32 text-center">
+                <span className="font-semibold text-lg w-32 text-center capitalize">
                     {format(currentDate, "MMMM yyyy", { locale: fr })}
                 </span>
                 <Button variant="outline" size="icon" onClick={nextWeek}><ChevronRight className="h-4 w-4"/></Button>
             </div>
             <div className="flex flex-wrap gap-2 w-full md:w-auto">
-                {/* BOUTON AJOUTÉ ICI */}
                 <DownloadPlanningButton 
-                    events={events} // On passe la liste des événements récupérés
+                    events={events}
                     title="Planning Hebdomadaire"
                     subtitle={`Semaine du ${format(startOfWeekDate, "d MMMM", { locale: fr })} au ${format(endOfWeekDate, "d MMMM yyyy", { locale: fr })}`}
                     startDate={startOfWeekDate}
@@ -107,8 +115,11 @@ export function PlanningCalendar() {
             <Button variant="outline" size="icon" onClick={prevWeek} className="md:hidden"><ChevronLeft className="h-4 w-4"/></Button>
 
             {days.map((day) => {
-                const dayEvents = events.filter(e => isSameDay(e.date, day));
-                const isToday = isSameDay(day, new Date());
+                // Comparaison avec date normalisée
+                const dayEvents = events.filter(e => isSameDay(normalizeDate(e.date), day));
+                
+                // Comparaison "Is Today" (on normalise new Date() pour être sûr)
+                const isToday = isSameDay(day, normalizeDate(new Date()));
 
                 return (
                     <div key={day.toISOString()} className={`flex flex-col gap-3 min-h-[200px] rounded-xl p-3 ${isToday ? 'bg-pink-50/50 border-pink-100 border' : 'bg-gray-50 border border-transparent'}`}>
@@ -126,8 +137,9 @@ export function PlanningCalendar() {
                         {dayEvents.map((evt) => (
                             <Card 
                                 key={evt.id} 
-                                onClick={() => handleEventClick(evt, evt.date)}
-                                className={`p-3 cursor-pointer hover:shadow-md transition-all border-l-4 text-left space-y-2 `}
+                                // Important : on passe 'day' (la date de la colonne) pour être sûr de la date
+                                onClick={() => handleEventClick(evt, day)}
+                                className="p-3 cursor-pointer hover:shadow-md transition-all border-l-4 text-left space-y-2"
                             >
                                 <div>
                                     <p className="font-semibold text-sm text-gray-900 truncate">{evt.title}</p>
@@ -137,16 +149,17 @@ export function PlanningCalendar() {
                                 </div>
                                 
                                 {evt.intercessors && evt.intercessors.length > 0 ? (
-                                    <div className="flex -space-x-2 overflow-scroll pt-1">
+                                    <div className="flex -space-x-2 overflow-x-auto pt-1 no-scrollbar">
                                         {evt.intercessors.map((u: any) => (
                                             <div className="flex items-center gap-1" key={u.id}>
-                                                <Avatar key={u.id} className="inline-block h-6 w-6 rounded-full ring-2 ring-white">
+                                                <Avatar className="inline-block h-6 w-6 rounded-full ring-2 ring-white">
                                                     <AvatarImage src={u.image} />
                                                     <AvatarFallback className="text-[9px] bg-indigo-100 text-indigo-700">
-                                                        {u.name.slice(0,1)}
+                                                        {u.name?.slice(0,1)}
                                                     </AvatarFallback>
                                                 </Avatar>
-                                                <p className=" text-[9px]">{u.name.slice(0, 20)}</p>
+                                                {/* Optionnel: afficher le nom si besoin, sinon l'avatar suffit */}
+                                                {/* <p className="text-[9px]">{u.name.slice(0, 10)}</p> */}
                                             </div>
                                         ))}
                                     </div>
@@ -158,7 +171,7 @@ export function PlanningCalendar() {
                             </Card>
                         ))}
                         
-                        {/* Zone vide cliquable pour ajouter */}
+                        {/* Zone vide cliquable pour ajouter (Créer un event CE jour là) */}
                         <div 
                             className="flex-1 min-h-[50px] rounded hover:bg-gray-100/50 cursor-pointer flex items-center justify-center group"
                             onClick={() => handleEventClick(null, day)}
@@ -168,13 +181,14 @@ export function PlanningCalendar() {
                     </div>
                 );
             })}
+            
             <div className="flex justify-end md:hidden">
                 <Button variant="outline" size="icon" onClick={nextWeek}><ChevronRight className="h-4 w-4"/></Button>
             </div>
         </div>
 
         <EventModal 
-            date = {modalDate}
+            date={modalDate}
             isOpen={isModalOpen} 
             onClose={() => setIsModalOpen(false)} 
             event={selectedEvent} 

@@ -116,7 +116,7 @@ export async function savePlanningEvent(data: any) {
         "Programme",
         `Vous êtes de service  le ${ format(date,  "dd:MM:yyyy")} à ${startTime}`,
         "INFO",
-        `/dashboard/user/intercessor/events/${specialEventId}`
+        `/dashboard/`
         );
         if (user.phone) {
           await sendSMS(

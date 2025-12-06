@@ -214,7 +214,7 @@ export async function updateSpecialEvent(data: any) {
 
     if(newEvent && oldEvent){
       await createPlaningForEvent(event, newEvent.templates, newEvent?.startDate, addDays(oldEvent.startDate, -1))
-      await createPlaningForEvent(event, newEvent.templates,  addDays(oldEvent.endDate, 1), newEvent.endDate)
+      await createPlaningForEvent(event, newEvent.templates,  addDays(oldEvent.endDate, 1), newEvent.endDate )
     }
 
   revalidatePath("/dashboard/leader/events");

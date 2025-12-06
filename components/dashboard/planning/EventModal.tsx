@@ -44,18 +44,33 @@ export function EventModal({ event, isOpen, onClose, onRefresh, date}: EventModa
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (event) {
-      setFormData({
-        date: format(date, "yyyy-MM-dd"),
-        title: event.title || "",
-        description: event.description || "",
-        // On extrait juste l'heure pour l'affichage
-        startTime: event.startTime,
-        endTime: event.endTime,
-        intercessorIds: event.intercessors ? event.intercessors.map((i: any) => i.id) : []
-      });
+    if (isOpen) {
+      if (event) {
+        // MODE MODIFICATION (inchangé)
+        setFormData({
+          title: event.title || "",
+          description: event.description || "",
+          startTime: event.startTime || "19:00",
+          endTime: event.endTime || "20:00",
+          // On s'assure de formater la date de l'event correctement
+          date: format(new Date(event.date), "yyyy-MM-dd"),
+          intercessorIds: event.intercessors?.map((u: any) => u.id) || [],
+        });
+      } else {
+        // MODE CRÉATION : On utilise la prop 'date' reçue du calendrier
+        // C'est ce bloc qui ne se mettait pas à jour
+        setFormData({
+          title: "",
+          description: "",
+          startTime: "19:00",
+          endTime: "20:00",
+          // On formatte la date cliquée (modalDate) pour l'input
+          date: format(date, "yyyy-MM-dd"), 
+          intercessorIds: [],
+        });
+      }
     }
-  }, [event]);
+  }, [isOpen, event, date]);
 
   const handleSave = async () => {
     setLoading(true);
