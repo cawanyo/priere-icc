@@ -7,10 +7,12 @@ import { Plus, Calendar, ArrowRight, Trash2, MoreVertical, Edit } from "lucide-r
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { deleteSpecialEvent } from "@/app/actions/event";
 import { toast } from "sonner";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale"; // J'ai ajouté la locale FR pour un affichage propre (ex: "25 Oct")
 import Link from "next/link";
-import { EventFormModal } from "./EventFormModal"; // Import du nouveau composant
+import { EventFormModal } from "./EventFormModal";
 import { SpecialEventWithTemplate } from "@/lib/types";
+import { formatUtcDate } from "@/lib/utils";
 
 export function EventList({ events }: { events: SpecialEventWithTemplate[] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,6 +34,11 @@ export function EventList({ events }: { events: SpecialEventWithTemplate[] }) {
     if (res.success) toast.success("Supprimé");
     else toast.error("Erreur suppression");
   };
+
+  /**
+   * Helper pour formater une date UTC en ignorant le fuseau horaire local du navigateur.
+   * On reconstruit une date locale avec les composants UTC (Jour, Mois, Année) exacts.
+   */
 
   return (
     <div className="space-y-6">
@@ -74,12 +81,13 @@ export function EventList({ events }: { events: SpecialEventWithTemplate[] }) {
                     <CardContent className="flex-1 flex flex-col">
                         <div className="text-sm text-gray-500 flex items-center mb-4 bg-gray-50 p-2 rounded-md w-fit">
                             <Calendar className="h-4 w-4 mr-2 text-pink-500" />
-                            <span className="font-medium">
-                                {format(evt.startDate, "d MMM")}
+                            <span className="font-medium capitalize">
+                                {/* Utilisation de la fonction helper ici */}
+                                {formatUtcDate(evt.startDate, "d MMM")}
                             </span>
                             <span className="mx-1.5">-</span>
-                            <span className="font-medium">
-                                {format(evt.endDate, "d MMM yyyy") }
+                            <span className="font-medium capitalize">
+                                {formatUtcDate(evt.endDate, "d MMM yyyy")}
                             </span>
                         </div>
                         
@@ -100,7 +108,7 @@ export function EventList({ events }: { events: SpecialEventWithTemplate[] }) {
             )}
         </div>
 
-        {/* COMPOSANT MODAL SÉPARÉ */}
+        {/* COMPOSANT MODAL */}
         <EventFormModal 
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
