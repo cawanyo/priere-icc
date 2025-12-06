@@ -10,7 +10,6 @@ import { EventModal } from "../planning/EventModal"; // Réutilisation de la mod
 import { useRouter } from "next/navigation";
 import {  PlaningWithIntercessor, SpecialEventWithPlaning } from "@/lib/types";
 import { formatUtcDate, normalizeDate } from "@/lib/utils";
-import { start } from "repl";
 
 interface EventCalendarProps {
   specialEvent: SpecialEventWithPlaning;
@@ -51,8 +50,6 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
     days.push(normalizeDate(new Date(dayIter)));
     dayIter.setDate(dayIter.getDate() + 1);
   }
-  console.log(specialEvent.plannings)
-
   return (
     <div className="space-y-6">
       
@@ -76,7 +73,6 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
         {days.map((day) => {
             // Filtrer les événements pour ce jour
             const dayEvents = specialEvent.plannings.filter(e => isSameDay(startOfDay(normalizeDate(e.date)), startOfDay(day)));
-            console.log(day, dayEvents)
             dayEvents.sort((a,b) => {
 
                 const [aH, aM] = a.startTime.split(":").map(Number);
@@ -99,7 +95,7 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
                     {/* En-tête Jour */}
                     <div className="text-center mb-2">
                         <span className="block text-xs font-semibold text-gray-500 uppercase">
-                            {formatUtcDate(day, "EEEE")} {isEventDay? "vrai": "faux"}
+                            {formatUtcDate(day, "EEEE")}
                         </span>
                         <span className={`block text-xl font-bold ${isEventDay ? 'text-indigo-900' : 'text-gray-400'}`}>
                             {formatUtcDate(day, "d")}

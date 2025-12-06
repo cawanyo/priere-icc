@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { format, isSameDay, startOfWeek, addWeeks, isWithinInterval, addDays } from "date-fns";
+import { format, isSameDay, startOfWeek, addWeeks, isWithinInterval, addDays, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,6 +10,7 @@ import { ChevronLeft, ChevronRight, CalendarCheck, UserCheck, Filter, PlusCircle
 import { useRouter } from "next/navigation";
 import { SelfAssignModal } from "./SelfAsignModel";
 import { SpecialEventWithPlaning } from "@/lib/types";
+import { formatUtcDate, normalizeDate } from "@/lib/utils";
 
 interface IntercessorEventCalendarProps {
   event: SpecialEventWithPlaning;
@@ -17,7 +18,12 @@ interface IntercessorEventCalendarProps {
 }
 
 export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEventCalendarProps) {
-  const [currentDate, setCurrentDate] = useState(new Date(event.startDate));
+
+    const today = normalizeDate(new Date())
+    const eventStartDate = normalizeDate(event.startDate)
+    const eventEndDate = normalizeDate(event.endDate)
+
+    const [currentDate, setCurrentDate] = useState(today > eventStartDate ? today : eventStartDate);
   const [showMyPlanningOnly, setShowMyPlanningOnly] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<any | null>(null); // Créneau sélectionné
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -41,7 +47,7 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
   const days = [];
   let dayIter = startOfWeek(currentDate, { weekStartsOn: 1 });
   for(let i=0; i<7; i++) {
-    days.push(new Date(dayIter));
+    days.push(normalizeDate(new Date(dayIter)));
     dayIter.setDate(dayIter.getDate() + 1);
   }
 
@@ -53,7 +59,7 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
         <div className="flex items-center gap-2">
             <Button variant="outline" size="icon" onClick={prevWeek}><ChevronLeft className="h-4 w-4"/></Button>
             <span className="font-semibold text-lg w-32 text-center capitalize">
-                {format(currentDate, "MMMM yyyy", { locale: fr })}
+                {formatUtcDate(currentDate, "MMMM yyyy")}
             </span>
             <Button variant="outline" size="icon" onClick={nextWeek}><ChevronRight className="h-4 w-4"/></Button>
         </div>
@@ -87,13 +93,13 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
         <Button variant="outline" size="icon" onClick={prevWeek} className="md:hidden"><ChevronLeft className="h-4 w-4"/></Button>
 
         {days.map((day) => {
-            const isEventDay = isWithinInterval(day, {
-                start: new Date(event.startDate),
-                end: new Date(event.endDate)
+            const isEventDay = isWithinInterval(startOfDay(day), {
+                start: eventStartDate,
+                end: eventEndDate
             });
 
             const dayEvents = event.plannings.filter(e => {
-                const isDayMatch = isSameDay(e.date, day);
+                const isDayMatch = isSameDay(normalizeDate(e.date), day);
                 if (!showMyPlanningOnly) return isDayMatch;
                 const isAssigned = e.intercessors?.some((u: any) => u.id === currentUserId);
                 return isDayMatch && isAssigned;
