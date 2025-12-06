@@ -146,10 +146,10 @@ model Planning {
   recurringId   String?  
 
   specialEventId String?
-  specialEvent   SpecialEvent? @relation(fields: [specialEventId], references: [id])
+  specialEvent   SpecialEvent? @relation(fields: [specialEventId], references: [id], onDelete: Cascade)
 
   templateId    String?
-  template      EventTemplate? @relation(fields: [templateId], references: [id])
+  template      EventTemplate? @relation(fields: [templateId], references: [id], onDelete: Cascade)
 
   intercessors  User[]   
 

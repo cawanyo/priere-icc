@@ -10,6 +10,7 @@ import { EventModal } from "../planning/EventModal"; // Réutilisation de la mod
 import { useRouter } from "next/navigation";
 import {  PlaningWithIntercessor, SpecialEventWithPlaning } from "@/lib/types";
 import { formatUtcDate, normalizeDate } from "@/lib/utils";
+import CalendarDay from "./CalendarDay";
 
 interface EventCalendarProps {
   specialEvent: SpecialEventWithPlaning;
@@ -39,8 +40,9 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
 
   const handleEventClick = (evt: PlaningWithIntercessor, day: Date) => {
     setSelectedEvent(evt);
+    setCurrentDate(day);
     setIsModalOpen(true);
-    setCurrentDate(day)
+    
   };
 
   // Générer les jours de la semaine affichée
@@ -70,84 +72,14 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
       {/* Grille Semaine */}
       <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
       <Button variant="outline" size="icon" onClick={prevWeek} className="md:hidden"><ChevronLeft className="h-4 w-4 "/></Button>
-        {days.map((day) => {
-            // Filtrer les événements pour ce jour
-            const dayEvents = specialEvent.plannings.filter(e => isSameDay(startOfDay(normalizeDate(e.date)), startOfDay(day)));
-            dayEvents.sort((a,b) => {
 
-                const [aH, aM] = a.startTime.split(":").map(Number);
-                const [bH, bM] = b.startTime.split(":").map(Number);
 
-                return aH - bH || aM - bM;
-            })
-            // Vérifier si le jour est DANS la période de l'événement
-            const isEventDay = isWithinInterval(startOfDay(day), {
-                start: eventStartDate,
-                end: eventEndDate
-            });
+        {days.map((day) => <CalendarDay key={day.toISOString()} specialEvent={specialEvent} handleEventClick={handleEventClick} day={day} /> )}
 
-            return (
-                <div 
-                    key={day.toISOString()} 
-                    className={`flex flex-col gap-3 min-h-[200px] rounded-xl p-3 border transition-colors
-                        ${isEventDay ? 'bg-gray-50/50 border-gray-100' : 'bg-gray-100/30 border-transparent opacity-50'}`}
-                >
-                    {/* En-tête Jour */}
-                    <div className="text-center mb-2">
-                        <span className="block text-xs font-semibold text-gray-500 uppercase">
-                            {formatUtcDate(day, "EEEE")}
-                        </span>
-                        <span className={`block text-xl font-bold ${isEventDay ? 'text-indigo-900' : 'text-gray-400'}`}>
-                            {formatUtcDate(day, "d")}
-                        </span>
-                    </div>
 
-                    {/* Créneaux */}
-                    {dayEvents.map(evt => (
-                        <Card 
-                            key={evt.id}
-                            onClick={() => handleEventClick(evt, day)}
-                            className={`p-3 cursor-pointer hover:shadow-md transition-all border-l-4 text-left space-y-1 bg-white
-                                `}
-                        >
-                            <div className="flex justify-between items-start">
-                                <span className="font-semibold text-sm truncate w-full">{evt.title}</span>
-                                <CalendarCheck className="h-3 w-3 text-pink-500 shrink-0 ml-1" />
-                            </div>
-                            <p className="text-xs text-gray-500">
-                                {evt.startTime} - {evt.endTime}
-                            </p>
-
-                            {/* Avatars Intercesseurs */}
-                            {evt.intercessors && evt.intercessors.length > 0 ? (
-                                <div className="flex -space-x-2 overflow-hidden pt-2">
-                                    {evt.intercessors.map((u: any) => (
-                                        <div key={u.id} className="flex items-center gap-1">
-                                            <Avatar key={u.id} className="inline-block h-4 w-4 rounded-full ring-2 ring-white">
-                                                <AvatarImage src={u.image} />
-                                                <AvatarFallback className="text-[9px] bg-indigo-100 text-indigo-700">
-                                                    {u.name?.slice(0,1)}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <p className="text-[8px]">{u.name}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="flex items-center text-[10px] text-gray-400 mt-1 italic">
-                                    Non assigné
-                                </div>
-                            )}
-                        </Card>
-                    ))}
-
-                    
-                </div>
-            )
-        })}
-            <div className=" w-full flex justify-end">
-                <Button variant="outline" size="icon" onClick={nextWeek} className="md:hidden self-center"><ChevronRight className="h-4 w-4"/></Button>
-            </div>
+        <div className=" w-full flex justify-end">
+            <Button variant="outline" size="icon" onClick={nextWeek} className="md:hidden self-center"><ChevronRight className="h-4 w-4"/></Button>
+        </div>
 
       </div>
 
