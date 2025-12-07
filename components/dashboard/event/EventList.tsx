@@ -14,10 +14,22 @@ import { EventFormModal } from "./EventFormModal";
 import { SpecialEventWithTemplate } from "@/lib/types";
 import { formatUtcDate } from "@/lib/utils";
 
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+  } from "@/components/ui/alert-dialog";
 export function EventList({ events }: { events: SpecialEventWithTemplate[] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any | null>(null);
-
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [idToDelete, setIdToDelete] = useState<string>("")
   const openCreate = () => {
     setEditingEvent(null);
     setIsModalOpen(true);
@@ -29,10 +41,11 @@ export function EventList({ events }: { events: SpecialEventWithTemplate[] }) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Supprimer cet événement et tout son planning ?")) return;
+    setIsLoading(true)
     const res = await deleteSpecialEvent(id);
     if (res.success) toast.success("Supprimé");
     else toast.error("Erreur suppression");
+    setIsLoading(false)
   };
 
   /**
@@ -65,7 +78,7 @@ export function EventList({ events }: { events: SpecialEventWithTemplate[] }) {
                                 <DropdownMenuItem onClick={() => openEdit(evt)}>
                                     <Edit className="mr-2 h-4 w-4" /> Modifier
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleDelete(evt.id)} className="text-red-600 focus:text-red-700 focus:bg-red-50">
+                                <DropdownMenuItem onClick={() => setIdToDelete(evt.id)} className="text-red-600 focus:text-red-700 focus:bg-red-50">
                                     <Trash2 className="mr-2 h-4 w-4" /> Supprimer
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -114,6 +127,24 @@ export function EventList({ events }: { events: SpecialEventWithTemplate[] }) {
             onClose={() => setIsModalOpen(false)}
             eventToEdit={editingEvent}
         />
+
+            <AlertDialog open={idToDelete!=""} onOpenChange={(open) => !open && setIdToDelete("")}>
+
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Cette action est irréversible. Cela supprimera définitivement cet événement du planning.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDelete(idToDelete)} className="bg-red-600 hover:bg-red-700 text-white">
+                            Confirmer la suppression
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { sendSMS } from "@/lib/sms";
 import { addDays, startOfDay, endOfDay, format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { normalizeDate } from "@/lib/utils";
 
 // Cette route doit être protégée pour ne pas être appelée par n'importe qui
 // Vercel ajoute un header d'authentification spécial pour les Crons
@@ -17,7 +18,7 @@ export async function GET(req: Request) {
 
   try {
     // 1. Définir la plage de "Demain"
-    const today = new Date();
+    const today = normalizeDate(new Date());
     const tomorrow = addDays(today, 1);
 
     console.log(`[CRON] Lancement des rappels pour le ${format(tomorrow, "dd/MM/yyyy")}`);
