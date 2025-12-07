@@ -8,13 +8,13 @@ import { normalizeDate } from "@/lib/utils";
 // Cette route doit être protégée pour ne pas être appelée par n'importe qui
 // Vercel ajoute un header d'authentification spécial pour les Crons
 export async function GET(req: Request) {
-  const authHeader = req.headers.get("authorization");
+  // const authHeader = req.headers.get("authorization");
   
-  // Sécurité simple : Vérifier si la requête vient bien du Cron Vercel (en prod)
-  // En dev, on peut bypasser ou utiliser un secret dans l'URL
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return new NextResponse("Unauthorized", { status: 401 });
-  }
+  // // Sécurité simple : Vérifier si la requête vient bien du Cron Vercel (en prod)
+  // // En dev, on peut bypasser ou utiliser un secret dans l'URL
+  // if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  //   return new NextResponse("Unauthorized", { status: 401 });
+  // }
 
   try {
     // 1. Définir la plage de "Demain"
