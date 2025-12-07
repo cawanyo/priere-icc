@@ -108,25 +108,25 @@ export async function savePlanningEvent(data: any) {
         select: { phone: true, name: true, id:true }
       });
 
-      // Envoi asynchrone (on n'attend pas la fin pour répondre au client)
+      //Envoi asynchrone (on n'attend pas la fin pour répondre au client)
 
-    //   await Promise.all(newIntercessors.map(async (user) => {
-    //     await createNotification(
-    //     user.id,
-    //     "Programme",
-    //     `Vous êtes de service  le ${ format(date,  "dd:MM:yyyy")} à ${startTime}`,
-    //     "INFO",
-    //     `/dashboard/`
-    //     );
-    //     if (user.phone) {
-    //       await sendSMS(
-    //         user.phone, 
-    //         `Bonjour ${user.name}, LE MDPI vous informe que vous êtes de service le  ${ format(date,  "dd:MM:yyyy")},  à ${startTime}. Merci de consulter le planing. Excellente journée !`
-    //       );
-    //     }
-    //     }
-    //   )
-    // )
+      await Promise.all(newIntercessors.map(async (user) => {
+        await createNotification(
+        user.id,
+        "Programme",
+        `Vous êtes de service  le ${ format(date,  "dd:MM:yyyy")} à ${startTime}`,
+        "INFO",
+        `/dashboard/`
+        );
+        if (user.phone) {
+          await sendSMS(
+            user.phone, 
+            `Bonjour ${user.name}, LE MDPI vous informe que vous êtes de service le  ${ format(date,  "dd:MM:yyyy")},  à ${startTime}. Merci de consulter le planing. Excellente journée !`
+          );
+        }
+        }
+      )
+    )
 
     }
 
