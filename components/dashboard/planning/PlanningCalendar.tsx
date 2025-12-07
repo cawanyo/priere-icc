@@ -12,7 +12,7 @@ import { getPlanningEvents } from "@/app/actions/planing"; // Vérifiez l'orthog
 import { RecurringManager } from "./RecurringManager";
 import { DownloadPlanningButton } from "@/components/pdf/DownloadPlanningButton";
 import { PlaningWithIntercessor } from "@/lib/types";
-import { normalizeDate } from "@/lib/utils";
+import { formatUtcDate, normalizeDate } from "@/lib/utils";
 
 export function PlanningCalendar() {
   // On normalise dès l'initialisation pour éviter les décalages jour J
@@ -82,7 +82,7 @@ export function PlanningCalendar() {
             <div className="flex flex-wrap items-center gap-2">
                 <Button variant="outline" size="icon" onClick={prevWeek}><ChevronLeft className="h-4 w-4"/></Button>
                 <span className="font-semibold text-lg w-32 text-center capitalize">
-                    {format(currentDate, "MMMM yyyy", { locale: fr })}
+                    {formatUtcDate(currentDate, "MMMM yyyy")}
                 </span>
                 <Button variant="outline" size="icon" onClick={nextWeek}><ChevronRight className="h-4 w-4"/></Button>
             </div>
@@ -90,7 +90,7 @@ export function PlanningCalendar() {
                 <DownloadPlanningButton 
                     events={events}
                     title="Planning Hebdomadaire"
-                    subtitle={`Semaine du ${format(startOfWeekDate, "d MMMM", { locale: fr })} au ${format(endOfWeekDate, "d MMMM yyyy", { locale: fr })}`}
+                    subtitle={`Semaine du ${formatUtcDate(startOfWeekDate, "d MMMM")} au ${formatUtcDate(endOfWeekDate, "d MMMM yyyy")}`}
                     startDate={startOfWeekDate}
                     endDate={endOfWeekDate}
                     fileName={`planning-semaine-${format(startOfWeekDate, "ww")}.pdf`}
@@ -126,10 +126,10 @@ export function PlanningCalendar() {
                         {/* En-tête jour */}
                         <div className="text-center mb-2">
                             <span className="block text-xs font-semibold text-gray-500 uppercase">
-                                {format(day, "EEEE", { locale: fr })}
+                                {formatUtcDate(day, "EEEE")}
                             </span>
                             <span className={`block text-xl font-bold ${isToday ? 'text-pink-600' : 'text-gray-700'}`}>
-                                {format(day, "d")}
+                                {formatUtcDate(day, "d")}
                             </span>
                         </div>
 

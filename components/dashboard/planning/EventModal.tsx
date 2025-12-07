@@ -23,6 +23,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { PlaningWithIntercessor } from "@/lib/types";
+import { formatUtcDate, normalizeDate } from "@/lib/utils";
 
 interface EventModalProps {
   event: PlaningWithIntercessor | null; // L'événement sélectionné (contient la date complète)
@@ -34,7 +35,7 @@ interface EventModalProps {
 
 export function EventModal({ event, isOpen, onClose, onRefresh, date}: EventModalProps) {
   const [formData, setFormData] = useState({
-    date: format(date, "yyyy-MM-dd"),
+    date: formatUtcDate(date, "yyyy-MM-dd"),
     title: "",
     description: "",
     startTime: "", // Stockera "HH:mm"
@@ -53,7 +54,7 @@ export function EventModal({ event, isOpen, onClose, onRefresh, date}: EventModa
           startTime: event.startTime || "19:00",
           endTime: event.endTime || "20:00",
           // On s'assure de formater la date de l'event correctement
-          date: format(new Date(event.date), "yyyy-MM-dd"),
+          date: formatUtcDate(event.date, "yyyy-MM-dd"),
           intercessorIds: event.intercessors?.map((u: any) => u.id) || [],
         });
       } else {
@@ -65,7 +66,7 @@ export function EventModal({ event, isOpen, onClose, onRefresh, date}: EventModa
           startTime: "19:00",
           endTime: "20:00",
           // On formatte la date cliquée (modalDate) pour l'input
-          date: format(date, "yyyy-MM-dd"), 
+          date: formatUtcDate(date, "yyyy-MM-dd"), 
           intercessorIds: [],
         });
       }
@@ -85,7 +86,7 @@ export function EventModal({ event, isOpen, onClose, onRefresh, date}: EventModa
         startTime: formData.startTime,
         endTime: formData.endTime,
         intercessorIds: formData.intercessorIds,
-        date: formData.date
+        date: normalizeDate(formData.date)
     };
     
     const res = await savePlanningEvent(payload);
