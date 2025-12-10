@@ -5,30 +5,30 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  // const email = ''; // 📧 Changez l'email ici
-  // const password = ''; // 🔒 Changez le mot de passe ici
+  const email = 'admin@gmail.com'; // 📧 Changez l'email ici
+  const password = 'Test123'; // 🔒 Changez le mot de passe ici
 
-  // const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword = await bcrypt.hash(password, 10);
 
-  // const admin = await prisma.user.upsert({
-  //   where: { email },
-  //   update: {}, // Si l'utilisateur existe déjà, on ne fait rien
-  //   create: {
-  //     email,
-  //     name: 'Super Admin',
-  //     password: hashedPassword,
-  //     role: 'ADMIN', // C'est ici qu'on donne les droits d'admin
-  //     phone: '+33600000000', // Optionnel
-  //   },
-  // });
+  const admin = await prisma.user.upsert({
+    where: { email },
+    update: {}, // Si l'utilisateur existe déjà, on ne fait rien
+    create: {
+      email,
+      name: 'Super Admin',
+      password: hashedPassword,
+      role: 'ADMIN', // C'est ici qu'on donne les droits d'admin
+      phone: '+33600000000', // Optionnel
+    },
+  });
 
-  // console.log({ admin });
+  console.log({ admin });
   // const prayer = await prisma.prayer.deleteMany()
 
 
-  const a = await prisma.planning.deleteMany(
-    {where: {specialEventId: null}}
-  )
+  // const a = await prisma.planning.deleteMany(
+  //   {where: {specialEventId: null}}
+  // )
 }
 
 main()

@@ -22,13 +22,10 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
   const today = normalizeDate(new Date())
   const eventStartDate = normalizeDate(specialEvent.startDate)
   const eventEndDate = normalizeDate(specialEvent.endDate)
-
-
   const [currentDate, setCurrentDate] = useState(today > eventStartDate ? today : eventStartDate);
   const [selectedEvent, setSelectedEvent] = useState< PlaningWithIntercessor | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
-
 
   // Navigation
   const nextWeek = () => setCurrentDate(addWeeks(currentDate, 1));
@@ -39,6 +36,7 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
   };
 
   const handleEventClick = (evt: PlaningWithIntercessor, day: Date) => {
+    console.log(day)
     setSelectedEvent(evt);
     setCurrentDate(day);
     setIsModalOpen(true);
@@ -52,6 +50,8 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
     days.push(normalizeDate(new Date(dayIter)));
     dayIter.setDate(dayIter.getDate() + 1);
   }
+
+
   return (
     <div className="space-y-6">
       

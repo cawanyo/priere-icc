@@ -38,8 +38,8 @@ export function EventModal({ event, isOpen, onClose, onRefresh, date}: EventModa
     date: formatUtcDate(date, "yyyy-MM-dd"),
     title: "",
     description: "",
-    startTime: "", // Stockera "HH:mm"
-    endTime: "",   // Stockera "HH:mm"
+    startTime: "", 
+    endTime: "",  
     intercessorIds: [] as string[]
   });
   const [loading, setLoading] = useState(false);
