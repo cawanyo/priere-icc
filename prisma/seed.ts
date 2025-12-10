@@ -18,7 +18,7 @@ async function main() {
       name: 'Super Admin',
       password: hashedPassword,
       role: 'ADMIN', // C'est ici qu'on donne les droits d'admin
-      phone: '+33600000000', // Optionnel
+      phone: '+3360000000', // Optionnel
     },
   });
 
