@@ -242,11 +242,11 @@ export function NightPlanningBoard() {
                         </Dialog>
 
                         {/* PDF */}
-                        <DownloadNightButton 
+                        {/* <DownloadNightButton 
                             weekDate={currentDate} 
                             familyName={assignment.family.name}
                             schedules={assignment.schedules}
-                        />
+                        /> */}
                     </div>
                 </div>
             )}
