@@ -43,7 +43,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
         <Providers>
-          <div className="min-h-screen w-full flex flex-col justify-between">
+          <div className="min-h-screen w-full flex flex-col justify-between  bg-white">
             <Suspense fallback={<LoadingOverlay />}>
               <Header />
             </Suspense>

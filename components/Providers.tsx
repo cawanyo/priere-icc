@@ -16,12 +16,12 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         {/* Wrap everything with ThemeProvider */}
         <SessionWatcher />
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+        {/*<ThemeProvider attribute="class" defaultTheme="light" enableSystem>*/}
           <TooltipProvider>
             {children}
             <Sonner />
           </TooltipProvider>
-        </ThemeProvider>
+        {/*</ThemeProvider>*/}
       </QueryClientProvider>
     </SessionProvider>
   );

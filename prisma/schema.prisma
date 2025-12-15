@@ -46,6 +46,11 @@ model User {
 
   notifications Notification[]
   passwordResetTokens PasswordResetToken[]
+
+
+  prayerFamilyId String?
+  prayerFamily   PrayerFamily? @relation(fields: [prayerFamilyId], references: [id])
+  familySchedules FamilySchedule[]
  
 }
 
@@ -267,4 +272,57 @@ model PasswordResetToken {
   createdAt DateTime @default(now())
 
   @@unique([userId, token]) // Un code est unique pour un utilisateur donné
+}
+
+
+
+model PrayerFamily {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  color       String   @default("#4f46e5") // Pour l'UI
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Membres de la famille
+  members     User[]
+
+  // Les semaines assignées à cette famille
+  assignments FamilyWeeklyAssignment[]
+}
+
+
+
+model FamilyWeeklyAssignment {
+  id        String   @id @default(cuid())
+  
+  // Semaine identifiée par son Lundi (startOfWeek)
+  weekStart DateTime 
+  
+  familyId  String
+  family    PrayerFamily @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  // Les créneaux précis de cette semaine là
+  schedules FamilySchedule[]
+
+  @@unique([weekStart]) // Une seule famille par semaine !
+}
+
+
+model FamilySchedule {
+  id            String   @id @default(cuid())
+  
+  date          DateTime // La date précise (ex: 2024-10-21 00:00)
+  startTime     String   // "00:00"
+  endTime       String   // "01:00"
+  
+  assignmentId  String
+  assignment    FamilyWeeklyAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id])
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
