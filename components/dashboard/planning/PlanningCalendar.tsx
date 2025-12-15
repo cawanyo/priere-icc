@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getPlanningEvents } from "@/app/actions/planing"; // Vérifiez l'orthographe (planning vs planing)
 import { RecurringManager } from "./RecurringManager";
-import { DownloadPlanningButton } from "@/components/pdf/DownloadPlanningButton";
+
 import { PlaningWithIntercessor } from "@/lib/types";
 import { formatUtcDate, normalizeDate } from "@/lib/utils";
 
@@ -87,14 +87,14 @@ export function PlanningCalendar() {
                 <Button variant="outline" size="icon" onClick={nextWeek}><ChevronRight className="h-4 w-4"/></Button>
             </div>
             <div className="flex flex-wrap gap-2 w-full md:w-auto">
-                <DownloadPlanningButton 
+                {/* <DownloadPlanningButton 
                     events={events}
                     title="Planning Hebdomadaire"
                     subtitle={`Semaine du ${formatUtcDate(startOfWeekDate, "d MMMM")} au ${formatUtcDate(endOfWeekDate, "d MMMM yyyy")}`}
                     startDate={startOfWeekDate}
                     endDate={endOfWeekDate}
                     fileName={`planning-semaine-${format(startOfWeekDate, "ww")}.pdf`}
-                />
+                /> */}
 
                 <Button 
                     variant="outline" 
