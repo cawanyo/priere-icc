@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { DownloadPlanningButton } from "@/components/pdf/DownloadPlanningButton"; // <--- Import
 import { getEventDetails } from "@/app/actions/event";
 import { EventCalendar } from "@/components/dashboard/event/EventCalendar";
 
@@ -30,7 +29,7 @@ export default async function EventPlanningPage({ params }: { params: Promise<{ 
         </div>
 
         {/* --- BOUTON D'EXPORT PDF --- */}
-        <div>
+        {/* <div>
             <DownloadPlanningButton 
                 events={specialEvent.plannings || []} // On passe tout le calendrier de l'événement
                 title={specialEvent.title}
@@ -39,7 +38,7 @@ export default async function EventPlanningPage({ params }: { params: Promise<{ 
                 endDate={new Date(specialEvent.endDate)}
                 fileName={`programme-${specialEvent.title.toLowerCase().replace(/\s+/g, '-')}.pdf`}
             />
-        </div>
+        </div> */}
       </div>
 
       {/* Le calendrier interactif */}
