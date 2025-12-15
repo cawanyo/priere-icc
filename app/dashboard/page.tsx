@@ -90,6 +90,16 @@ export default async function DashboardPage() {
           bg: "bg-purple-50",
           requiredRoles: ["PRAYER_LEADER", "INTERCESSOR", "LEADER", "ADMIN"],
         },
+
+        {
+          title: "Maison de priere",
+          description: "Planning de la maison de prière.",
+          href: "/dashboard/user/prayer-house",
+          icon: ClipboardList,
+          color: "text-purple-600",
+          bg: "bg-purple-50",
+          requiredRoles: ["PRAYER_LEADER", "INTERCESSOR", "LEADER", "ADMIN"],
+        },
       ]
     },
     {
@@ -115,6 +125,15 @@ export default async function DashboardPage() {
           color: "text-violet-600",
           bg: "bg-violet-50",
           requiredRoles: ["INTERCESSOR", "LEADER", "ADMIN"],
+        },
+        {
+          title: "Maison de priere",
+          description: "Planning de la maison de prière.",
+          href: "/dashboard/user/prayer-house",
+          icon: ClipboardList,
+          color: "text-purple-600",
+          bg: "bg-purple-50",
+          requiredRoles: ["PRAYER_LEADER", "INTERCESSOR", "LEADER", "ADMIN"],
         },
         {
           title: "Événements Spéciaux",
@@ -148,6 +167,16 @@ export default async function DashboardPage() {
           icon: CalendarRange,
           color: "text-amber-600",
           bg: "bg-amber-50",
+        },
+
+        {
+          title: "Maison de priere",
+          description: "Planning de la maison de prière.",
+          href: "/dashboard/leader/prayer-house",
+          icon: ClipboardList,
+          color: "text-purple-600",
+          bg: "bg-purple-50",
+          requiredRoles: ["PRAYER_LEADER", "INTERCESSOR", "LEADER", "ADMIN"],
         },
         {
           title: "Gestion Événements",

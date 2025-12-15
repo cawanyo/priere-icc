@@ -10,7 +10,7 @@ import { createSpecialEvent, updateSpecialEvent } from "@/app/actions/event";
 import { toast } from "sonner";
 import { SpecialEventWithTemplate } from "@/lib/types";
 import { formatUtcDate, normalizeDate } from "@/lib/utils";
-import { normalize } from "path";
+import { format } from "date-fns";
 
 export type Template = {
   title: string;
@@ -29,6 +29,7 @@ export function EventFormModal({ isOpen, onClose, eventToEdit }: EventFormModalP
   const [loading, setLoading] = useState(false);
   
   // États du formulaire
+  console.log(eventToEdit)
   const [formData, setFormData] = useState({
     title: "", 
     description: "", 
@@ -47,8 +48,8 @@ export function EventFormModal({ isOpen, onClose, eventToEdit }: EventFormModalP
         setFormData({
             title: eventToEdit.title,
             description: eventToEdit.description || "",
-            startDate: formatUtcDate(new Date(eventToEdit.startDate), "yyyy-MM-dd"),
-            endDate: formatUtcDate(new Date(eventToEdit.endDate), "yyyy-MM-dd"),
+            startDate: format(eventToEdit.startDate, "yyyy-MM-dd"),
+            endDate: format(eventToEdit.endDate, "yyyy-MM-dd"),
         });
 
         if (eventToEdit.templates && eventToEdit.templates.length > 0) {
@@ -95,13 +96,12 @@ export function EventFormModal({ isOpen, onClose, eventToEdit }: EventFormModalP
         return;
     }
 
-    console.log(templates)
 
     setLoading(true);
-    const startDateObj = normalizeDate(formData.startDate);
+    const startDateObj = new Date(formData.startDate);
     startDateObj.setHours(0, 0, 0, 0);
 
-    const endDateObj = normalizeDate(formData.endDate);
+    const endDateObj = new Date(formData.endDate);
     endDateObj.setHours(23, 59, 59, 999);
 
     let res;
