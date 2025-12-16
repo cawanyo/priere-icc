@@ -2,14 +2,12 @@
 
 import { useState } from "react";
 import { format, isSameDay, startOfWeek, addWeeks, isWithinInterval, startOfDay } from "date-fns";
-import { Card } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Plus, CalendarCheck } from "lucide-react";
 import { EventModal } from "../planning/EventModal"; // Réutilisation de la modale
 import { useRouter } from "next/navigation";
 import {  PlaningWithIntercessor, SpecialEventWithPlaning } from "@/lib/types";
-import { formatUtcDate, normalizeDate } from "@/lib/utils";
+import { convertKeepDate, formatUtcDate, normalizeDate } from "@/lib/utils";
 import CalendarDay from "./CalendarDay";
 
 interface EventCalendarProps {
@@ -19,9 +17,11 @@ interface EventCalendarProps {
 
 export function EventCalendar({specialEvent }: EventCalendarProps) {
   // On commence le calendrier à la date de début de l'événement
-  const today = normalizeDate(new Date())
-  const eventStartDate = normalizeDate(specialEvent.startDate)
-  const eventEndDate = normalizeDate(specialEvent.endDate)
+  const today = new Date()
+  const eventStartDate = convertKeepDate(specialEvent.startDate)
+  const eventEndDate = convertKeepDate(specialEvent.endDate)
+
+
   const [currentDate, setCurrentDate] = useState(today > eventStartDate ? today : eventStartDate);
   const [selectedEvent, setSelectedEvent] = useState< PlaningWithIntercessor | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -36,7 +36,6 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
   };
 
   const handleEventClick = (evt: PlaningWithIntercessor, day: Date) => {
-    console.log(day)
     setSelectedEvent(evt);
     setCurrentDate(day);
     setIsModalOpen(true);
@@ -47,7 +46,7 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
   const days = [];
   let dayIter = startOfWeek(currentDate, { weekStartsOn: 1 });
   for(let i=0; i<7; i++) {
-    days.push(normalizeDate(new Date(dayIter)));
+    days.push(new Date(dayIter));
     dayIter.setDate(dayIter.getDate() + 1);
   }
 
@@ -60,12 +59,12 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
         <div className="flex items-center gap-2">
             <Button variant="outline" size="icon" onClick={prevWeek}><ChevronLeft className="h-4 w-4 "/></Button>
             <span className="font-semibold text-lg w-32 text-center capitalize">
-                {formatUtcDate(currentDate, "MMMM yyyy")}
+                {format(currentDate, "MMMM yyyy")}
             </span>
             <Button variant="outline" size="icon" onClick={nextWeek}><ChevronRight className="h-4 w-4"/></Button>
         </div>
         <div className="text-sm text-gray-500 font-medium">
-            Semaine du {formatUtcDate(days[0], "d")} au {formatUtcDate(days[6], "d MMM")}
+            Semaine du {format(days[0], "d")} au {format(days[6], "d MMM")}
         </div>
       </div>
 

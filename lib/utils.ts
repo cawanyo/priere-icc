@@ -21,3 +21,7 @@ export const normalizeDate = (dateInput: Date | string) => {
   const d = new Date(dateInput);
   return new Date(d.valueOf() + d.getTimezoneOffset() * 60000);
 };
+
+export const  convertKeepDate =(date: Date) => {
+  return new Date(date.toUTCString().slice(0,-3))
+}

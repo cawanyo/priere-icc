@@ -12,19 +12,21 @@ import { getPlanningEvents } from "@/app/actions/planing"; // Vérifiez l'orthog
 import { RecurringManager } from "./RecurringManager";
 
 import { PlaningWithIntercessor } from "@/lib/types";
-import { formatUtcDate, normalizeDate } from "@/lib/utils";
+import { convertKeepDate } from "@/lib/utils";
 
 export function PlanningCalendar() {
   // On normalise dès l'initialisation pour éviter les décalages jour J
-  const [currentDate, setCurrentDate] = useState(() => normalizeDate(new Date()));
+  const [currentDate, setCurrentDate] = useState(() => new Date());
 
+
+  
   const [events, setEvents] = useState<PlaningWithIntercessor[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRecurringOpen, setIsRecurringOpen] = useState(false);
   
   // Date passée à la modale (doit être normalisée)
-  const [modalDate, setModalDate] = useState(() => normalizeDate(new Date()));
+  const [modalDate, setModalDate] = useState(() => new Date());
 
   const startOfWeekDate = startOfWeek(currentDate, { weekStartsOn: 1 });
   const endOfWeekDate = endOfWeek(currentDate, { weekStartsOn: 1 });
@@ -45,13 +47,14 @@ export function PlanningCalendar() {
     loadEvents();
   }, [currentDate]);
 
+ 
   const nextWeek = () => setCurrentDate(addWeeks(currentDate, 1));
   const prevWeek = () => setCurrentDate(addWeeks(currentDate, -1));
 
   // Création via le bouton principal (date d'aujourd'hui par défaut)
   const handleCreateNew = () => {
     setSelectedEvent(null);
-    setModalDate(normalizeDate(new Date()));
+    setModalDate(new Date());
     setIsModalOpen(true);
   };
 
@@ -61,7 +64,7 @@ export function PlanningCalendar() {
     setSelectedEvent(event);
     
     // 2. On force la date normalisée (UTC visuel) pour la modale
-    const normalizedDay = normalizeDate(day);
+    const normalizedDay = day;
     setModalDate(normalizedDay);
     
     // 3. On ouvre
@@ -71,7 +74,7 @@ export function PlanningCalendar() {
   // Génération propre des 7 jours de la semaine
   const days = Array.from({ length: 7 }).map((_, i) => {
     // On prend le lundi de la semaine courante et on ajoute i jours
-    return normalizeDate(addDays(startOfWeekDate, i));
+    return addDays(startOfWeekDate, i);
   });
 
   return (
@@ -82,7 +85,7 @@ export function PlanningCalendar() {
             <div className="flex flex-wrap items-center gap-2">
                 <Button variant="outline" size="icon" onClick={prevWeek}><ChevronLeft className="h-4 w-4"/></Button>
                 <span className="font-semibold text-lg w-32 text-center capitalize">
-                    {formatUtcDate(currentDate, "MMMM yyyy")}
+                    {format(currentDate, "MMMM yyyy")}
                 </span>
                 <Button variant="outline" size="icon" onClick={nextWeek}><ChevronRight className="h-4 w-4"/></Button>
             </div>
@@ -116,20 +119,20 @@ export function PlanningCalendar() {
 
             {days.map((day) => {
                 // Comparaison avec date normalisée
-                const dayEvents = events.filter(e => isSameDay(normalizeDate(e.date), day));
+                const dayEvents = events.filter(e => isSameDay(convertKeepDate(e.date), day));
                 
                 // Comparaison "Is Today" (on normalise new Date() pour être sûr)
-                const isToday = isSameDay(day, normalizeDate(new Date()));
+                const isToday = isSameDay(day, new Date());
 
                 return (
                     <div key={day.toISOString()} className={`flex flex-col gap-3 min-h-[200px] rounded-xl p-3 ${isToday ? 'bg-pink-50/50 border-pink-100 border' : 'bg-gray-50 border border-transparent'}`}>
                         {/* En-tête jour */}
                         <div className="text-center mb-2">
                             <span className="block text-xs font-semibold text-gray-500 uppercase">
-                                {formatUtcDate(day, "EEEE")}
+                                {format(day, "EEEE")}
                             </span>
                             <span className={`block text-xl font-bold ${isToday ? 'text-pink-600' : 'text-gray-700'}`}>
-                                {formatUtcDate(day, "d")}
+                                {format(day, "d")}
                             </span>
                         </div>
 

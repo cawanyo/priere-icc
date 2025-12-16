@@ -1,6 +1,4 @@
 // app/dashboard/user/intercessor/planning/page.tsx
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { Calendar } from "lucide-react";
 import { IntercessorCalendar } from "@/components/dashboard/intercessor/IntercessorCalendar";

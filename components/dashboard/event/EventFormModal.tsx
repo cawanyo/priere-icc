@@ -9,7 +9,7 @@ import { Plus, Trash2, Clock, ArrowDownAZ, Loader2 } from "lucide-react";
 import { createSpecialEvent, updateSpecialEvent } from "@/app/actions/event";
 import { toast } from "sonner";
 import { SpecialEventWithTemplate } from "@/lib/types";
-import { formatUtcDate, normalizeDate } from "@/lib/utils";
+import { convertKeepDate, formatUtcDate, normalizeDate } from "@/lib/utils";
 import { format } from "date-fns";
 
 export type Template = {
@@ -48,8 +48,8 @@ export function EventFormModal({ isOpen, onClose, eventToEdit }: EventFormModalP
         setFormData({
             title: eventToEdit.title,
             description: eventToEdit.description || "",
-            startDate: format(eventToEdit.startDate, "yyyy-MM-dd"),
-            endDate: format(eventToEdit.endDate, "yyyy-MM-dd"),
+            startDate: format(convertKeepDate(eventToEdit.startDate), "yyyy-MM-dd"),
+            endDate: format(convertKeepDate(eventToEdit.endDate), "yyyy-MM-dd"),
         });
 
         if (eventToEdit.templates && eventToEdit.templates.length > 0) {

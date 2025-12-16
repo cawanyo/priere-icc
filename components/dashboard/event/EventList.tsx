@@ -12,7 +12,7 @@ import { fr } from "date-fns/locale"; // J'ai ajouté la locale FR pour un affic
 import Link from "next/link";
 import { EventFormModal } from "./EventFormModal";
 import { SpecialEventWithTemplate } from "@/lib/types";
-import { formatUtcDate } from "@/lib/utils";
+import { convertKeepDate, formatUtcDate } from "@/lib/utils";
 
 import {
     AlertDialog,
@@ -96,11 +96,11 @@ export function EventList({ events }: { events: SpecialEventWithTemplate[] }) {
                             <Calendar className="h-4 w-4 mr-2 text-pink-500" />
                             <span className="font-medium capitalize">
                                 {/* Utilisation de la fonction helper ici */}
-                                {formatUtcDate(evt.startDate, "d MMM")}
+                                {format(convertKeepDate(evt.startDate), "d MMM")}
                             </span>
                             <span className="mx-1.5">-</span>
                             <span className="font-medium capitalize">
-                                {formatUtcDate(evt.endDate, "d MMM yyyy")}
+                                {format(convertKeepDate(evt.endDate), "d MMM yyyy")}
                             </span>
                         </div>
                         

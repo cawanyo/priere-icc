@@ -10,7 +10,7 @@ import { ChevronLeft, ChevronRight, CalendarCheck, UserCheck, Filter, PlusCircle
 import { useRouter } from "next/navigation";
 import { SelfAssignModal } from "./SelfAsignModel";
 import { SpecialEventWithPlaning } from "@/lib/types";
-import { formatUtcDate, normalizeDate } from "@/lib/utils";
+import { convertKeepDate} from "@/lib/utils";
 
 interface IntercessorEventCalendarProps {
   event: SpecialEventWithPlaning;
@@ -19,9 +19,9 @@ interface IntercessorEventCalendarProps {
 
 export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEventCalendarProps) {
 
-    const today = normalizeDate(new Date())
-    const eventStartDate = normalizeDate(event.startDate)
-    const eventEndDate = normalizeDate(event.endDate)
+    const today = new Date()
+    const eventStartDate = convertKeepDate(event.startDate)
+    const eventEndDate = convertKeepDate(event.endDate)
 
     const [currentDate, setCurrentDate] = useState(today > eventStartDate ? today : eventStartDate);
   const [showMyPlanningOnly, setShowMyPlanningOnly] = useState(false);
@@ -47,7 +47,7 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
   const days = [];
   let dayIter = startOfWeek(currentDate, { weekStartsOn: 1 });
   for(let i=0; i<7; i++) {
-    days.push(normalizeDate(new Date(dayIter)));
+    days.push(new Date(dayIter));
     dayIter.setDate(dayIter.getDate() + 1);
   }
 
@@ -59,7 +59,7 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
         <div className="flex items-center gap-2">
             <Button variant="outline" size="icon" onClick={prevWeek}><ChevronLeft className="h-4 w-4"/></Button>
             <span className="font-semibold text-lg w-32 text-center capitalize">
-                {formatUtcDate(currentDate, "MMMM yyyy")}
+                {format(currentDate, "MMMM yyyy")}
             </span>
             <Button variant="outline" size="icon" onClick={nextWeek}><ChevronRight className="h-4 w-4"/></Button>
         </div>
@@ -99,7 +99,7 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
             });
 
             const dayEvents = event.plannings.filter(e => {
-                const isDayMatch = isSameDay(normalizeDate(e.date), day);
+                const isDayMatch = isSameDay(convertKeepDate(e.date), day);
                 if (!showMyPlanningOnly) return isDayMatch;
                 const isAssigned = e.intercessors?.some((u: any) => u.id === currentUserId);
                 return isDayMatch && isAssigned;
