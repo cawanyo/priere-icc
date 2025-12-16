@@ -1,8 +1,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { PlaningWithIntercessor, SpecialEventWithPlaning } from '@/lib/types';
-import { formatUtcDate, normalizeDate } from '@/lib/utils';
-import { isSameDay, isWithinInterval, startOfDay } from 'date-fns';
+import { convertKeepDate } from '@/lib/utils';
+import { format, isSameDay, isWithinInterval, startOfDay } from 'date-fns';
 import { CalendarCheck } from 'lucide-react';
 import React from 'react'
 
@@ -12,10 +12,11 @@ interface props {
     handleEventClick: (evt: PlaningWithIntercessor, day:Date) => void
 }
 function CalendarDay({specialEvent, day, handleEventClick}: props) {
-    const eventStartDate = normalizeDate(specialEvent.startDate);
 
-    const eventEndDate = normalizeDate(specialEvent.endDate);
-    const dayEvents = specialEvent.plannings.filter(e => isSameDay(startOfDay(normalizeDate(e.date)), startOfDay(day)));
+    const eventStartDate = convertKeepDate(specialEvent.startDate);
+    const eventEndDate = convertKeepDate(specialEvent.endDate);
+
+    const dayEvents = specialEvent.plannings.filter(e => isSameDay(startOfDay(convertKeepDate(e.date)), startOfDay(day)));
     dayEvents.sort((a,b) => {
 
         const [aH, aM] = a.startTime.split(":").map(Number);
@@ -38,10 +39,10 @@ function CalendarDay({specialEvent, day, handleEventClick}: props) {
             {/* En-tête Jour */}
             <div className="text-center mb-2">
                 <span className="block text-xs font-semibold text-gray-500 uppercase">
-                    {formatUtcDate(day, "EEEE")}
+                    {format(day, "EEEE")}
                 </span>
                 <span className={`block text-xl font-bold ${isEventDay ? 'text-indigo-900' : 'text-gray-400'}`}>
-                    {formatUtcDate(day, "d")}
+                    {format(day, "d")}
                 </span>
             </div>
 

@@ -5,10 +5,11 @@ import { getIntercessorPlanning } from "@/app/actions/intercessor";
 import { startOfWeek, endOfWeek, addWeeks, format, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, UserCheck, Repeat, Filter } from "lucide-react"; // Ajout icône Filter
+import { ChevronLeft, ChevronRight, UserCheck, Filter } from "lucide-react"; // Ajout icône Filter
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PlaningWithIntercessor } from "@/lib/types";
+import { cn, convertKeepDate } from "@/lib/utils";
 
 export function IntercessorCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -42,7 +43,6 @@ export function IntercessorCalendar() {
   }
 
 
-  console.log(events)
   return (
     <div className="space-y-6">
         
@@ -51,7 +51,7 @@ export function IntercessorCalendar() {
             <div className="flex items-center gap-2">
                 <Button variant="outline" size="icon" onClick={prevWeek}><ChevronLeft className="h-4 w-4"/></Button>
                 <span className="font-semibold text-lg w-32 text-center capitalize">
-                    {format(currentDate, "MMMM yyyy", { locale: fr })}
+                    {format(currentDate, "MMMM yyyy")}
                 </span>
                 <Button variant="outline" size="icon" onClick={nextWeek}><ChevronRight className="h-4 w-4"/></Button>
             </div>
@@ -89,7 +89,7 @@ export function IntercessorCalendar() {
             {days.map((day) => {
                 // LOGIQUE DE FILTRE MISE À JOUR
                 const dayEvents = events.filter(e => {
-                    const isTodayEvent = isSameDay(e.date, day);
+                    const isTodayEvent = isSameDay(convertKeepDate(e.date), day);
                     if (!showMyPlanningOnly) return isTodayEvent; // Si pas de filtre, on garde tout
                     
                     // Si filtre actif, on garde seulement si l'user est assigné
@@ -100,13 +100,13 @@ export function IntercessorCalendar() {
                 const isToday = isSameDay(day, new Date());
 
                 return (
-                    <div key={day.toISOString()} className={`flex flex-col gap-3 min-h-[150px] rounded-xl p-3 ${isToday ? 'bg-indigo-50/50 border-indigo-100 border' : 'bg-gray-50 border border-transparent'}`}>
+                    <div key={day.toISOString()} className={cn('flex flex-col gap-3 min-h-[150px] rounded-xl p-3', isToday ? 'bg-indigo-50/50 border-indigo-100 border' : 'bg-gray-50 border border-transparent')}>
                         {/* En-tête jour */}
                         <div className="text-center mb-2">
                             <span className="block text-xs font-semibold text-gray-500 uppercase">
-                                {format(day, "EEEE", { locale: fr })}
+                                {format(day, "EEEE")}
                             </span>
-                            <span className={`block text-xl font-bold ${isToday ? 'text-indigo-600' : 'text-gray-700'}`}>
+                            <span className={cn('block text-xl font-bold', isToday ? 'text-indigo-600' : 'text-gray-700')}>
                                 {format(day, "d")}
                             </span>
                         </div>

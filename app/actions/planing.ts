@@ -10,6 +10,7 @@ import { sendSMS } from "@/lib/sms";
 import { fr } from "date-fns/locale";
 import { PlaningWithIntercessor } from "@/lib/types";
 import { createNotification } from "./notifications";
+import { Console } from "console";
 // Vérification accès Leader
 async function checkLeader() {
   const session = await getServerSession(authOptions);
@@ -37,6 +38,7 @@ export async function getPlanningEvents(startDate: Date, endDate: Date) {
     }
     
   });
+
 
   // Fusionner et trier
   const allEvents = realPlannings.sort((a, b) => 
@@ -110,23 +112,23 @@ export async function savePlanningEvent(data: any) {
 
       //Envoi asynchrone (on n'attend pas la fin pour répondre au client)
 
-    //   await Promise.all(newIntercessors.map(async (user) => {
-    //     await createNotification(
-    //     user.id,
-    //     "Programme",
-    //     `Vous êtes de service  le ${ format(date,  "dd:MM:yyyy")} à ${startTime}`,
-    //     "INFO",
-    //     `/dashboard/`
-    //     );
-    //     if (user.phone) {
-    //       await sendSMS(
-    //         user.phone, 
-    //         `Bonjour ${user.name}, LE MDPI vous informe que vous êtes de service le  ${ format(date,  "dd:MM:yyyy")},  à ${startTime}. Merci de consulter le planing. Excellente journée !`
-    //       );
-    //     }
-    //     }
-    //   )
-    // )
+      await Promise.all(newIntercessors.map(async (user) => {
+        await createNotification(
+        user.id,
+        "Programme",
+        `Vous êtes de service  le ${ format(new Date(date),  "dd:MM:yyyy")} à ${startTime}`,
+        "INFO",
+        `/dashboard/`
+        );
+        if (user.phone) {
+          await sendSMS(
+            user.phone, 
+            `Bonjour ${user.name}, LE MDPI vous informe que vous êtes de service le  ${ format(new Date(date),  "dd:MM:yyyy")},  à ${startTime}. Merci de consulter le planing. Excellente journée !`
+          );
+        }
+        }
+      )
+    )
 
     }
 
@@ -156,7 +158,7 @@ export async function savePlanningEvent(data: any) {
         if (user.phone) {
           sendSMS(
             user.phone, 
-            `Bonjour ${user.name}, vous avez été programmé pour "${title}" le ${ format(date, 'DD:mm:yyy')}.`
+            `Bonjour ${user.name}, vous avez été programmé pour "${title}" le ${ format(new Date(date), 'DD:mm:yyy')}.`
           );
         }
       });
@@ -165,7 +167,7 @@ export async function savePlanningEvent(data: any) {
 
   revalidatePath("/dashboard/leader/planning");
   revalidatePath("/dashboard/leader/events"); 
-  return { success: true , date: date};
+  return { success: true};
 }
 export async function deletePlanningEvent(id: string) {
     await checkLeader();

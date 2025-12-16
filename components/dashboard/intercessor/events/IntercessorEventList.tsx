@@ -4,9 +4,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, ArrowRight } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import Link from "next/link";
-import { formatUtcDate } from "@/lib/utils";
+import { convertKeepDate  } from "@/lib/utils";
 
 export function IntercessorEventList({ events }: { events: any[] }) {
   if (events.length === 0) {
@@ -28,11 +27,11 @@ export function IntercessorEventList({ events }: { events: any[] }) {
                     <div className="text-sm text-gray-500 flex items-center mb-4 bg-gray-50 p-2 rounded-md w-fit">
                         <Calendar className="h-4 w-4 mr-2 text-pink-500" />
                         <span className="font-medium">
-                            {formatUtcDate(evt.startDate,"d MMM")}
+                            {format(convertKeepDate(evt.startDate),"d MMM")}
                         </span>
                         <span className="mx-1.5">-</span>
                         <span className="font-medium">
-                            {formatUtcDate(evt.endDate, "d MMM yyyy")}
+                            {format(convertKeepDate(evt.endDate), "d MMM yyyy")}
                         </span>
                     </div>
                     

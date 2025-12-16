@@ -10,6 +10,8 @@ import { IntercessorSelector } from "./IntercessorSelector";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { deletePlanningEvent, savePlanningEvent } from "@/app/actions/planing";
+import dayjs from "@/lib/date";
+
 
 import {
   AlertDialog,
@@ -23,7 +25,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { PlaningWithIntercessor } from "@/lib/types";
-import { formatUtcDate, normalizeDate } from "@/lib/utils";
+import { convertKeepDate } from "@/lib/utils";
 
 interface EventModalProps {
   event: PlaningWithIntercessor | null; // L'événement sélectionné (contient la date complète)
@@ -34,14 +36,17 @@ interface EventModalProps {
 }
 
 export function EventModal({ event, isOpen, onClose, onRefresh, date}: EventModalProps) {
+
   const [formData, setFormData] = useState({
-    date: formatUtcDate(date, "yyyy-MM-dd"),
+    date: format(date, "yyyy-MM-dd"),
     title: "",
     description: "",
     startTime: "", 
     endTime: "",  
     intercessorIds: [] as string[]
   });
+
+
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -54,7 +59,7 @@ export function EventModal({ event, isOpen, onClose, onRefresh, date}: EventModa
           startTime: event.startTime || "19:00",
           endTime: event.endTime || "20:00",
           // On s'assure de formater la date de l'event correctement
-          date: formatUtcDate(event.date, "yyyy-MM-dd"),
+          date: format(convertKeepDate(event?.date), "yyyy-MM-dd"),
           intercessorIds: event.intercessors?.map((u: any) => u.id) || [],
         });
       } else {
@@ -66,7 +71,7 @@ export function EventModal({ event, isOpen, onClose, onRefresh, date}: EventModa
           startTime: "19:00",
           endTime: "20:00",
           // On formatte la date cliquée (modalDate) pour l'input
-          date: formatUtcDate(date, "yyyy-MM-dd"), 
+          date: format(date, "yyyy-MM-dd"), 
           intercessorIds: [],
         });
       }
@@ -86,7 +91,7 @@ export function EventModal({ event, isOpen, onClose, onRefresh, date}: EventModa
         startTime: formData.startTime,
         endTime: formData.endTime,
         intercessorIds: formData.intercessorIds,
-        date: normalizeDate(formData.date)
+        date: formData.date
     };
     
     const res = await savePlanningEvent(payload);
