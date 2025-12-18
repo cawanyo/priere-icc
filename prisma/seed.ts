@@ -1,42 +1,98 @@
-// prisma/seed.ts
+// // prisma/seed.ts
+// import { PrismaClient } from '@prisma/client';
+// import bcrypt from 'bcryptjs';
+
+// const prisma = new PrismaClient();
+
+// async function main() {
+//   const email = 'admin@gmail.com'; // 📧 Changez l'email ici
+//   const password = 'Test123'; // 🔒 Changez le mot de passe ici
+
+//   const hashedPassword = await bcrypt.hash(password, 10);
+
+//   const admin = await prisma.user.upsert({
+//     where: { email },
+//     update: {}, // Si l'utilisateur existe déjà, on ne fait rien
+//     create: {
+//       email,
+//       name: 'Super Admin',
+//       password: hashedPassword,
+//       role: 'ADMIN', // C'est ici qu'on donne les droits d'admin
+//       phone: '+3360000000', // Optionnel
+//     },
+//   });
+
+//   console.log({ admin });
+//   // const prayer = await prisma.prayer.deleteMany()
+
+
+//   // const a = await prisma.planning.deleteMany(
+//   //   {where: {specialEventId: null}}
+//   // )
+// }
+
+// main()
+//   .then(async () => {
+//     await prisma.$disconnect();
+//   })
+//   .catch(async (e) => {
+//     console.error(e);
+//     await prisma.$disconnect();
+//     process.exit(1);
+//   });
+
+
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+// On importe fs et path pour lire le fichier JSON
+import fs from 'fs';
+import path from 'path';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = 'admin@gmail.com'; // 📧 Changez l'email ici
-  const password = 'Test123'; // 🔒 Changez le mot de passe ici
+  // 1. Lire le fichier JSON
+  const filePath = path.join(__dirname, 'RoleRequest.json');
+  const rawData = fs.readFileSync(filePath, 'utf-8');
+  const users = JSON.parse(rawData);
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  console.log(`Début de l'import de ${users.length} utilisateurs...`);
 
-  const admin = await prisma.user.upsert({
-    where: { email },
-    update: {}, // Si l'utilisateur existe déjà, on ne fait rien
-    create: {
-      email,
-      name: 'Super Admin',
-      password: hashedPassword,
-      role: 'ADMIN', // C'est ici qu'on donne les droits d'admin
-      phone: '+3360000000', // Optionnel
-    },
-  });
+  // 2. Boucle sur chaque utilisateur
 
-  console.log({ admin });
-  // const prayer = await prisma.prayer.deleteMany()
+  for (const user of users) {
+    // 3. On utilise upsert :
+    // - Si l'ID existe déjà -> on met à jour (update)
+    // - Si l'ID n'existe pas -> on crée (create)
+    try { 
+      await prisma.roleRequest.upsert({
+        where: { id: user.id },
+        update: {
+          ...user,
+          // Conversion IMPORTANTE des strings en objets Date
+          createdAt: new Date(user.createdAt),
+          updatedAt: new Date(),
+        },
+        create: {
+          ...user,
+          createdAt: new Date(user.createdAt),
+          updatedAt: new Date(),
 
+        },
+      });
+    }
+    catch (error) {
+      console.error(`Erreur lors de l'import de l'utilisateur avec l'ID ${user.name}:`, error);
+    }
+  }
 
-  // const a = await prisma.planning.deleteMany(
-  //   {where: {specialEventId: null}}
-  // )
+  console.log('Import terminé avec succès !');
 }
 
 main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (e) => {
+  .catch((e) => {
     console.error(e);
-    await prisma.$disconnect();
     process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
   });
