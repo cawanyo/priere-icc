@@ -24,13 +24,15 @@ async function checkLeader() {
 
 // --- RÉCUPÉRATION DU PLANNING ---
 
-export async function getPlanningEvents(startDate: Date, endDate: Date) {
+export async function getPlanningEvents(startDate: String, endDate: String) {
   await checkLeader();
 
+  const start = new Date(startDate.toString());
+  const end = new Date(endDate.toString()); 
   // 1. Récupérer les événements "Réels" (Planning) dans la plage
   const realPlannings:PlaningWithIntercessor[] = await prisma.planning.findMany({
     where: {
-      date: { gte: startDate, lte: endDate },
+      date: { gte: start, lte: end },
       specialEventId: null
     },
     include: {

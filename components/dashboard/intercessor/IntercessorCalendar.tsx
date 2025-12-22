@@ -21,7 +21,7 @@ export function IntercessorCalendar() {
     const start = startOfWeek(currentDate, { weekStartsOn: 1 });
     const end = endOfWeek(currentDate, { weekStartsOn: 1 });
     
-    const res = await getIntercessorPlanning(start, end);
+    const res = await getIntercessorPlanning(start.toDateString(), end.toDateString());
     if (res.success) {
         setEvents(res.data ?? []);
         setCurrentUserId(res.currentUserId?? "");

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Users, Trash2, ArrowRight } from "lucide-react";
+import { Plus, Users, ArrowRight } from "lucide-react";
 import { createPrayerFamily, deletePrayerFamily } from "@/app/actions/prayer-house";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
@@ -24,7 +24,6 @@ export function FamilyList({ initialFamilies }: { initialFamilies: any[] }) {
     const res = await createPrayerFamily({ name: newFamilyName });
     setLoading(false);
     
-    console.log(res);
     if (res.success) {
         toast.success("Famille créée");
         setIsCreateOpen(false);

@@ -34,14 +34,16 @@ export async function checkIntercessorOrPrayerLeaderAccess() {
   return user;
 }
 
-export async function getIntercessorPlanning(startDate: Date, endDate: Date) {
+export async function getIntercessorPlanning(startDate: String, endDate: String) {
   try {
+    const startDateObj = new Date(startDate.toString());
+    const endDateObj = new Date(endDate.toString());  
     const user = await checkIntercessorAccess();
 
     // 1. Récupérer les événements "Réels" (Planning)
     const realPlannings = await prisma.planning.findMany({
       where: {
-        date: { gte: startDate, lte: endDate },
+        date: { gte: startDateObj, lte: endDateObj },
         specialEventId: null
       },
       include: {

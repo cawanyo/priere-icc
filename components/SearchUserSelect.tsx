@@ -46,13 +46,11 @@ export function SearchableUserSelect({
   const handleSelect = (currentValue: string) => {
     // currentValue est le nom en minuscule retourné par CommandItem
     // On doit retrouver l'ID correspondant
-    const user = users.find((u) => u.name.toLowerCase() === currentValue.toLowerCase());
-    
-    if (user) {
-        setSelectedUserId(user.id);
-        onSelect(user.id);
+
+        setSelectedUserId(currentValue);
+        onSelect(currentValue);
         setOpen(false);
-    }
+
   };
 
   return (
@@ -89,7 +87,7 @@ export function SearchableUserSelect({
               {users.map((user) => (
                 <CommandItem
                   key={user.id}
-                  value={user.name} // C'est la valeur utilisée pour la recherche textuelle
+                  value={user.id} // C'est la valeur utilisée pour la recherche textuelle
                   onSelect={handleSelect}
                   className="cursor-pointer"
                 >
