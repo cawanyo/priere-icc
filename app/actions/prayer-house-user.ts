@@ -7,8 +7,9 @@ import { startOfWeek } from "date-fns";
 import { normalizeDate } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
 
-export async function getUserPrayerHouseData(date: Date) {
+export async function getUserPrayerHouseData(date: String) {
   const session = await getServerSession(authOptions);
+  const dateObj = new Date(date.toString());
   if (!session?.user?.email) throw new Error("Non connecté");
 
   // 1. Récupérer l'utilisateur et sa famille
@@ -22,7 +23,7 @@ export async function getUserPrayerHouseData(date: Date) {
   }
 
   // 2. Vérifier si sa famille est de garde cette semaine
-  const weekStart = startOfWeek(normalizeDate(date), { weekStartsOn: 1 });
+  const weekStart = startOfWeek(dateObj, { weekStartsOn: 1 });
   
   const assignment = await prisma.familyWeeklyAssignment.findUnique({
     where: { weekStart },
