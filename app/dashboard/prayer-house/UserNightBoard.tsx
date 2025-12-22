@@ -5,7 +5,7 @@ import { format, startOfWeek, addWeeks, addDays, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronLeft, ChevronRight, Moon, ShieldCheck, ShieldAlert, CheckCircle2, AlertCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Moon, ShieldCheck, ShieldAlert, CheckCircle2, AlertCircle, MessageSquareQuote } from "lucide-react";
 import { getUserPrayerHouseData, toggleSelfAssignment } from "@/app/actions/prayer-house-user";
 import { normalizeDate } from "@/lib/utils";
 import { toast } from "sonner";
@@ -73,6 +73,13 @@ export function UserNightBoard() {
     );
   }
 
+  const getDayTheme = (date: Date) => {
+    if (!data?.assignment?.dayThemes) return null;
+    return data.assignment.dayThemes.find((t: any) => 
+        isSameDay(new Date(t.date), date)
+    )?.theme;
+};
+
   const { family, assignment, isFamilyOnDuty, userId } = data;
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const days = Array.from({ length: 5 }).map((_, i) => addDays(weekStart, i));
@@ -111,6 +118,20 @@ export function UserNightBoard() {
             </div>
         </div>
 
+        {data?.assignment?.weekTheme && (
+            <div className="bg-gradient-to-r from-indigo-50 to-white border border-indigo-100 p-4 rounded-xl flex gap-3 items-start shadow-sm">
+                <MessageSquareQuote className="h-6 w-6 text-indigo-500 shrink-0 mt-0.5" />
+                <div>
+                    <span className="block text-xs font-bold text-indigo-400 uppercase tracking-wider mb-1">
+                        Sujet de la semaine
+                    </span>
+                    <p className="text-lg text-indigo-900 font-serif font-medium leading-tight">
+                        "{data.assignment.weekTheme}"
+                    </p>
+                </div>
+            </div>
+        )}
+
         {/* État de la Garde */}
         {!assignment ? (
             <div className="text-center py-10 bg-gray-50/50 rounded-xl border border-dashed">
@@ -138,11 +159,20 @@ export function UserNightBoard() {
 
                 {/* GRILLE RESPONSIVE */}
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    {days.map(day => (
+                    {days.map(day => {
+                        const dayTheme = getDayTheme(day);
+                        return (
                         <Card key={day.toISOString()} className="overflow-hidden border-indigo-50 shadow-sm">
                             <div className="bg-gray-50 p-2 text-center border-b">
                                 <span className="block text-xs uppercase text-gray-500 font-bold">{format(day, "EEEE", { locale: fr })}</span>
                                 <span className="block text-lg font-bold text-gray-800">{format(day, "d")}</span>
+                                {dayTheme && (
+                                <div className="mt-1 pt-1 border-t border-gray-200/50">
+                                    <p className="text-[10px] text-indigo-600 font-medium italic leading-tight px-1 line-clamp-2">
+                                        "{dayTheme}"
+                                    </p>
+                                </div>
+                            )}
                             </div>
                             <div className="p-2 space-y-2">
                                 {hours.map(hour => {
@@ -195,7 +225,7 @@ export function UserNightBoard() {
                                 })}
                             </div>
                         </Card>
-                    ))}
+                    )})}
                 </div>
             </>
         )}

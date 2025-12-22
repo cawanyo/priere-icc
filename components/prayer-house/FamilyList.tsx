@@ -75,9 +75,9 @@ export function FamilyList({ initialFamilies }: { initialFamilies: any[] }) {
         {/* Grille des Familles */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {initialFamilies.map((family) => (
-                <Card key={family.id} className="group hover:shadow-lg transition-all border-l-4" style={{ borderLeftColor: family.color }}>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-xl font-bold text-gray-800">
+                <Card key={family.id} className="group hover:shadow-lg transition-all border-l-4 w-full text-xs md:text-sm" style={{ borderLeftColor: family.color }}>
+                    <CardHeader className="flex flex-row items-center justify-between wrap-break-word space-y-0 pb-2 ">
+                        <CardTitle className=" font-bold text-gray-800">
                             {family.name}
                         </CardTitle>
                         <Button variant="ghost" size="icon" onClick={() => handleDelete(family.id)} className="text-gray-400 hover:text-red-500">
@@ -85,7 +85,7 @@ export function FamilyList({ initialFamilies }: { initialFamilies: any[] }) {
                         </Button>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex items-center space-x-2 text-sm text-gray-500 mb-4">
+                        <div className="flex items-center space-x-2  text-gray-500 mb-4">
                             <Users className="h-4 w-4" />
                             <span>{family._count.members} membres</span>
                         </div>
@@ -101,9 +101,9 @@ export function FamilyList({ initialFamilies }: { initialFamilies: any[] }) {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button asChild className="w-full bg-gray-50 text-indigo-700 hover:bg-indigo-50 border border-gray-200">
+                        <Button asChild className="w-full bg-gray-50 text-indigo-700 hover:bg-indigo-50 border border-gray-200 text-xs  ">
                             <Link href={`/dashboard/leader/prayer-house/${family.id}`}>
-                                Gérer la famille <ArrowRight className="ml-2 h-4 w-4" />
+                                <span className="font-bold tracking-wider mb-1 flex-1 whitespace-normal wrap-break-word text-left"> Gérer la famille  </span><ArrowRight className="ml-2 h-4 w-4" />
                             </Link>
                         </Button>
                     </CardFooter>

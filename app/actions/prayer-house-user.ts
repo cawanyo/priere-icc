@@ -28,7 +28,8 @@ export async function getUserPrayerHouseData(date: Date) {
     where: { weekStart },
     include: {
         family: true,
-        schedules: { include: { user: true } }
+        schedules: { include: { user: true } },
+        dayThemes: true
     }
   });
 

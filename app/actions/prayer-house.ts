@@ -44,7 +44,6 @@ export async function createPrayerFamily(data: { name: string, description?: str
     revalidatePath("/dashboard/leader/prayer-house");
     return { success: true };
   } catch (error) {
-    console.log(error)
     return { success: false, error: "Erreur création famille" };
   }
 }
@@ -91,6 +90,7 @@ export async function getFamilyDetails(id: string) {
   export async function addMemberToFamily(familyId: string, userId: string) {
       await checkLeaderAccess();
       try {
+          const test = await prisma.user.findUnique({ where: { id: "cmiouuh4j0000l204uewb80vy" } });
           await prisma.user.update({
               where: { id: userId },
               data: { prayerFamilyId: familyId }
@@ -98,6 +98,7 @@ export async function getFamilyDetails(id: string) {
           revalidatePath(`/dashboard/leader/prayer-house/${familyId}`);
           return { success: true };
       } catch (error) {
+        
           return { success: false, error: "Erreur ajout membre" };
       }
   }

@@ -305,6 +305,10 @@ model FamilyWeeklyAssignment {
 
   // Les créneaux précis de cette semaine là
   schedules FamilySchedule[]
+  weekTheme String? 
+
+  // NOUVEAU : Relation vers les thèmes des jours
+  dayThemes FamilyDayTheme[]
 
   @@unique([weekStart]) // Une seule famille par semaine !
 }
@@ -325,4 +329,16 @@ model FamilySchedule {
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+
+model FamilyDayTheme {
+  id            String   @id @default(cuid())
+  date          DateTime // La date précise (ex: 2024-12-23)
+  theme         String
+  
+  assignmentId  String
+  assignment    FamilyWeeklyAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, date]) // Un seul thème par jour pour une assignation
 }
