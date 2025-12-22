@@ -78,7 +78,8 @@ export async function getFamilyDetails(id: string) {
               role: "PRAYER_LEADER", // Seuls les conducteurs
               prayerFamilyId: null   // Qui n'ont pas encore de famille
           },
-          select: { id: true, name: true, image: true }
+          select: { id: true, name: true, image: true },
+          orderBy: { name: 'asc' }
       });
   
       return { success: true, family, candidates };

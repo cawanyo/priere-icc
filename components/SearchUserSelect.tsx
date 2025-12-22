@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronsUpDown, Search } from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react"; // Search n'était pas utilisé
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,16 +41,14 @@ export function SearchableUserSelect({
   const [open, setOpen] = React.useState(false);
   const [selectedUserId, setSelectedUserId] = React.useState("");
 
+  // On trouve l'utilisateur sélectionné pour l'affichage du bouton
   const selectedUser = users.find((u) => u.id === selectedUserId);
 
-  const handleSelect = (currentValue: string) => {
-    // currentValue est le nom en minuscule retourné par CommandItem
-    // On doit retrouver l'ID correspondant
-
-        setSelectedUserId(currentValue);
-        onSelect(currentValue);
-        setOpen(false);
-
+  // Fonction simplifiée qui prend directement l'ID
+  const handleSelectUser = (userId: string) => {
+    setSelectedUserId(userId);
+    onSelect(userId);
+    setOpen(false);
   };
 
   return (
@@ -87,8 +85,16 @@ export function SearchableUserSelect({
               {users.map((user) => (
                 <CommandItem
                   key={user.id}
-                  value={user.id} // C'est la valeur utilisée pour la recherche textuelle
-                  onSelect={handleSelect}
+                  
+                  // CORRECTION 1 : Rendre la valeur unique
+                  // On combine Nom + ID pour que la recherche marche sur le nom, 
+                  // mais que cmdk distingue les doublons.
+                  value={`${user.name}-${user.id}`} 
+                  
+                  // CORRECTION 2 : Utiliser directement l'ID de la boucle
+                  // On ignore le paramètre retourné par onSelect et on utilise user.id
+                  onSelect={() => handleSelectUser(user.id)}
+                  
                   className="cursor-pointer"
                 >
                   <Check
@@ -102,7 +108,11 @@ export function SearchableUserSelect({
                         <AvatarImage src={user.image || ""} />
                         <AvatarFallback className="text-[10px]">{user.name[0]}</AvatarFallback>
                     </Avatar>
-                    <span>{user.name}</span>
+                    <div className="flex flex-col">
+                        <span>{user.name}</span>
+                        {/* Optionnel : Afficher l'ID ou email en petit pour distinguer visuellement */}
+                        {/* <span className="text-[9px] text-gray-400">#{user.id.slice(-4)}</span> */}
+                    </div>
                   </div>
                 </CommandItem>
               ))}
