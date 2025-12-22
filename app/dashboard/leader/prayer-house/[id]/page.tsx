@@ -11,7 +11,7 @@ export default async function FamilyDetailsPage({ params }: { params: Promise<{ 
   const { id } = await params;
   
   const { success, family, candidates } = await getFamilyDetails(id);
-
+  console.log(candidates);
   if (!success || !family) {
     return notFound();
   }

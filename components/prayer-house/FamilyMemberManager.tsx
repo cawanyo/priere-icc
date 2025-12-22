@@ -9,6 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { UserPlus, UserMinus, Shield, Users } from "lucide-react";
 import { addMemberToFamily, removeMemberFromFamily } from "@/app/actions/prayer-house";
 import { toast } from "sonner";
+import { ConfirmDelete } from "../DeleteConfirm";
+import { SearchableUserSelect } from "../SearchUserSelect";
+import { cn } from "@/lib/utils";
 
 interface MemberManagerProps {
   familyId: string;
@@ -19,19 +22,19 @@ interface MemberManagerProps {
 export function FamilyMemberManager({ familyId, members, candidates }: MemberManagerProps) {
   const [selectedCandidate, setSelectedCandidate] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const [selectedCandidateId, setSelectedCandidateId] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
 
   const handleAdd = async () => {
-    if (!selectedCandidate) return;
+    if (!selectedCandidateId) return;
     setIsAdding(true);
-    const res = await addMemberToFamily(familyId, selectedCandidate);
+    const res = await addMemberToFamily(familyId, selectedCandidateId);
     setIsAdding(false);
-
     if (res.success) {
-        toast.success("Membre ajouté !");
-        setSelectedCandidate("");
-        document.getElementById("close-dialog")?.click(); 
-    } else {
-        toast.error("Erreur ajout");
+      toast.success("Membre ajouté à la famille");
+      setSelectedCandidateId("");
+      setIsDialogOpen(false);
     }
   };
 
@@ -40,6 +43,8 @@ export function FamilyMemberManager({ familyId, members, candidates }: MemberMan
     const res = await removeMemberFromFamily(userId, familyId);
     if (res.success) toast.success("Membre retiré");
   };
+
+
 
   return (
     <Card className="h-full border-indigo-100 shadow-sm">
@@ -51,43 +56,33 @@ export function FamilyMemberManager({ familyId, members, candidates }: MemberMan
             </CardTitle>
             
             {/* Modale d'ajout */}
-            <Dialog>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                    <Button size="icon" variant="outline" className="h-8 w-8 border-dashed border-indigo-300 text-indigo-700 bg-white hover:bg-indigo-50">
+                    <Button size="icon" variant="outline" className="...">
                         <UserPlus className="h-4 w-4" />
                     </Button>
                 </DialogTrigger>
                 <DialogContent>
                     <DialogHeader><DialogTitle>Ajouter un membre</DialogTitle></DialogHeader>
                     <div className="py-4 space-y-4">
-                        <p className="text-sm text-gray-500">Sélectionnez un conducteur de prière disponible :</p>
+                        <p className="text-sm text-gray-500">Recherchez un conducteur de prière disponible :</p>
                         
                         {candidates.length > 0 ? (
-                            <Select onValueChange={setSelectedCandidate}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Choisir un conducteur..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {candidates.map(c => (
-                                        <SelectItem key={c.id} value={c.id}>
-                                            <div className="flex items-center gap-2">
-                                                <Avatar className="h-6 w-6"><AvatarImage src={c.image}/><AvatarFallback>{c.name[0]}</AvatarFallback></Avatar>
-                                                {c.name}
-                                            </div>
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            // --- UTILISATION DU NOUVEAU COMPOSANT ---
+                            <SearchableUserSelect 
+                                users={candidates}
+                                onSelect={(id) => setSelectedCandidateId(id)}
+                                placeholder="Choisir un conducteur..."
+                            />
                         ) : (
                             <div className="text-center p-4 bg-gray-50 rounded text-sm text-gray-500">
                                 Aucun conducteur disponible.
                             </div>
                         )}
 
-                        <Button onClick={handleAdd} disabled={!selectedCandidate || isAdding} className="w-full bg-indigo-900">
-                            Confirmer l'ajout
+                        <Button onClick={handleAdd} disabled={!selectedCandidateId || isAdding}  className={cn("w-full bg-indigo-900")}>
+                            {isAdding ? "Ajout en cours..." : "Confirmer l'ajout"}
                         </Button>
-                        <button id="close-dialog" className="hidden">Fermer</button>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -111,14 +106,13 @@ export function FamilyMemberManager({ familyId, members, candidates }: MemberMan
                                 <p className="text-[10px] text-gray-400 truncate">{member.phone || "Pas de numéro"}</p>
                             </div>
                         </div>
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => handleRemove(member.id)}
-                            className="h-7 w-7 text-gray-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                            <UserMinus className="h-3 w-3" />
-                        </Button>
+                        <ConfirmDelete 
+                            onConfirm={async () => {
+                                // On passe une fonction anonyme qui appelle la Server Action avec l'ID
+                                await removeMemberFromFamily(member.id, familyId);
+                            }}
+                            description="Ce membre sera retiré de la famille mais son compte utilisateur existera toujours."
+                        />
                     </div>
                 ))
             ) : (

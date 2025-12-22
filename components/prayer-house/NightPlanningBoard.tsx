@@ -21,9 +21,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
+import { updateWeekTheme, updateDayTheme } from "@/app/actions/prayer-house-planning";
 
-// Utils & Server Actions
-import { normalizeDate } from "@/lib/utils";
+
 import { 
     getNightPlanning, 
     assignFamilyToWeek, 
@@ -32,6 +32,7 @@ import {
     removeWeeklySlot 
 } from "@/app/actions/prayer-house-planning";
 import { getPrayerFamilies } from "@/app/actions/prayer-house";
+import { ThemeEditor } from "./ThemeEditor";
 
 // --- IMPORT DYNAMIQUE DU BOUTON PDF (Pour éviter l'erreur SSR) ---
 const DownloadNightButton = dynamic(
@@ -44,7 +45,7 @@ const DownloadNightButton = dynamic(
 
 export function NightPlanningBoard() {
   // --- ÉTATS ---
-  const [currentDate, setCurrentDate] = useState(normalizeDate(new Date()));
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [assignment, setAssignment] = useState<any>(null);
   const [allFamilies, setAllFamilies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,6 +60,8 @@ export function NightPlanningBoard() {
     setLoading(true);
     const planRes = await getNightPlanning(currentDate);
     if (planRes.success) setAssignment(planRes.assignment);
+
+    console.log(planRes)
 
     const famRes = await getPrayerFamilies();
     if (famRes.success) setAllFamilies(famRes.data || []);
@@ -93,6 +96,9 @@ export function NightPlanningBoard() {
     return "bg-green-500";
   };
 
+  const getDayTheme = (date: Date) => {
+    return assignment?.dayThemes?.find((t: any) => isSameDay(new Date(t.date), date))?.theme;
+  };
   // --- ACTIONS ---
   const handleAssignFamily = async (familyId: string) => {
     const res = await assignFamilyToWeek(currentDate, familyId);
@@ -148,14 +154,14 @@ export function NightPlanningBoard() {
         
         {/* HEADER */}
         <div className="flex flex-col gap-4 border-b pb-6">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex flex-col  md:flex-row justify-between items-center gap-4">
                 {/* Nav Date */}
-                <div className="flex items-center justify-between w-full md:w-auto gap-4 bg-gray-50 p-2 rounded-lg">
+                <div className="w-full flex flex-wrap items-center justify-between  md:w-auto gap-4 bg-gray-50 p-2 rounded-lg">
                     <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addWeeks(currentDate, -1))}>
                         <ChevronLeft className="h-5 w-5" />
                     </Button>
                     <div className="text-center">
-                        <h3 className="font-bold text-lg capitalize text-indigo-900">
+                        <h3 className="font-bold text-xs md:text-lg capitalize text-indigo-900">
                             {format(currentDate, "MMMM yyyy", { locale: fr })}
                         </h3>
                         <p className="text-xs text-gray-500 font-medium">
@@ -173,7 +179,7 @@ export function NightPlanningBoard() {
                         <div className="h-10 bg-gray-100 animate-pulse rounded" />
                     ) : (
                         <Select value={assignment?.familyId || ""} onValueChange={handleAssignFamily}>
-                            <SelectTrigger className={`h-12 md:h-10 ${assignment ? "border-indigo-500 bg-indigo-50 text-indigo-700 font-medium" : ""}`}>
+                            <SelectTrigger className={`h-12 md:h-10 text-xs w-full md:text-sm ${assignment ? "border-indigo-500 bg-indigo-50 text-indigo-700 font-medium" : ""}`}>
                                 <SelectValue placeholder="Choisir la famille..." />
                             </SelectTrigger>
                             <SelectContent>
@@ -190,6 +196,17 @@ export function NightPlanningBoard() {
                     )}
                 </div>
             </div>
+
+            {assignment && (
+                <div className="mb-6 px-1">
+                    <ThemeEditor
+                        type="week"
+                        initialValue={assignment.weekTheme}
+                        onSave={async (val) => await updateWeekTheme(assignment.id, val)}
+                        placeholder="Ex: La Puissance du Sang de Jésus"
+                    />
+                </div>
+            )}
 
             {/* BARRE OUTILS (Si assigné) */}
             {assignment && (
@@ -265,12 +282,19 @@ export function NightPlanningBoard() {
                 <div className="md:hidden space-y-4">
                     {days.map(day => (
                         <div key={day.toISOString()} className="border rounded-xl overflow-hidden shadow-sm">
-                            <div className="bg-gray-50 p-3 border-b flex items-center justify-between">
+                            <div className="bg-gray-50 p-3 border-b flex flex-wrap items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <Calendar className="h-4 w-4 text-indigo-500" />
                                     <span className="font-bold text-gray-800 capitalize">
                                         {format(day, "EEEE d", { locale: fr })}
                                     </span>
+                                </div>
+                                <div className="pl-6">
+                                    <ThemeEditor 
+                                        type="day"
+                                        initialValue={getDayTheme(day)}
+                                        onSave={async (val) => await updateDayTheme(assignment.id, day, val)}
+                                    />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-2 p-3 bg-white">
@@ -332,6 +356,13 @@ export function NightPlanningBoard() {
                                         <span className="block text-xl font-bold text-indigo-950">
                                             {format(day, "d")}
                                         </span>
+                                        <div className="mt-1">
+                                        <ThemeEditor 
+                                                type="day"
+                                                initialValue={getDayTheme(day)}
+                                                onSave={async (val) => await updateDayTheme(assignment.id, day, val)}
+                                            />
+                                        </div>
                                     </th>
                                 ))}
                             </tr>

@@ -8,7 +8,7 @@ import { normalizeDate } from "@/lib/utils"; // Votre helper
 // 1. Récupérer le planning d'une semaine donnée
 export async function getNightPlanning(date: Date) {
   // On cale la date sur le Lundi de la semaine (00:00)
-  const weekStart = startOfWeek(normalizeDate(date), { weekStartsOn: 1 });
+  const weekStart = startOfWeek(new Date(date), { weekStartsOn: 1 });
   
   try {
     // On cherche si une famille est assignée cette semaine
@@ -20,7 +20,8 @@ export async function getNightPlanning(date: Date) {
         },
         schedules: {
             include: { user: true } // On a besoin de voir qui est sur quel créneau
-        }
+        },
+        dayThemes: true
       }
     });
 
@@ -28,13 +29,13 @@ export async function getNightPlanning(date: Date) {
     return { success: true, assignment };
   } catch (error) {
     console.error(error);
-    return { success: false, error: "Erreur chargement planning nuit" };
+    return { success: false, error: "Erreur chargement planning nuit" , errorDetails: error  };
   }
 }
 
 // 2. Assigner une famille à une semaine
 export async function assignFamilyToWeek(date: Date, familyId: string) {
-  const weekStart = startOfWeek(normalizeDate(date), { weekStartsOn: 1 });
+  const weekStart = startOfWeek(new Date(date), { weekStartsOn: 1 });
   
   try {
     await prisma.familyWeeklyAssignment.upsert({
@@ -164,4 +165,52 @@ export async function removeWeeklySlot(assignmentId: string, time: string) {
     } catch (error) {
         return { success: false, error: "Erreur suppression" };
     }
+}
+
+
+
+
+export async function updateWeekTheme(assignmentId: string, theme: string) {
+  try {
+      await prisma.familyWeeklyAssignment.update({
+          where: { id: assignmentId },
+          data: { weekTheme: theme }
+      });
+      revalidatePath("/dashboard/leader/prayer-house");
+      return { success: true };
+  } catch (e) {
+      return { success: false, error: "Erreur thème semaine" };
+  }
+}
+
+// 3. NOUVEAU: Sauvegarder le thème du JOUR
+export async function updateDayTheme(assignmentId: string, date: Date, theme: string) {
+  try {
+      // On normalise la date pour être sûr qu'elle est à 00:00
+      const cleanDate = new Date(date); 
+      
+      if (!theme) {
+          // Si le thème est vide, on le supprime
+          await prisma.familyDayTheme.deleteMany({
+              where: { assignmentId, date: cleanDate }
+          });
+      } else {
+          // Sinon on crée ou met à jour (Upsert)
+          await prisma.familyDayTheme.upsert({
+              where: {
+                  assignmentId_date: { assignmentId, date: cleanDate }
+              },
+              update: { theme },
+              create: {
+                  assignmentId,
+                  date: cleanDate,
+                  theme
+              }
+          });
+      }
+      revalidatePath("/dashboard/leader/prayer-house");
+      return { success: true };
+  } catch (e) {
+      return { success: false, error: "Erreur thème jour" };
+  }
 }
