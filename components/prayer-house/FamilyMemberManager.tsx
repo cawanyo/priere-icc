@@ -24,7 +24,7 @@ export function FamilyMemberManager({ familyId, members, candidates }: MemberMan
   const [isAdding, setIsAdding] = useState(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
+    
 
   const handleAdd = async () => {
     if (!selectedCandidateId) return;

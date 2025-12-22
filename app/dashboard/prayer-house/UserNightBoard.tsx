@@ -16,11 +16,10 @@ export function UserNightBoard() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
-    const res = await getUserPrayerHouseData(currentDate);
+    const res = await getUserPrayerHouseData(currentDate.toDateString());
     if (res.success) setData(res);
     setLoading(false);
   };
@@ -29,31 +28,7 @@ export function UserNightBoard() {
     loadData();
   }, [currentDate]);
 
-  const handleSlotClick = async (date: Date, hour: string, isMe: boolean, isTaken: boolean) => {
-    if (!data?.assignment) return;
-    
-    // Si c'est pris par quelqu'un d'autre, on ne fait rien
-    if (isTaken && !isMe) {
-        toast.info("Ce créneau est déjà assuré par une autre sentinelle.");
-        return;
-    }
 
-    setActionLoading(true);
-    const res = await toggleSelfAssignment({
-        assignmentId: data.assignment.id,
-        date: date,
-        startTime: hour,
-        action: isMe ? "LEAVE" : "JOIN"
-    });
-    setActionLoading(false);
-
-    if (res.success) {
-        toast.success(isMe ? "Vous vous êtes retiré du créneau" : "Vous avez pris le créneau !");
-        loadData();
-    } else {
-        toast.error(res.error || "Erreur");
-    }
-  };
 
   // --- RENDU ---
 
@@ -186,8 +161,7 @@ export function UserNightBoard() {
                                     return (
                                         <button
                                             key={hour}
-                                            onClick={() => handleSlotClick(day, hour, isMe, isTaken)}
-                                            disabled={actionLoading}
+                                            
                                             className={`
                                                 w-full p-2 rounded-lg border text-left transition-all relative
                                                 ${isMe 
@@ -212,7 +186,7 @@ export function UserNightBoard() {
                                                         <AvatarFallback className="text-[9px]">{schedule.user.name[0]}</AvatarFallback>
                                                     </Avatar>
                                                     <span className={`text-[10px] truncate font-medium ${isMe ? "text-green-800" : "text-gray-600"}`}>
-                                                        {isMe ? "Moi" : schedule.user.name.split(" ")[0]}
+                                                        {isMe ? "Moi" : schedule.user.name}
                                                     </span>
                                                 </div>
                                             ) : (
