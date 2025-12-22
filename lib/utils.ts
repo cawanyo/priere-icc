@@ -23,5 +23,5 @@ export const normalizeDate = (dateInput: Date | string) => {
 };
 
 export const  convertKeepDate =(date: Date) => {
-  return new Date(date.toUTCString().slice(0,-3))
+  return new Date(date.toUTCString().slice(0,-3));
 }

@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { startOfWeek, endOfWeek, addDays } from "date-fns";
-import { normalizeDate } from "@/lib/utils"; // Votre helper
+import { convertKeepDate, normalizeDate } from "@/lib/utils"; // Votre helper
 
 // 1. Récupérer le planning d'une semaine donnée
 export async function getNightPlanning(date: Date) {
@@ -34,8 +34,8 @@ export async function getNightPlanning(date: Date) {
 }
 
 // 2. Assigner une famille à une semaine
-export async function assignFamilyToWeek(date: Date, familyId: string) {
-  const weekStart = startOfWeek(new Date(date), { weekStartsOn: 1 });
+export async function assignFamilyToWeek(date: String, familyId: string) {
+  const weekStart = startOfWeek(new Date(date.toString()), { weekStartsOn: 1 });
   
   try {
     await prisma.familyWeeklyAssignment.upsert({
@@ -56,17 +56,19 @@ export async function assignFamilyToWeek(date: Date, familyId: string) {
 // 3. Assigner un membre à un créneau (ou le retirer)
 export async function updateNightSlot(data: { 
     assignmentId: string, 
-    date: Date, 
+    date: String, 
     startTime: string, 
     userId: string | "REMOVE" 
 }) {
+  const cleanDate = new Date(data.date.toString()); // Normaliser la date  
+  console.log(cleanDate)
   try {
     // Si on veut retirer la personne
     if (data.userId === "REMOVE") {
       await prisma.familySchedule.deleteMany({
         where: {
             assignmentId: data.assignmentId,
-            date: data.date,
+            date: cleanDate,
             startTime: data.startTime
         }
       });
@@ -78,7 +80,7 @@ export async function updateNightSlot(data: {
       const existing = await prisma.familySchedule.findFirst({
         where: {
             assignmentId: data.assignmentId,
-            date: data.date,
+            date: cleanDate,
             startTime: data.startTime
         }
       });
@@ -92,7 +94,7 @@ export async function updateNightSlot(data: {
         await prisma.familySchedule.create({
             data: {
                 assignmentId: data.assignmentId,
-                date: data.date,
+                date: cleanDate,
                 startTime: data.startTime,
                 endTime:  `${parseInt(data.startTime) + 1}:00`.padStart(5, '0'), // ex: "01:00"
                 userId: data.userId
@@ -116,7 +118,7 @@ export async function addWeeklySlot(assignmentId: string, weekStartDate: Date, t
   try {
     // 1. On détermine les 5 jours de la semaine (Lundi -> Vendredi)
     // weekStartDate doit être normalisé (début de journée)
-    const days = Array.from({ length: 5 }).map((_, i) => addDays(weekStartDate, i));
+    const days = Array.from({ length: 5 }).map((_, i) => addDays(new Date(weekStartDate), i));
     
     // 2. On crée les créneaux vides pour chaque jour
     // On utilise createMany si votre DB le supporte (Postgres), sinon boucle
@@ -184,10 +186,10 @@ export async function updateWeekTheme(assignmentId: string, theme: string) {
 }
 
 // 3. NOUVEAU: Sauvegarder le thème du JOUR
-export async function updateDayTheme(assignmentId: string, date: Date, theme: string) {
+export async function updateDayTheme(assignmentId: string, date: String, theme: string) {
   try {
       // On normalise la date pour être sûr qu'elle est à 00:00
-      const cleanDate = new Date(date); 
+      const cleanDate = new Date(date.toString()); 
       
       if (!theme) {
           // Si le thème est vide, on le supprime
