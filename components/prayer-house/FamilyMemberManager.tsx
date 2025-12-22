@@ -27,9 +27,7 @@ export function FamilyMemberManager({ familyId, members, candidates }: MemberMan
   const handleAdd = async () => {
     if (!selectedCandidateId) return;
     setIsAdding(true);
-    console.log("Adding member:", selectedCandidateId);
     const res = await addMemberToFamily(familyId, selectedCandidateId);
-    console.log("Add member result:", res);
     setIsAdding(false);
     if (res.success) {
       toast.success("Membre ajouté à la famille");
