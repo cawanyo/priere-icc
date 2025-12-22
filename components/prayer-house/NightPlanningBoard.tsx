@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { format, startOfWeek, addWeeks, addDays, isSameDay } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, se } from "date-fns/locale";
 import { 
     ChevronLeft, 
     ChevronRight, 
@@ -33,6 +33,9 @@ import {
 } from "@/app/actions/prayer-house-planning";
 import { getPrayerFamilies } from "@/app/actions/prayer-house";
 import { ThemeEditor } from "./ThemeEditor";
+import { convertKeepDate } from "@/lib/utils";
+import { SearchableUserSelect } from "../SearchUserSelect";
+import { ConfirmDelete } from "../DeleteConfirm";
 
 // --- IMPORT DYNAMIQUE DU BOUTON PDF (Pour éviter l'erreur SSR) ---
 const DownloadNightButton = dynamic(
@@ -60,8 +63,6 @@ export function NightPlanningBoard() {
     setLoading(true);
     const planRes = await getNightPlanning(currentDate);
     if (planRes.success) setAssignment(planRes.assignment);
-
-    console.log(planRes)
 
     const famRes = await getPrayerFamilies();
     if (famRes.success) setAllFamilies(famRes.data || []);
@@ -96,12 +97,15 @@ export function NightPlanningBoard() {
     return "bg-green-500";
   };
 
+
   const getDayTheme = (date: Date) => {
-    return assignment?.dayThemes?.find((t: any) => isSameDay(new Date(t.date), date))?.theme;
+    return assignment?.dayThemes?.find((t: any) => isSameDay(convertKeepDate(t.date), date))?.theme;
   };
+
+
   // --- ACTIONS ---
   const handleAssignFamily = async (familyId: string) => {
-    const res = await assignFamilyToWeek(currentDate, familyId);
+    const res = await assignFamilyToWeek(currentDate.toDateString(), familyId);
     if (res.success) {
         toast.success("Famille assignée !");
         loadData();
@@ -112,7 +116,7 @@ export function NightPlanningBoard() {
     if (!selectedSlot || !assignment) return;
     await updateNightSlot({
         assignmentId: assignment.id,
-        date: selectedSlot.date,
+        date: selectedSlot.date.toDateString(),
         startTime: selectedSlot.hour,
         userId
     });
@@ -145,7 +149,7 @@ export function NightPlanningBoard() {
   // Helper
   const getSchedule = (day: Date, hour: string) => {
     return assignment?.schedules.find((s: any) => 
-        isSameDay(new Date(s.date), day) && s.startTime === hour
+        isSameDay(convertKeepDate(s.date), day) && s.startTime === hour
     );
   };
 
@@ -202,7 +206,7 @@ export function NightPlanningBoard() {
                     <ThemeEditor
                         type="week"
                         initialValue={assignment.weekTheme}
-                        onSave={async (val) => await updateWeekTheme(assignment.id, val)}
+                        onSave={async (val) => {await updateWeekTheme(assignment.id, val); loadData()}}
                         placeholder="Ex: La Puissance du Sang de Jésus"
                     />
                 </div>
@@ -293,7 +297,7 @@ export function NightPlanningBoard() {
                                     <ThemeEditor 
                                         type="day"
                                         initialValue={getDayTheme(day)}
-                                        onSave={async (val) => await updateDayTheme(assignment.id, day, val)}
+                                        onSave={async (val) => {await updateDayTheme(assignment.id, day.toDateString(), val); loadData()}}
                                     />
                                 </div>
                             </div>
@@ -360,7 +364,7 @@ export function NightPlanningBoard() {
                                         <ThemeEditor 
                                                 type="day"
                                                 initialValue={getDayTheme(day)}
-                                                onSave={async (val) => await updateDayTheme(assignment.id, day, val)}
+                                                onSave={async (val) => {await updateDayTheme(assignment.id, day.toDateString(), val); loadData()}}
                                             />
                                         </div>
                                     </th>
@@ -372,13 +376,12 @@ export function NightPlanningBoard() {
                                 <tr key={hour} className="group hover:bg-gray-50/30">
                                     <td className="p-4 text-center font-mono text-sm text-gray-500 border-r border-b group-last:border-b-0 bg-gray-50/30 relative">
                                         {hour}
-                                        <button 
-                                            onClick={(e) => { e.stopPropagation(); handleRemoveRow(hour); }}
-                                            className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-gray-300 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
-                                            title="Supprimer cette ligne"
-                                        >
-                                            <Trash2 className="h-3 w-3" />
-                                        </button>
+                                       
+                                        <ConfirmDelete
+                                            onConfirm={() => handleRemoveRow(hour)}
+                                            title="Supprimer cette ligne horaire"
+                                            description={`Êtes-vous sûr de vouloir supprimer tous les créneaux de ${hour} ? Cette action est irréversible.`}
+                                        />
                                     </td>
                                     {days.map(day => {
                                         const schedule = getSchedule(day, hour);
@@ -430,12 +433,18 @@ export function NightPlanningBoard() {
 
         {/* MODALE ASSIGNATION */}
         <Dialog open={!!selectedSlot} onOpenChange={(open) => !open && setSelectedSlot(null)}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-md overflow-visible"> 
+                {/* Note: overflow-visible aide parfois si la liste déroulante est très longue */}
+                
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Moon className="h-5 w-5 text-indigo-500" />
-                        <span>{selectedSlot && format(selectedSlot.date, "EEEE d MMMM", { locale: fr })}</span>
-                        <span className="bg-gray-100 px-2 py-0.5 rounded text-sm text-gray-600">{selectedSlot?.hour}</span>
+                        <span>
+                            {selectedSlot && format(selectedSlot.date, "EEEE d MMMM", { locale: fr })}
+                        </span>
+                        <span className="bg-gray-100 px-2 py-0.5 rounded text-sm text-gray-600">
+                            {selectedSlot?.hour}
+                        </span>
                     </DialogTitle>
                 </DialogHeader>
                 
@@ -443,27 +452,27 @@ export function NightPlanningBoard() {
                     <p className="text-sm text-gray-500">
                         Membre de garde (<strong>{assignment?.family?.name}</strong>) :
                     </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1">
-                        {assignment?.family?.members.map((m: any) => (
-                            <Button 
-                                key={m.id} 
-                                variant="outline" 
-                                className="justify-start h-auto py-3 px-3 hover:border-indigo-300 hover:bg-indigo-50"
-                                onClick={() => handleAssignUser(m.id)}
-                            >
-                                <Avatar className="h-8 w-8 mr-3 border bg-gray-100">
-                                    <AvatarImage src={m.image} />
-                                    <AvatarFallback>{m.name[0]}</AvatarFallback>
-                                </Avatar>
-                                <div className="text-left overflow-hidden">
-                                    <span className="block truncate text-sm font-medium text-gray-900">{m.name}</span>
-                                    {m.phone && <span className="block text-[10px] text-gray-500">{m.phone}</span>}
-                                </div>
-                            </Button>
-                        ))}
+                    
+                    {/* --- REMPLACEMENT ICI --- */}
+                    <div>{selectedSlot?.date && getSchedule(selectedSlot?.date, selectedSlot?.hour)?.user?.name}</div>
+                    <div className="pt-1">
+                        <SearchableUserSelect 
+                            users={assignment?.family?.members || []}
+                            onSelect={(userId) => handleAssignUser(userId)}
+                            placeholder="Rechercher une sentinelle..."
+                        />
+                        <p className="text-[10px] text-gray-400 mt-2 italic">
+                            * L'assignation se fait automatiquement dès la sélection.
+                        </p>
                     </div>
+                    {/* ------------------------ */}
+
                     <div className="border-t pt-4 mt-2">
-                        <Button variant="ghost" className="w-full text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => handleAssignUser("REMOVE")}>
+                        <Button 
+                            variant="ghost" 
+                            className="w-full text-red-600 hover:text-red-700 hover:bg-red-50" 
+                            onClick={() => handleAssignUser("REMOVE")}
+                        >
                             <UserMinus className="mr-2 h-4 w-4" /> Retirer la sentinelle / Laisser vide
                         </Button>
                     </div>

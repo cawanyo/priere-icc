@@ -7,13 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChevronLeft, ChevronRight, Moon, ShieldCheck, ShieldAlert, CheckCircle2, AlertCircle, MessageSquareQuote } from "lucide-react";
 import { getUserPrayerHouseData, toggleSelfAssignment } from "@/app/actions/prayer-house-user";
-import { normalizeDate } from "@/lib/utils";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { convertKeepDate } from "@/lib/utils";
 
 export function UserNightBoard() {
-  const [currentDate, setCurrentDate] = useState(normalizeDate(new Date()));
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -76,7 +76,7 @@ export function UserNightBoard() {
   const getDayTheme = (date: Date) => {
     if (!data?.assignment?.dayThemes) return null;
     return data.assignment.dayThemes.find((t: any) => 
-        isSameDay(new Date(t.date), date)
+        isSameDay(convertKeepDate(t.date), date)
     )?.theme;
 };
 
@@ -177,7 +177,7 @@ export function UserNightBoard() {
                             <div className="p-2 space-y-2">
                                 {hours.map(hour => {
                                     const schedule = assignment.schedules.find((s: any) => 
-                                        isSameDay(new Date(s.date), day) && s.startTime === hour
+                                        isSameDay(convertKeepDate(s.date), day) && s.startTime === hour
                                     );
                                     
                                     const isTaken = !!schedule;

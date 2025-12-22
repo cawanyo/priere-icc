@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
+import { ConfirmDelete } from "../DeleteConfirm";
 
 export function FamilyList({ initialFamilies }: { initialFamilies: any[] }) {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -36,7 +37,6 @@ export function FamilyList({ initialFamilies }: { initialFamilies: any[] }) {
   };
 
   const handleDelete = async (id: string) => {
-    if(!confirm("Supprimer cette famille ?")) return;
     const res = await deletePrayerFamily(id);
     if (res.success) window.location.reload();
   };
@@ -80,9 +80,10 @@ export function FamilyList({ initialFamilies }: { initialFamilies: any[] }) {
                         <CardTitle className=" font-bold text-gray-800">
                             {family.name}
                         </CardTitle>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(family.id)} className="text-gray-400 hover:text-red-500">
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <ConfirmDelete
+                            title="Supprimer la famille"
+                            description="Êtes-vous sûr de vouloir supprimer cette famille ? Cette action est irréversible."
+                            onConfirm={() => handleDelete(family.id)}/>
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-center space-x-2  text-gray-500 mb-4">
