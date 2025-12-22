@@ -54,7 +54,7 @@ export function ThemeEditor({ initialValue, onSave, placeholder, type = "day" }:
         </div>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-screen sm:w-80 ">
+        <PopoverContent className="w-screen  sm:w-80 ">
             <h4 className="font-medium mb-2 text-sm">Modifier le thème de la semaine</h4>
             <Input 
                 value={value} 

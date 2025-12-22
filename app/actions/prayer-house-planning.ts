@@ -28,7 +28,6 @@ export async function getNightPlanning(date: Date) {
     // Si pas d'assignation, on renvoie null, le front affichera le bouton "Assigner une famille"
     return { success: true, assignment };
   } catch (error) {
-    console.error(error);
     return { success: false, error: "Erreur chargement planning nuit" , errorDetails: error  };
   }
 }
@@ -61,7 +60,6 @@ export async function updateNightSlot(data: {
     userId: string | "REMOVE" 
 }) {
   const cleanDate = new Date(data.date.toString()); // Normaliser la date  
-  console.log(cleanDate)
   try {
     // Si on veut retirer la personne
     if (data.userId === "REMOVE") {
@@ -106,7 +104,6 @@ export async function updateNightSlot(data: {
     revalidatePath("/dashboard/leader/prayer-house");
     return { success: true };
   } catch (error) {
-    console.error(error)
     return { success: false, error: "Erreur mise à jour créneau" };
   }
 }
@@ -148,7 +145,6 @@ export async function addWeeklySlot(assignmentId: string, weekStartDate: Date, t
     revalidatePath("/dashboard/leader/prayer-house");
     return { success: true };
   } catch (error) {
-    console.error(error);
     return { success: false, error: "Impossible d'ajouter ce créneau" };
   }
 }

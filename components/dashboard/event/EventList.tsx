@@ -8,7 +8,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { deleteSpecialEvent } from "@/app/actions/event";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale"; // J'ai ajouté la locale FR pour un affichage propre (ex: "25 Oct")
 import Link from "next/link";
 import { EventFormModal } from "./EventFormModal";
 import { SpecialEventWithTemplate } from "@/lib/types";

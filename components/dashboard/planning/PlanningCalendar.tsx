@@ -37,7 +37,7 @@ export function PlanningCalendar() {
     const start = startOfWeek(currentDate, { weekStartsOn: 1 }); 
     const end = endOfWeek(currentDate, { weekStartsOn: 1 });
     
-    const res = await getPlanningEvents(start, end);
+    const res = await getPlanningEvents(start.toDateString(), end.toDateString());
     if (res.success) {
         setEvents(res.data);
     }

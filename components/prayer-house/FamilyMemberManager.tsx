@@ -5,8 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserPlus, UserMinus, Shield, Users } from "lucide-react";
+import { UserPlus, Users } from "lucide-react";
 import { addMemberToFamily, removeMemberFromFamily } from "@/app/actions/prayer-house";
 import { toast } from "sonner";
 import { ConfirmDelete } from "../DeleteConfirm";
@@ -20,7 +19,6 @@ interface MemberManagerProps {
 }
 
 export function FamilyMemberManager({ familyId, members, candidates }: MemberManagerProps) {
-  const [selectedCandidate, setSelectedCandidate] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -29,7 +27,9 @@ export function FamilyMemberManager({ familyId, members, candidates }: MemberMan
   const handleAdd = async () => {
     if (!selectedCandidateId) return;
     setIsAdding(true);
+    console.log("Adding member:", selectedCandidateId);
     const res = await addMemberToFamily(familyId, selectedCandidateId);
+    console.log("Add member result:", res);
     setIsAdding(false);
     if (res.success) {
       toast.success("Membre ajouté à la famille");
@@ -39,7 +39,6 @@ export function FamilyMemberManager({ familyId, members, candidates }: MemberMan
   };
 
   const handleRemove = async (userId: string) => {
-    if (!confirm("Retirer ce membre de la famille ?")) return;
     const res = await removeMemberFromFamily(userId, familyId);
     if (res.success) toast.success("Membre retiré");
   };
