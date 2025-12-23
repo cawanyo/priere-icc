@@ -7,6 +7,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { revalidatePath } from "next/cache";
 import { sendSMS } from "@/lib/sms";
 import { createNotification } from "./notifications";
+import supabase from "@/lib/superbase";
 async function checkLeaderAccess() {
   const session = await getServerSession(authOptions);
   // @ts-ignore
@@ -94,6 +95,19 @@ export async function updateRoleRequestStatus(requestId: string, newStatus: stri
         await sendSMS(request.user.phone, `Bonjour ${request.user.name}, Votre demande a été rejeté. Rapprochez-vous d'un leader pour échanger.`);
     }
 
+    await supabase.channel(`user-${request.userId}`).send({
+      type: 'broadcast',
+      event: 'role-update',
+      payload: { status: newStatus, newRole: request.role }
+    });
+
+    await supabase.channel('admin-dashboard').send({
+      type: 'broadcast',
+      event: 'request-handled',
+      payload: { requestId, status: 'APPROVED' }
+    });
+
+    
     revalidatePath("/dashboard/leader/team");
     return { success: true, message: "Statut mis à jour et notification envoyée." };
   } catch (error) {
@@ -155,6 +169,26 @@ export async function removeTeamMember(userId: string) {
     await prisma.roleRequest.deleteMany({ where: { userId: userId } });
 
     revalidatePath("/dashboard/leader/team");
+
+    await supabase.channel(`user-${userId}`).send({
+      type: 'broadcast',
+      event: 'role-update',
+      payload: { status: '', newRole: '' }
+    });
+
+    await supabase.channel('admin-dashboard').send({
+      type: 'broadcast',
+      event: 'request-handled',
+      payload: { requestId: null, status: 'REMOVED' }
+    });
+
+    await createNotification(
+      userId,
+      "Retrait de l'équipe",
+      "Vous avez été retiré de l'équipe des intercesseurs/conducteurs de prière.",
+      "WARNING",
+      "/dashboard/user/profile");
+
     return { success: true, message: "Membre retiré." };
   } catch (error) {
     return { success: false, message: "Erreur lors du retrait." };

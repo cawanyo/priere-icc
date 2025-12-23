@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { revalidatePath } from "next/cache";
 import { Role } from "@prisma/client";
+import supabase from "@/lib/superbase";
 
 
 export async function createRoleRequest(roleToRequest: Role) {
@@ -38,6 +39,19 @@ export async function createRoleRequest(roleToRequest: Role) {
       }
     });
 
+    await supabase.channel('admin-dashboard').send({
+      type: 'broadcast',
+      event: 'new-request', 
+      payload: { message: 'Nouvelle demande de rôle' }
+    });
+
+    await supabase.channel(`user-${session.user.id}`).send({
+      type: 'broadcast',
+      event: 'role-update', 
+      payload: { message: 'Nouvelle demande de rôle' }
+    });
+    
+
     revalidatePath("/dashboard/user/profile");
     return { success: true, message: `Candidature envoyée.` };
   } catch (error: any) {
@@ -57,6 +71,19 @@ export async function deleteRoleRequest() {
       where: { userId: session.user.id }
     });
 
+
+    await supabase.channel('admin-dashboard').send({
+      type: 'broadcast',
+      event: 'new-request', 
+      payload: { message: 'Nouvelle demande de rôle' }
+    });
+    
+    await supabase.channel(`user-${session.user.id}`).send({
+      type: 'broadcast',
+      event: 'role-update', 
+      payload: { message: 'Nouvelle demande de rôle' }
+    });
+    
     revalidatePath("/dashboard/user/profile");
     return { success: true, message: "Demande annulée avec succès." };
   } catch (error) {

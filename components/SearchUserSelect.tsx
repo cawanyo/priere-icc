@@ -84,15 +84,8 @@ export function SearchableUserSelect({
             <CommandGroup max-height="200px" className="overflow-y-auto">
               {users.map((user) => (
                 <CommandItem
-                  key={user.id}
-                  
-                  // CORRECTION 1 : Rendre la valeur unique
-                  // On combine Nom + ID pour que la recherche marche sur le nom, 
-                  // mais que cmdk distingue les doublons.
+                  key={user.id}                
                   value={`${user.name}-${user.id}`} 
-                  
-                  // CORRECTION 2 : Utiliser directement l'ID de la boucle
-                  // On ignore le paramètre retourné par onSelect et on utilise user.id
                   onSelect={() => handleSelectUser(user.id)}
                   
                   className="cursor-pointer"

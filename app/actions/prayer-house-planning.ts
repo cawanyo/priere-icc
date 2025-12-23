@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { startOfWeek, endOfWeek, addDays } from "date-fns";
-import { convertKeepDate, normalizeDate } from "@/lib/utils"; // Votre helper
+import { pusherServer } from "@/lib/pusher";
 
 // 1. Récupérer le planning d'une semaine donnée
 export async function getNightPlanning(date: Date) {
@@ -42,7 +42,7 @@ export async function assignFamilyToWeek(date: String, familyId: string) {
       update: { familyId }, // Si existe, on change la famille
       create: {
         weekStart,
-        familyId
+        familyId: familyId
       }
     });
     revalidatePath("/dashboard/leader/prayer-house");
@@ -71,9 +71,6 @@ export async function updateNightSlot(data: {
         }
       });
     } else {
-      // Sinon on assigne (Upsert : créer ou mettre à jour)
-      // Note: prisma.familySchedule n'a pas d'index unique par défaut sur [date, startTime], 
-      // donc on fait d'abord un findFirst pour voir s'il existe
       
       const existing = await prisma.familySchedule.findFirst({
         where: {
@@ -100,6 +97,10 @@ export async function updateNightSlot(data: {
         });
       }
     }
+
+    await pusherServer.trigger("prayer-planning", "update", {
+      message: "Planning modifié"
+    });
     
     revalidatePath("/dashboard/leader/prayer-house");
     return { success: true };

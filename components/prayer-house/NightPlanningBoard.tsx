@@ -36,6 +36,8 @@ import { ThemeEditor } from "./ThemeEditor";
 import { convertKeepDate } from "@/lib/utils";
 import { SearchableUserSelect } from "../SearchUserSelect";
 import { ConfirmDelete } from "../DeleteConfirm";
+import { pusherClient } from "@/lib/pusher";
+import supabase from "@/lib/superbase";
 
 // --- IMPORT DYNAMIQUE DU BOUTON PDF (Pour éviter l'erreur SSR) ---
 const DownloadNightButton = dynamic(
@@ -71,6 +73,24 @@ export function NightPlanningBoard() {
 
   useEffect(() => {
     loadData();
+  }, [currentDate]);
+
+  useEffect(() => {
+    const channel = supabase.channel('prayer-room-updates');
+
+    channel
+      .on(
+        'broadcast', 
+        { event: 'change' },
+        (payload) => {
+           loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [currentDate]);
 
   // --- LOGIQUE HEURES DYNAMIQUES ---
@@ -195,6 +215,7 @@ export function NightPlanningBoard() {
                                         </div>
                                     </SelectItem>
                                 ))}
+                                
                             </SelectContent>
                         </Select>
                     )}
