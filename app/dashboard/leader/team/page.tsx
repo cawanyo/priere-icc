@@ -1,18 +1,54 @@
+'use client'
 // app/dashboard/leader/team/page.tsx
+
 import { getRoleRequests, getTeamMembers } from "@/app/actions/team";
 import { RoleRequestList } from "@/components/dashboard/team/RoleRequestList";
 import { TeamMemberList } from "@/components/dashboard/team/TeamMemberList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import supabase from "@/lib/superbase";
+import { request } from "http";
 import { Users, UserPlus, Crown, Mic2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
-export default async function TeamManagementPage() {
-  const [requestsData, membersData] = await Promise.all([
-    getRoleRequests(),
-    getTeamMembers(),
-  ]);
+export default function TeamManagementPage() {
+  const [requestsData, setRequstsDate] = useState<any>()
+  const [membersData, setMembersData] = useState<any>()
+  const loadData = async () => {
+    const [requestData, membersData] = await Promise.all([
+      getRoleRequests(),
+      getTeamMembers(),
+    ]);
+    setRequstsDate(requestData);
+    setMembersData(membersData);
+  }
+  
 
-  const allRequests = requestsData.success  ? requestsData.data ?? [] : [];
-  const allMembers = membersData.success ? membersData.data ?? []: [];
+  useEffect(() => {
+    loadData();
+  }, [])
+  
+
+  useEffect(() => {
+    const channel = supabase.channel('admin-dashboard');
+
+    channel
+      .on('broadcast', { event: 'new-request' }, () => {
+         console.log("Nouvelle demande reçue !");
+         loadData();
+      })
+      .on('broadcast', { event: 'request-handled' }, () => {
+        console.log("✅ Une demande a été traitée ailleurs !");
+        loadData();
+     })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const allRequests = requestsData && requestsData.success  ? requestsData.data ?? [] : [];
+  const allMembers = membersData && membersData.success ? membersData.data ?? []: [];
 
   // FILTRAGE DES DONNÉES PAR RÔLE
   // 1. Candidatures

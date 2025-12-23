@@ -1,8 +1,4 @@
-// app/dashboard/user/profile/page.tsx
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { redirect } from "next/navigation";
+'use client'
 import { UserCog } from "lucide-react";
 
 
@@ -12,19 +8,52 @@ import { SecurityForm } from "@/components/profile/SecurityForm";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { IntercessorJourney } from "@/components/profile/IntercessorRoad";
 import { getUserWithRoleRequest } from "@/app/actions/role-request";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import supabase from "@/lib/superbase";
+import { toast } from "sonner";
 
-export default async function ProfilePage() {
-  const session = await getServerSession(authOptions);
+export default function ProfilePage() {
 
-  // @ts-ignore
-  if (!session || !session.user?.id) {
-    redirect("/login");
+  const { data: session, update } = useSession();
+
+  const [user, setUser] = useState<any>();
+  const loadData = async () => {
+    const userData = await getUserWithRoleRequest();
+    setUser(userData);
   }
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  // Récupérer utilisateur + sa demande de rôle (relation roleRequest)
-  // @ts-ignore
   
-  const user = await getUserWithRoleRequest();
+
+  useEffect(() => {
+    // Si pas connecté, on ne fait rien
+    if (!session?.user?.id) return;
+
+    const channelName = `user-${session.user.id}`;
+    const channel = supabase.channel(channelName);
+
+    channel
+      .on('broadcast', { event: 'role-update' }, async (payload: any) => {
+         await loadData();
+         if (payload.status === 'APPROVED') {
+             toast.success("Félicitations ! Votre demande a été acceptée.");
+         } else if (payload.status === 'REJECTED') {
+             toast.error("Votre demande a été refusée.");
+         }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session,update]);
+
+
+
+
   if (!user) return null;
 
   const hasPassword = !!user.password;

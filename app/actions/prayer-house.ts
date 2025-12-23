@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 import { checkLeaderAccess } from "./leader";
+import { pusherServer } from "@/lib/pusher";
+import supabase from "@/lib/superbase";
 
 // Vérification sécu
 
@@ -96,6 +98,15 @@ export async function getFamilyDetails(id: string) {
               where: { id: userId },
               data: { prayerFamilyId: familyId }
           });
+          
+
+          await supabase.channel('prayer-room-updates').send({
+            type: 'broadcast',
+            event: 'change',
+            payload: { message: 'Mise à jour du planning' },
+          });
+
+
           revalidatePath(`/dashboard/leader/prayer-house/${familyId}`);
           return { success: true };
       } catch (error) {
@@ -111,6 +122,15 @@ export async function getFamilyDetails(id: string) {
               where: { id: userId },
               data: { prayerFamilyId: null } // On le détache de la famille
           });
+
+          await supabase.channel('prayer-room-updates').send({
+            type: 'broadcast',
+            event: 'change',
+            payload: { message: 'Mise à jour du planning' },
+          });
+
+
+
           revalidatePath(`/dashboard/leader/prayer-house/${familyId}`);
           return { success: true };
       } catch (error) {
