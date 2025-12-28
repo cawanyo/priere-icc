@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
@@ -9,6 +9,20 @@ import { LoadingOverlay } from "@/components/LoadingOverlay";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
+
+
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  // This helps with the keyboard pushing content up smoothly
+  interactiveWidget: 'resizes-content',
+  viewportFit: 'cover',
+};
+
+
 
 export const metadata: Metadata = {
   title: "Ministère de la Prière ICC",
