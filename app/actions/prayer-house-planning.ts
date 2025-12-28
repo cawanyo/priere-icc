@@ -235,3 +235,27 @@ export async function updateDayTheme(assignmentId: string, date: String, theme: 
       return { success: false, error: "Erreur thème jour" };
   }
 }
+
+
+
+export async function clearWeeklyAssignment(assignmentId: string) {
+  try {
+    await prisma.familyWeeklyAssignment.delete({
+      where: { id: assignmentId }
+    });
+    
+    // Si vous utilisez Supabase Realtime, prévenez les autres
+    /* await supabase.channel('planning-updates').send({
+      type: 'broadcast',
+      event: 'change',
+      payload: { message: 'Planning réinitialisé' }
+    });
+    */
+
+    revalidatePath("/dashboard/leader/prayer-house");
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return { success: false, error: "Impossible de supprimer l'assignation" };
+  }
+}

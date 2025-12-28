@@ -11,7 +11,8 @@ import {
     UserMinus, 
     Calendar, 
     Plus, 
-    Trash2
+    Trash2,
+    X
 } from "lucide-react";
 import dynamic from "next/dynamic";
 
@@ -21,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { updateWeekTheme, updateDayTheme } from "@/app/actions/prayer-house-planning";
+import { updateWeekTheme, updateDayTheme, clearWeeklyAssignment } from "@/app/actions/prayer-house-planning";
 
 
 import { 
@@ -92,6 +93,26 @@ export function NightPlanningBoard() {
       supabase.removeChannel(channel);
     };
   }, [currentDate]);
+
+
+
+  const handleClearAssignment = async () => {
+    if (!assignment) return;
+    
+    // Confirmation de sécurité
+
+    setLoading(true);
+    const res = await clearWeeklyAssignment(assignment.id);
+    
+    if (res.success) {
+        setAssignment(null); // On vide l'état local immédiatement
+        toast.success("Semaine réinitialisée à blanc");
+        loadData(); // On recharge proprement
+    } else {
+        toast.error("Erreur lors de la réinitialisation");
+    }
+    setLoading(false);
+  };
 
   // --- LOGIQUE HEURES DYNAMIQUES ---
   const defaultHours = ["00:00", "01:00", "02:00", "03:00"];
@@ -198,7 +219,7 @@ export function NightPlanningBoard() {
                 </div>
 
                 {/* Choix Famille */}
-                <div className="w-full md:w-72">
+                <div className="w-full md:w-72 flex">
                     {loading ? (
                         <div className="h-10 bg-gray-100 animate-pulse rounded" />
                     ) : (
@@ -219,8 +240,15 @@ export function NightPlanningBoard() {
                             </SelectContent>
                         </Select>
                     )}
+                    <ConfirmDelete
+                        onConfirm={handleClearAssignment}
+                        title="Désassigner la famille de cette semaine"
+                        description="Cette action va supprimer tous les créneaux assignés et remettre la semaine à blanc. Continuer ?"  
+                    />
                 </div>
             </div>
+
+
 
             {assignment && (
                 <div className="mb-6 px-1">
