@@ -52,7 +52,7 @@ export function NightPlanningBoard() {
         }
         );
 
-        
+
   // --- ÉTATS ---
   const [currentDate, setCurrentDate] = useState(new Date());
   const [assignment, setAssignment] = useState<any>(null);
@@ -287,7 +287,7 @@ export function NightPlanningBoard() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 w-full md:w-auto">
+                    <div className="flex items-center gap-2 w-full flex-wrap md:w-auto">
                         {/* Ajouter Heure */}
                         <Dialog open={isAddHourOpen} onOpenChange={setIsAddHourOpen}>
                             <DialogTrigger asChild>
