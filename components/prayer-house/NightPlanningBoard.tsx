@@ -41,15 +41,18 @@ import { pusherClient } from "@/lib/pusher";
 import supabase from "@/lib/superbase";
 
 // --- IMPORT DYNAMIQUE DU BOUTON PDF (Pour éviter l'erreur SSR) ---
-const DownloadNightButton = dynamic(
-  () => import("@/components/pdf/DownloadPlanningButton").then((mod) => mod.DownloadNightButton),
-  { 
-    ssr: false,
-    loading: () => <Button variant="outline" disabled size="sm">Chargement PDF...</Button>
-  }
-);
+
 
 export function NightPlanningBoard() {
+    const DownloadNightButton = dynamic(
+        () => import("@/components/pdf/DownloadPlanningButton").then((mod) => mod.DownloadNightButton),
+        { 
+            ssr: false,
+            loading: () => <Button variant="outline" disabled size="sm">Chargement PDF...</Button>
+        }
+        );
+
+        
   // --- ÉTATS ---
   const [currentDate, setCurrentDate] = useState(new Date());
   const [assignment, setAssignment] = useState<any>(null);
@@ -312,11 +315,11 @@ export function NightPlanningBoard() {
                         </Dialog>
 
                         {/* PDF */}
-                        {/* <DownloadNightButton 
+                        <DownloadNightButton 
                             weekDate={currentDate} 
                             familyName={assignment.family.name}
                             schedules={assignment.schedules}
-                        /> */}
+                        />
                     </div>
                 </div>
             )}

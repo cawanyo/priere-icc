@@ -115,9 +115,9 @@ export function NightWatchPdf({ weekDate, familyName, schedules }: NightWatchPdf
                                 {schedule ? (
                                     <View style={styles.userBox}>
                                         <Text style={styles.userName}>{schedule.user?.name || "Inconnu"}</Text>
-                                        {schedule.user?.phone && (
+                                        {/* {schedule.user?.phone && (
                                             <Text style={styles.userPhone}>{schedule.user.phone}</Text>
-                                        )}
+                                        )} */}
                                     </View>
                                 ) : (
                                     <Text style={styles.emptyText}>- Libre -</Text>
