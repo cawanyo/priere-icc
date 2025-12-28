@@ -210,7 +210,7 @@ export function NightPlanningBoard() {
                             {format(currentDate, "MMMM yyyy", { locale: fr })}
                         </h3>
                         <p className="text-xs text-gray-500 font-medium">
-                            Semaine {format(weekStart, "ww")}
+                            {format(weekStart, "dd MMM")} - {format(addDays(weekStart, 4), "dd MMM")}
                         </p>
                     </div>
                     <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addWeeks(currentDate, 1))}>
