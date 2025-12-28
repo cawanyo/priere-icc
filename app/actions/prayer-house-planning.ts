@@ -2,8 +2,11 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { startOfWeek, endOfWeek, addDays } from "date-fns";
+import { startOfWeek, endOfWeek, addDays, format } from "date-fns";
 import { pusherServer } from "@/lib/pusher";
+import { createNotification } from "./notifications";
+import { sendSMS } from "@/lib/sms";
+
 
 // 1. Récupérer le planning d'une semaine donnée
 export async function getNightPlanning(date: Date) {
@@ -96,6 +99,25 @@ export async function updateNightSlot(data: {
             }
         });
       }
+
+      const user = await prisma.user.findUnique({
+        where: { id: data.userId}
+      });
+
+      await createNotification(
+        data.userId,
+        "Programme",
+        `Vous êtes de service  le ${ format(new Date(data.date.toString()),  "dd:MM:yyyy")} à ${data.startTime}`,
+        "INFO",
+        `/dashboard/`
+        );
+      if (user && user.phone) {
+        await sendSMS(
+          user.phone, 
+          `Bonjour ${user.name}, LE MDPI vous informe que vous êtes de service pour la maison de prière le  ${ format(new Date(data.date.toString()),  "dd:MM:yyyy")},  à ${data.startTime}. Merci de consulter le planing. Excellente journée !`
+        );
+      }
+
     }
 
     await pusherServer.trigger("prayer-planning", "update", {

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Pencil, MessageSquareQuote } from "lucide-react";
 import { toast } from "sonner";
+import { Textarea } from "../ui/textarea";
 
 interface ThemeEditorProps {
   initialValue?: string | null;
@@ -19,6 +20,8 @@ export function ThemeEditor({ initialValue, onSave, placeholder, type = "day" }:
   const [value, setValue] = useState(initialValue || "");
   const [loading, setLoading] = useState(false);
 
+
+
   const handleSave = async () => {
     setLoading(true);
     await onSave(value);
@@ -27,6 +30,10 @@ export function ThemeEditor({ initialValue, onSave, placeholder, type = "day" }:
     toast.success("Thème mis à jour");
   };
 
+  useEffect(() => {
+    setValue(initialValue || "");
+  }
+    , [initialValue]);
   // Style différent selon si c'est Semaine ou Jour
   if (type === "week") {
     return (
@@ -44,7 +51,7 @@ export function ThemeEditor({ initialValue, onSave, placeholder, type = "day" }:
                 <MessageSquareQuote className="h-4 w-4 text-indigo-400 shrink-0" />
                 
                 {/* Le span enveloppe le texte pour gérer le retour à la ligne */}
-                <span className="flex-1 whitespace-normal wrap-break-word text-left">
+                <span className="flex-1 whitespace-pre-wrap wrap-break-word text-left">
                     {initialValue || <span className="text-gray-400 italic text-sm">Ajouter un thème...</span>}
                 </span>
                 
@@ -56,7 +63,7 @@ export function ThemeEditor({ initialValue, onSave, placeholder, type = "day" }:
         </PopoverTrigger>
         <PopoverContent className="w-screen  sm:w-80 ">
             <h4 className="font-medium mb-2 text-sm">Modifier le thème de la semaine</h4>
-            <Input 
+            <Textarea
                 value={value} 
                 onChange={(e) => setValue(e.target.value)} 
                 placeholder={placeholder}
@@ -86,7 +93,7 @@ export function ThemeEditor({ initialValue, onSave, placeholder, type = "day" }:
                   <MessageSquareQuote className="h-4 w-4 text-indigo-400 shrink-0" />
                   
                   {/* Le span enveloppe le texte pour gérer le retour à la ligne */}
-                  <span className="flex-1 whitespace-normal wrap-break-word text-left">
+                  <span className="flex-1 whitespace-pre-wrap wrap-break-word text-left">
                       {initialValue || <span className="text-gray-400 italic ">Ajouter un thème...</span>}
                   </span>
                   
@@ -97,7 +104,7 @@ export function ThemeEditor({ initialValue, onSave, placeholder, type = "day" }:
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full md:w-60 p-2">
-            <Input 
+            <Textarea 
                 value={value} 
                 onChange={(e) => setValue(e.target.value)} 
                 placeholder="Thème du jour..."
