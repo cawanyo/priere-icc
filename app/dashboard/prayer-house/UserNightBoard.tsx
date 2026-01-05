@@ -84,7 +84,7 @@ export function UserNightBoard() {
                         {format(currentDate, "MMMM yyyy", { locale: fr })}
                     </span>
                     <span className="block text-[10px] text-gray-500">
-                        Semaine du {format(weekStart, "d")}
+                        {format(weekStart, "dd:MM")} - {format(addDays(weekStart, 4), "dd:MM")}
                     </span>
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addWeeks(currentDate, 1))} className="h-8 w-8">
@@ -100,7 +100,7 @@ export function UserNightBoard() {
                     <span className="block text-xs font-bold text-indigo-400 uppercase tracking-wider mb-1">
                         Sujet de la semaine
                     </span>
-                    <p className="text-lg text-indigo-900 font-serif font-medium leading-tight">
+                    <p className="text-lg text-indigo-900 font-serif font-medium leading-tight  flex-1 whitespace-pre-wrap wrap-break-word text-left">
                         "{data.assignment.weekTheme}"
                     </p>
                 </div>
@@ -143,7 +143,7 @@ export function UserNightBoard() {
                                 <span className="block text-lg font-bold text-gray-800">{format(day, "d")}</span>
                                 {dayTheme && (
                                 <div className="mt-1 pt-1 border-t border-gray-200/50">
-                                    <p className="text-[10px] text-indigo-600 font-medium italic leading-tight px-1 line-clamp-2">
+                                    <p className="text-[10px] text-indigo-600 font-medium italic leading-tight px-1 flex-1 whitespace-pre-wrap wrap-break-word text-left">
                                         "{dayTheme}"
                                     </p>
                                 </div>

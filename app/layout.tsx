@@ -18,8 +18,8 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   // This helps with the keyboard pushing content up smoothly
-  interactiveWidget: 'resizes-content',
-  viewportFit: 'cover',
+  // interactiveWidget: 'resizes-content',
+  // viewportFit: 'cover',
 };
 
 
@@ -57,7 +57,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
         <Providers>
-          <div className="min-h-screen w-full flex flex-col justify-between  bg-white">
+          <div className="min-h-screen w-full flex flex-col justify-between  bg-white safe-padding-bottom " >
             <Suspense fallback={<LoadingOverlay />}>
               <Header />
             </Suspense>
