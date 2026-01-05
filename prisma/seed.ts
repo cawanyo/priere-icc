@@ -1,6 +1,6 @@
 // // prisma/seed.ts
 // import { PrismaClient } from '@prisma/client';
-// import bcrypt from 'bcryptjs';
+ import bcrypt from 'bcryptjs';
 
 // const prisma = new PrismaClient();
 
@@ -42,6 +42,53 @@
 //   });
 
 
+// import { PrismaClient } from '@prisma/client';
+// // On importe fs et path pour lire le fichier JSON
+// import fs from 'fs';
+// import path from 'path';
+
+// const prisma = new PrismaClient();
+
+// async function main() {
+//   // 1. Lire le fichier JSON
+//   const filePath = path.join(__dirname, 'RoleRequest.json');
+//   const rawData = fs.readFileSync(filePath, 'utf-8');
+//   const users = JSON.parse(rawData);
+
+//   console.log(`Début de l'import de ${users.length} utilisateurs...`);
+
+//   // 2. Boucle sur chaque utilisateur
+
+//   for (const user of users) {
+//     // 3. On utilise upsert :
+//     // - Si l'ID existe déjà -> on met à jour (update)
+//     // - Si l'ID n'existe pas -> on crée (create)
+//     try { 
+//       await prisma.roleRequest.upsert({
+//         where: { id: user.id },
+//         update: {
+//           ...user,
+//           // Conversion IMPORTANTE des strings en objets Date
+//           createdAt: new Date(user.createdAt),
+//           updatedAt: new Date(),
+//         },
+//         create: {
+//           ...user,
+//           createdAt: new Date(user.createdAt),
+//           updatedAt: new Date(),
+
+//         },
+//       });
+//     }
+//     catch (error) {
+//       console.error(`Erreur lors de l'import de l'utilisateur avec l'ID ${user.name}:`, error);
+//     }
+//   }
+
+//   console.log('Import terminé avec succès !');
+// }
+
+
 import { PrismaClient } from '@prisma/client';
 // On importe fs et path pour lire le fichier JSON
 import fs from 'fs';
@@ -50,43 +97,28 @@ import path from 'path';
 const prisma = new PrismaClient();
 
 async function main() {
-  // 1. Lire le fichier JSON
-  const filePath = path.join(__dirname, 'RoleRequest.json');
-  const rawData = fs.readFileSync(filePath, 'utf-8');
-  const users = JSON.parse(rawData);
 
-  console.log(`Début de l'import de ${users.length} utilisateurs...`);
-
-  // 2. Boucle sur chaque utilisateur
-
-  for (const user of users) {
-    // 3. On utilise upsert :
-    // - Si l'ID existe déjà -> on met à jour (update)
-    // - Si l'ID n'existe pas -> on crée (create)
+    const hashedPassword = await bcrypt.hash('Rogierlaureane1234!', 10);
     try { 
-      await prisma.roleRequest.upsert({
-        where: { id: user.id },
-        update: {
-          ...user,
-          // Conversion IMPORTANTE des strings en objets Date
-          createdAt: new Date(user.createdAt),
-          updatedAt: new Date(),
+      const user = await prisma.user.updateMany({
+        where: {
+          email: 'rogierlaureane@gmail.com'
         },
-        create: {
-          ...user,
-          createdAt: new Date(user.createdAt),
-          updatedAt: new Date(),
-
-        },
+        data: {
+          password: hashedPassword
+        }
       });
+      
+      console.log('Utilisateur mis à jour avec succès !', user);
     }
     catch (error) {
-      console.error(`Erreur lors de l'import de l'utilisateur avec l'ID ${user.name}:`, error);
+      console.error(`Erreur lors de l'import de l'utilisateur avec l'ID`);
     }
-  }
 
   console.log('Import terminé avec succès !');
 }
+
+
 
 main()
   .catch((e) => {
