@@ -117,7 +117,7 @@ export function ForgotPasswordForm() {
           <div className="space-y-6">
             <RadioGroup defaultValue="email" onValueChange={(v:any) => setSelectedMethod(v as "email" | "sms")}>
               
-              {/* <div className={`flex items-center space-x-3 border p-4 rounded-lg cursor-pointer transition-colors ${selectedMethod === 'email' ? 'border-pink-500 bg-pink-50' : 'border-gray-200'}`}>
+              <div className={`flex items-center space-x-3 border p-4 rounded-lg cursor-pointer transition-colors ${selectedMethod === 'email' ? 'border-pink-500 bg-pink-50' : 'border-gray-200'}`}>
                 <RadioGroupItem value="email" id="r-email" />
                 <Label htmlFor="r-email" className="flex-1 flex items-center gap-3 cursor-pointer">
                   <div className="bg-white p-2 rounded-full border">
@@ -128,9 +128,9 @@ export function ForgotPasswordForm() {
                     <p className="text-xs text-gray-500">{userData.maskedEmail}</p>
                   </div>
                 </Label>
-              </div> */}
+              </div>
 
-              {userData.hasPhone && (
+              {/* {userData.hasPhone && (
                 <div className={`flex items-center space-x-3 border p-4 rounded-lg cursor-pointer transition-colors ${selectedMethod === 'sms' ? 'border-pink-500 bg-pink-50' : 'border-gray-200'}`}>
                   <RadioGroupItem value="sms" id="r-sms" />
                   <Label htmlFor="r-sms" className="flex-1 flex items-center gap-3 cursor-pointer">
@@ -143,7 +143,7 @@ export function ForgotPasswordForm() {
                     </div>
                   </Label>
                 </div>
-              )}
+              )} */}
             </RadioGroup>
 
             <div className="flex gap-3">
