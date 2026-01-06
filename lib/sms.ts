@@ -16,10 +16,6 @@ export async function sendSMS(to: string, message: string) {
   }
 
   try {
-    // Nettoyage basique du numéro (Twilio veut du E.164, ex: +33612345678)
-    // Si vos numéros en base sont déjà propres, c'est parfait.
-    // Sinon, assurez-vous qu'ils commencent par +
-    
     await client.messages.create({
       body: message,
       from: fromNumber,

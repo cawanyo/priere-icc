@@ -33,7 +33,7 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
   const nextWeek = () => setCurrentDate(addWeeks(currentDate, 1));
   const prevWeek = () => setCurrentDate(addWeeks(currentDate, -1));
 
-  const canChangePosition = new Date() < addDays(event.startDate, -5)
+  const canChangePosition = new Date() < addDays(event.startDate, 0)
   const handleSlotClick = (slot: any) => {
     setSelectedSlot(slot);
     setIsModalOpen(true);
