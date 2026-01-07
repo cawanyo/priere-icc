@@ -62,7 +62,6 @@ export async function sendSMS({
       }),
     }
   );
-  console.log(res);
 
   if (!res.ok) {
     const error = await res.text();

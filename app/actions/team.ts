@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { sendSMS } from "@/lib/sms";
 import { createNotification } from "./notifications";
 import supabase from "@/lib/superbase";
+import { sendEmail } from "@/lib/mail";
 async function checkLeaderAccess() {
   const session = await getServerSession(authOptions);
   // @ts-ignore
@@ -78,10 +79,11 @@ export async function updateRoleRequestStatus(requestId: string, newStatus: stri
 
       if (request.user.phone) {
         const roleLabel = request.role === "PRAYER_LEADER" ? "Conducteur de prière" : "Intercesseur";
-        await sendSMS(
-            request.user.phone,
-            `Félicitations ${request.user.name} ! Nous sommes ravis de vous informer que votre demande pour rejoindre l’équipe des ${roleLabel}s a été acceptée. Bienvenue dans notre ministère !`
-        );
+        // await sendSMS(
+        //     request.user.phone,
+        //     `Félicitations ${request.user.name} ! Nous sommes ravis de vous informer que votre demande pour rejoindre l’équipe des ${roleLabel}s a été acceptée. Bienvenue dans notre ministère !`
+        // );
+        await sendEmail(request.user.phone, "Candidature acceptée 🎉", `Félicitations ${request.user.name} ! Nous sommes ravis de vous informer que votre demande pour rejoindre l’équipe des ${roleLabel}s a été acceptée. Bienvenue dans notre ministère !`)
       }
     } else if (newStatus === "REJECTED" && request.user.phone) {
         await createNotification(
@@ -92,7 +94,8 @@ export async function updateRoleRequestStatus(requestId: string, newStatus: stri
             "/dashboard/user/profile"
         );
         // Optionnel : Notifier le refus
-        await sendSMS(request.user.phone, `Bonjour ${request.user.name}, Votre demande a été rejeté. Rapprochez-vous d'un leader pour échanger.`);
+        // await sendSMS(request.user.phone, `Bonjour ${request.user.name}, Votre demande a été rejeté. Rapprochez-vous d'un leader pour échanger.`);
+        await sendEmail(request.user.phone, "Mise à jour candidature", `Bonjour ${request.user.name}, Votre demande a été rejeté. Rapprochez-vous d'un leader pour échanger.`);
     }
 
     await supabase.channel(`user-${request.userId}`).send({
