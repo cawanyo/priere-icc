@@ -123,10 +123,10 @@ export async function savePlanningEvent(data: any) {
         `/dashboard/`
         );
         if (user.phone) {
-          await sendSMS(
-            user.phone, 
-            `Bonjour ${user.name}, LE MDPI vous informe que vous êtes de service le  ${ format(new Date(date),  "dd:MM:yyyy")},  à ${startTime}. Merci de consulter le planing. Excellente journée !`
-          );
+          await sendSMS({
+            to: user.phone, 
+            message: `Bonjour ${user.name?.split(" ")[0]}, LE MDPI vous informe que vous êtes de service le  ${ format(new Date(date),  "dd:MM:yyyy")},  à ${startTime}. Merci de consulter le planing.!`
+        });
         }
         }
       )
@@ -158,10 +158,10 @@ export async function savePlanningEvent(data: any) {
 
       users.forEach(user => {
         if (user.phone) {
-          sendSMS(
-            user.phone, 
-            `Bonjour ${user.name}, vous avez été programmé pour "${title}" le ${ format(new Date(date), 'DD:mm:yyy')}.`
-          );
+          sendSMS({
+            to: user.phone, 
+            message: `Bonjour ${user.name?.split(" ")[0]}, vous avez été programmé pour "${title}" le ${ format(new Date(date), 'DD:mm:yyy')}.`
+        });
         }
       });
     }

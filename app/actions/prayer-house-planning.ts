@@ -112,10 +112,10 @@ export async function updateNightSlot(data: {
         `/dashboard/`
         );
       if (user && user.phone) {
-        await sendSMS(
-          user.phone, 
-          `Bonjour ${user.name}, LE MDPI vous informe que vous êtes de service pour la maison de prière le  ${ format(new Date(data.date.toString()),  "dd:MM:yyyy")},  à ${data.startTime}. Merci de consulter le planing. Excellente journée !`
-        );
+        await sendSMS({
+         to: user.phone, 
+         message: `Bonjour ${user.name?.split(" ")[0]}, LE MDPI vous informe que vous êtes de service pour la maison de prière le  ${ format(new Date(data.date.toString()),  "dd:MM:yyyy")},  à ${data.startTime}.`
+      });
       }
 
     }

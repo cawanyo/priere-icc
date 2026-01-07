@@ -60,7 +60,7 @@ export async function sendResetCode(userId: string, method: "email" | "sms") {
     });
 
     if (method === "sms" && user.phone) {
-      await sendSMS(user.phone, `Votre code de réinitialisation ICC Prière est : ${code}. Valide 15 min.`);
+      await sendSMS({to: user.phone, message:`Votre code de réinitialisation ICC Prière est : ${code}. Valide 15 min.`});
       return { success: true, message: "Code envoyé par SMS." };
     } else {
         if (user.email) {

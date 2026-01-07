@@ -40,7 +40,7 @@ export const sendEmail = async (to: string, subject: string, html: string) => {
       },
       body: JSON.stringify({
         sender: {
-          email: "jb.awanyo@gmail.com", // must be verified in Brevo
+          email: "intercession.icctoulouse@gmail.com", // must be verified in Brevo
           name: "Prayer ICC",
         },
         to: [{ email: to }],
