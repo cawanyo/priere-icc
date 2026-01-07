@@ -4,6 +4,7 @@ import { sendSMS } from "@/lib/sms";
 import { addDays, startOfDay, endOfDay, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { normalizeDate } from "@/lib/utils";
+import { sendEmail } from "@/lib/mail";
 
 // Cette route doit être protégée pour ne pas être appelée par n'importe qui
 // Vercel ajoute un header d'authentification spécial pour les Crons
@@ -30,7 +31,7 @@ export async function GET(req: Request) {
       },
       include: {
         intercessors: {
-          select: { id: true, name: true, phone: true }
+          select: { id: true, name: true, phone: true, email: true}
         }
       }
     });
@@ -42,10 +43,11 @@ export async function GET(req: Request) {
       const timeStr = event.startTime;
       
       for (const user of event.intercessors) {
-        if (user.phone) {
+        if (user.email) {
           const message = `Rappel : Bonjour ${user.name}, vous êtes programmé demain à ${timeStr} pour "${event.title}". Merci de votre service !`;
           
-          await sendSMS(user.phone, message);
+          // await sendSMS(user.phone, message);
+          sendEmail(user.email, "Rappel d'Intercession pour Demain", message);
           smsCount++;
         }
       }
