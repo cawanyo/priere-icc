@@ -8,6 +8,7 @@ import { Role } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "./notifications";
 import { sendSMS } from "@/lib/sms";
+import { sendEmail } from "@/lib/mail";
 
 
 // Vérification de sécurité
@@ -63,8 +64,10 @@ export async function updateUserRole(userId: string, newRole: Role) {
         "/dashboard/user/profile"
       );
       // Optionnel : Notifier le refus
-      if(user.phone)
-        await sendSMS(user.phone, `Bonjour ${user.name}, Vous avez maintenant le profil ${newRole} sur la plateforme du MDPI.`);
+      // if(user.phone)
+      //   await sendSMS(user.phone, `Bonjour ${user.name}, Vous avez maintenant le profil ${newRole} sur la plateforme du MDPI.`);
+      if(user.email)
+        await sendEmail(user.email,' Mise à jour role sur la plateforme MIDP', `Bonjour ${user.name}, Vous avez maintenant le profil ${newRole} sur la plateforme du MDPI.`);
     }
 
     revalidatePath("/dashboard/admin/users");
