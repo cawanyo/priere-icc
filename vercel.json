@@ -2,10 +2,7 @@
     "crons": [
       {
         "path": "/api/cron/daily",
-        "schedule": "10 0 * * *",
-        "headers": {
-          "authorization": "Bearer super-secret-key"
-        }
+        "schedule": "10 0 * * *"
       }
     ]
   }
