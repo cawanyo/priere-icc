@@ -1,4 +1,7 @@
 import { getFamilyDetails } from "@/app/actions/prayer-house";
+import { getFamilyUnavailabilities } from "@/app/actions/prayer-house-planning";
+import { AvailabilityList } from "@/components/dashboard/availability/AvailabilityList";
+import { UnavailabilityCalendar } from "@/components/dashboard/leader/UnavailabilityCalendar";
 import { FamilyMemberManager } from "@/components/prayer-house/FamilyMemberManager";
 import { NightPlanningBoard } from "@/components/prayer-house/NightPlanningBoard";
 
@@ -11,6 +14,7 @@ export default async function FamilyDetailsPage({ params }: { params: Promise<{ 
   const { id } = await params;
   
   const { success, family, candidates } = await getFamilyDetails(id);
+  const res = await getFamilyUnavailabilities(id, new Date());
   if (!success || !family) {
     return notFound();
   }
@@ -52,6 +56,8 @@ export default async function FamilyDetailsPage({ params }: { params: Promise<{ 
                 members={family.members} 
                 candidates={candidates || []} 
             />
+
+            <AvailabilityList items={res.success ? res.data || [] : []} leaderMode />
         </div>
 
         {/* COLONNE DROITE : Calendrier (2/3 sur grand écran) */}
@@ -63,7 +69,7 @@ export default async function FamilyDetailsPage({ params }: { params: Promise<{ 
                 </div>
                 {/* Le calendrier s'adapte à la largeur du conteneur (2/3 de l'écran) */}
                 <div className="p-1">
-                    <NightPlanningBoard />
+                    <NightPlanningBoard unavailabilities={res.data}/>
                 </div>
              </div>
         </div>
