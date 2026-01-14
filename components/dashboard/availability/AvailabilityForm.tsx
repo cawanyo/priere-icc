@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Loader2, CalendarPlus } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { fr } from "date-fns/locale";
+import { format } from "date-fns";
 
 export function AvailabilityForm() {
   const [date, setDate] = useState<DateRange | undefined>();
@@ -23,11 +24,9 @@ export function AvailabilityForm() {
       toast.error("Veuillez sélectionner une date ou une période.");
       return;
     }
-
     setLoading(true);
-    const res = await addUnavailability({ dateRange: date, reason });
+    const res = await addUnavailability({ dateRange: {from: format(date.from, "yyyy-MM-dd"), to :date.to ? format(date.to, "yyyy-MM-dd") : undefined } , reason });
     setLoading(false);
-
     if (res.success) {
       toast.success(res.message);
       setReason("");

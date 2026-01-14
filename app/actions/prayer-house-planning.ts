@@ -259,3 +259,41 @@ export async function clearWeeklyAssignment(assignmentId: string) {
     return { success: false, error: "Impossible de supprimer l'assignation" };
   }
 }
+
+
+
+
+
+import { startOfMonth, endOfMonth } from "date-fns";
+
+export async function getFamilyUnavailabilities(familyId: string, date: Date) {
+  const monthStart = startOfMonth(date);
+  const monthEnd = endOfMonth(date);
+
+  try {
+    const unavailabilities = await prisma.unavailability.findMany({
+      where: {
+        user: {
+          prayerFamilyId: familyId
+        },
+        // LOGIQUE DE CHEVAUCHEMENT DE DATES
+        // On prend tout ce qui touche au mois en cours
+        AND: [
+          { startDate: { lte: monthEnd } }, // Commence avant la fin du mois
+          { endDate: { gte: monthStart } }  // Finit après le début du mois
+        ]
+      },
+      include: {
+        user: true // Pour afficher nom/photo
+      },
+      orderBy: {
+        startDate: 'asc'
+      }
+    });
+
+    return { success: true, data: unavailabilities };
+  } catch (error) {
+    console.error(error);
+    return { success: false, error: "Erreur chargement indisponibilités" };
+  }
+}

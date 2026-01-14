@@ -35,7 +35,6 @@ export function NotificationBell() {
   });
 
   const notifications = result?.notifications || [];
-  console.log(result)
   const unreadCount = result?.unreadCount || 0;
 
   const handleRead = async (id: string, link?: string) => {

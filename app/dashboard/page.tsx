@@ -90,7 +90,15 @@ export default async function DashboardPage() {
           bg: "bg-purple-50",
           requiredRoles: ["PRAYER_LEADER", "INTERCESSOR", "LEADER", "ADMIN"],
         },
-
+        {
+          title: "Disponibilités",
+          description: "Signaler mes absences.",
+          href: "/dashboard/user/intercessor/availability",
+          icon: Calendar1,
+          color: "text-violet-600",
+          bg: "bg-violet-50",
+          requiredRoles: ["INTERCESSOR", "LEADER", "ADMIN"],
+        },
         {
           title: "Maison de priere",
           description: "Planning de la maison de prière.",

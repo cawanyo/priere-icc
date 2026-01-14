@@ -7,7 +7,6 @@ import { CalendarClock } from "lucide-react";
 
 export default async function AvailabilityPage() {
   const { data: items } = await getUserUnavailabilities();
-
   return (
     <div className="flex-1 space-y-8 p-8 pt-6 bg-gray-50/30 min-h-screen">
       

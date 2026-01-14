@@ -342,3 +342,10 @@ model FamilyDayTheme {
 
   @@unique([assignmentId, date]) // Un seul thème par jour pour une assignation
 }
+
+model BlackList {
+  id       String   @id @default(cuid())
+  userId    String
+  hour      String   // Format "HH:mm"
+  createdAt DateTime @default(now())
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { format, startOfWeek, addWeeks, addDays, isSameDay } from "date-fns";
+import { format, startOfWeek, addWeeks, addDays, isSameDay, startOfDay, endOfDay, isWithinInterval } from "date-fns";
 import { fr, se } from "date-fns/locale";
 import { 
     ChevronLeft, 
@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { updateWeekTheme, updateDayTheme, clearWeeklyAssignment } from "@/app/actions/prayer-house-planning";
+import { updateWeekTheme, updateDayTheme, clearWeeklyAssignment, getFamilyUnavailabilities } from "@/app/actions/prayer-house-planning";
 
 
 import { 
@@ -39,11 +39,12 @@ import { SearchableUserSelect } from "../SearchUserSelect";
 import { ConfirmDelete } from "../DeleteConfirm";
 import { pusherClient } from "@/lib/pusher";
 import supabase from "@/lib/superbase";
+import { isBlackList, updateBlackList } from "@/app/actions/blacklist";
 
 // --- IMPORT DYNAMIQUE DU BOUTON PDF (Pour éviter l'erreur SSR) ---
 
 
-export function NightPlanningBoard() {
+export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]}) {
     const DownloadNightButton = dynamic(
         () => import("@/components/pdf/DownloadPlanningButton").then((mod) => mod.DownloadNightButton),
         { 
@@ -156,15 +157,52 @@ export function NightPlanningBoard() {
     }
   };
 
+  const [availableUserList, setAvailableUserListe] = useState<any[]>([]);
+
+  const onSelectSlot = async (day: Date, hour: string) => {
+    
+    let availableUsers =  assignment.family.members.filter((member: any) => isMemberAvailable(day, member));
+
+    availableUsers = await Promise.all(
+        availableUsers.map(async (user: any) => {
+            const blacklisted = await isBlackList(user.id, hour);
+            return blacklisted? null : user;
+        })
+    )
+    availableUsers = availableUsers.filter(Boolean);
+    setAvailableUserListe(availableUsers)
+  }
+ 
+  const isMemberAvailable = ( slotDate: Date, user: any) => {
+    if (!unavailabilities || unavailabilities.length === 0) return true;
+
+    // Vérifie si la date du slot tombe dans UNE des périodes d'indisponibilité
+    const isUnavailable = unavailabilities.some((u: any) => {
+        const start = startOfDay(new Date(u.startDate));
+        const end = endOfDay(new Date(u.endDate)); // Fin de journée incluse
+        const target = startOfDay(slotDate);
+
+        return isWithinInterval(target, { start, end }) && u.userId === user.id;
+    });
+
+    return !isUnavailable; // Si indisponible, return false (donc masqué)
+    };
+
+
   const handleAssignUser = async (userId: string | "REMOVE") => {
     if (!selectedSlot || !assignment) return;
-    await updateNightSlot({
+
+    const res = await updateNightSlot({
         assignmentId: assignment.id,
         date: selectedSlot.date.toDateString(),
         startTime: selectedSlot.hour,
         userId
     });
     setSelectedSlot(null);
+    if (res.success && userId !== "REMOVE" ) { 
+        const res = await updateBlackList( userId, selectedSlot.hour);
+      }
+
     loadData();
     toast.success(userId === "REMOVE" ? "Créneau libéré" : "Sentinelle assignée");
   };
@@ -443,7 +481,7 @@ export function NightPlanningBoard() {
                                         return (
                                             <td key={day.toISOString()} className="p-2 border-b border-r last:border-r-0 group-last:border-b-0">
                                                 <div 
-                                                    onClick={() => setSelectedSlot({ date: day, hour })}
+                                                    onClick={() => onSelectSlot(day, hour)}
                                                     className={`
                                                         h-20 rounded-xl flex items-center justify-center cursor-pointer transition-all border-2
                                                         ${isFilled 
@@ -509,7 +547,7 @@ export function NightPlanningBoard() {
                     <div>{selectedSlot?.date && getSchedule(selectedSlot?.date, selectedSlot?.hour)?.user?.name}</div>
                     <div className="pt-1">
                         <SearchableUserSelect 
-                            users={assignment?.family?.members || []}
+                            users={availableUserList || []}
                             onSelect={(userId) => handleAssignUser(userId)}
                             placeholder="Rechercher une sentinelle..."
                         />

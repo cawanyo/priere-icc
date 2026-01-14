@@ -5,11 +5,13 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { revalidatePath } from "next/cache";
 import * as z from "zod";
+import { endOfDay, isWithinInterval, startOfDay } from "date-fns";
+import { is } from "date-fns/locale";
 
 const unavailabilitySchema = z.object({
   dateRange: z.object({
-    from: z.date(),
-    to: z.date().optional(),
+    from: z.string(),
+    to: z.string().optional(),
   }),
   reason: z.string().optional(),
 });
@@ -21,7 +23,7 @@ export async function addUnavailability(data: any) {
 
   try {
     const { dateRange, reason } = unavailabilitySchema.parse(data);
-
+  
     const startDate = dateRange.from;
     const endDate = dateRange.to || dateRange.from;
 
@@ -44,7 +46,7 @@ export async function addUnavailability(data: any) {
     revalidatePath("/dashboard/user/intercessor/availability");
     return { success: true, message: "Indisponibilité ajoutée." };
   } catch (error) {
-    return { success: false, message: "Erreur lors de l'ajout." };
+    return { success: false, message: "Erreur lors de l'ajout.", error };
   }
 }
 
@@ -65,7 +67,7 @@ export async function getUserUnavailabilities() {
         // FILTRE AJOUTÉ : Uniquement celles qui commencent aujourd'hui ou plus tard
         // (Ou celles qui finissent après aujourd'hui si vous voulez inclure les cours)
         // Ici je suis votre demande "start from current date"
-        startDate: {
+        endDate: {
             gte: today 
         }
       },
@@ -91,3 +93,22 @@ export async function deleteUnavailability(id: string) {
     return { success: false, message: "Erreur suppression." };
   }
 }
+
+
+const isMemberAvailable = async (member: any, slotDate: Date) => {
+  if (!member.unavailabilities || member.unavailabilities.length === 0) return true;
+
+  // Vérifie si la date du slot tombe dans UNE des périodes d'indisponibilité
+      const isUnavailable = member.unavailabilities.some((u: any) => {
+      const start = startOfDay(new Date(u.startDate));
+      const end = endOfDay(new Date(u.endDate)); // Fin de journée incluse
+      const target = startOfDay(slotDate);
+
+      return isWithinInterval(target, { start, end });
+  });
+
+  return !isUnavailable; // Si indisponible, return false (donc masqué)
+};
+
+
+export { isMemberAvailable };
