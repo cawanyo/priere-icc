@@ -156,6 +156,7 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
         loadData();
     }
   };
+  console.log("sd")
 
   const [availableUserList, setAvailableUserListe] = useState<any[]>([]);
 
@@ -171,6 +172,7 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
     )
     availableUsers = availableUsers.filter(Boolean);
     setAvailableUserListe(availableUsers)
+    setSelectedSlot({ date: day, hour });
   }
  
   const isMemberAvailable = ( slotDate: Date, user: any) => {

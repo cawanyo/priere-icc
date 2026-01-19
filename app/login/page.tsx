@@ -49,12 +49,14 @@ export default function LoginPage() {
 
       if (result?.error) {
         toast.error("Identifiant ou mot de passe incorrect.");
+        console.log(result.error);
       } else if (result?.ok) {
         toast.success("Connexion réussie !");
         router.push("/dashboard");
       }
     } catch (error) {
       toast.error("Une erreur est survenue lors de la connexion.");
+      
     }
   };
 
