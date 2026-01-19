@@ -37,9 +37,8 @@ import { ThemeEditor } from "./ThemeEditor";
 import { convertKeepDate } from "@/lib/utils";
 import { SearchableUserSelect } from "../SearchUserSelect";
 import { ConfirmDelete } from "../DeleteConfirm";
-import { pusherClient } from "@/lib/pusher";
 import supabase from "@/lib/superbase";
-import { isBlackList, updateBlackList } from "@/app/actions/blacklist";
+import {  getBlackList, updateBlackList } from "@/app/actions/blacklist";
 
 // --- IMPORT DYNAMIQUE DU BOUTON PDF (Pour éviter l'erreur SSR) ---
 
@@ -70,15 +69,21 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
     setLoading(true);
     const planRes = await getNightPlanning(currentDate);
     if (planRes.success) setAssignment(planRes.assignment);
-
-    const famRes = await getPrayerFamilies();
-    if (famRes.success) setAllFamilies(famRes.data || []);
     setLoading(false);
   };
 
   useEffect(() => {
     loadData();
   }, [currentDate]);
+
+  useEffect(() => {
+    getPrayerFamilies().then(res => {
+      if (res.success) setAllFamilies(res.data || []);
+    });
+  }, []);
+
+  
+
 
   useEffect(() => {
     const channel = supabase.channel('prayer-room-updates');
@@ -156,21 +161,17 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
         loadData();
     }
   };
-  console.log("sd")
 
   const [availableUserList, setAvailableUserListe] = useState<any[]>([]);
 
   const onSelectSlot = async (day: Date, hour: string) => {
     
     let availableUsers =  assignment.family.members.filter((member: any) => isMemberAvailable(day, member));
+    const blackList_ = await getBlackList( hour);
 
-    availableUsers = await Promise.all(
-        availableUsers.map(async (user: any) => {
-            const blacklisted = await isBlackList(user.id, hour);
-            return blacklisted? null : user;
-        })
-    )
-    availableUsers = availableUsers.filter(Boolean);
+    availableUsers =  availableUsers.filter((user: any) => {
+        return !blackList_?.some((b: any) => b.userId === user.id );
+    })
     setAvailableUserListe(availableUsers)
     setSelectedSlot({ date: day, hour });
   }
