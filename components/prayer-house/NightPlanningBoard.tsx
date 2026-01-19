@@ -165,13 +165,9 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
   const [availableUserList, setAvailableUserListe] = useState<any[]>([]);
 
   const onSelectSlot = async (day: Date, hour: string) => {
+    const blackList_ = (await getBlackList( hour)).map((item: any) => item.userId);
     
-    let availableUsers =  assignment.family.members.filter((member: any) => isMemberAvailable(day, member));
-    const blackList_ = await getBlackList( hour);
-
-    availableUsers =  availableUsers.filter((user: any) => {
-        return !blackList_?.some((b: any) => b.userId === user.id );
-    })
+    let availableUsers =  assignment.family.members.filter((member: any) => isMemberAvailable(day, member) && !blackList_.includes( member.id) );
     setAvailableUserListe(availableUsers)
     setSelectedSlot({ date: day, hour });
   }
