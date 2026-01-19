@@ -142,6 +142,7 @@ async function main() {
       where: { weekStart },
       include: {
         schedules: {
+            where: {date: {gte: startOfDay(tomorrow), lt: startOfDay(afterTomorrow)}},
             include: { user: true,} // On a besoin de voir qui est sur quel créneau
         },
         dayThemes: true
@@ -155,14 +156,15 @@ async function main() {
 
       // Préparer le message
       let message = `Bonjour ${user?.name},\n\n`;
-      message += `🙏 Vous êtes de service pour la Maison de Prière cette semaine !:\n\n`;
-      message += `Jour : ${format(schedule?.date, 'EEEE dd MMMM yyyy', { locale: fr })}\n`;
-      message += `Créneau: ${schedule.startTime} - ${schedule.endTime}\n`;
+      message += `Tu es de service cette nuit a la Maison de Prière 🙂!\n\n`;
+      // message += `Jour : ${format(schedule?.date, 'EEEE dd MMMM yyyy', { locale: fr })}\n`;
+      // message += `Créneau: ${schedule.startTime} - ${schedule.endTime}\n`;
+      message += `Le planing et les thèmes sont disponibles sur la plateforme. https://priere-icc.vercel.app/`;
 
 
-      user && user.phone && await sendSMS({to: user.phone, message});
+      // user && user.phone && await sendSMS({to: user.phone, message});
       smsCount++;
-      console.log(message)
+      console.log(user)
     }
   
 

@@ -399,7 +399,7 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
                                     return (
                                         <div 
                                             key={hour}
-                                            onClick={() => setSelectedSlot({ date: day, hour })}
+                                            onClick={() => onSelectSlot(day, hour)}
                                             className={`
                                                 relative p-3 rounded-lg border cursor-pointer transition-all flex flex-col items-center justify-center min-h-[80px]
                                                 ${isFilled 

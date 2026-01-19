@@ -43,7 +43,6 @@ export function SearchableUserSelect({
 
   // On trouve l'utilisateur sélectionné pour l'affichage du bouton
   const selectedUser = users.find((u) => u.id === selectedUserId);
-
   // Fonction simplifiée qui prend directement l'ID
   const handleSelectUser = (userId: string) => {
     setSelectedUserId(userId);
