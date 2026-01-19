@@ -7,6 +7,9 @@ export async function getBlackList( hour: String) {
         const list = await prisma.blackList.findMany({
             where: {
                 hour: hour.toString(),
+            },
+            select: {
+              userId: true,
             }
         });
       if (list.length > 0) {
