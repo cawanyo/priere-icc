@@ -2,20 +2,20 @@
 import { prisma } from "@/lib/prisma";
 
 
-export async function isBlackList(userId: String, hour: String) {
+export async function getBlackList( hour: String) {
     try {
         const list = await prisma.blackList.findMany({
             where: {
-                userId: userId.toString(),
                 hour: hour.toString(),
             }
         });
       if (list.length > 0) {
-        return  true
+        return  list;
       }
+      return []
     } catch (error) {
       
-      return false
+      return []
     }
 }
 
