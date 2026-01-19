@@ -35,6 +35,8 @@ export async function checkAdmin() {
   return user;
 }
 
+
+
 export async function deleteUser(userId: string) {
   await checkAdmin();
   try {

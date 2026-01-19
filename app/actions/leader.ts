@@ -86,6 +86,20 @@ export async function getGlobalPrayers(filters: PrayerFilters = {}) {
   }
 }
 
+export async function getLeaders() {
+  try {
+    await checkLeaderAccess();
+
+    const leaders = await prisma.user.findMany({
+      where: { role: "LEADER" },
+      select: { id: true, name: true, email: true, image: true }
+    });
+
+    return { success: true, data: leaders };
+  } catch (error) {
+    return { success: false, error: "Erreur lors du chargement des leaders." };
+  }
+}
 export async function updateGlobalPrayerStatus(prayerId: string, newStatus: string) {
   try {
     await checkLeaderAccess();

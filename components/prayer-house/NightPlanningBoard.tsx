@@ -39,6 +39,7 @@ import { SearchableUserSelect } from "../SearchUserSelect";
 import { ConfirmDelete } from "../DeleteConfirm";
 import supabase from "@/lib/superbase";
 import {  getBlackList, updateBlackList } from "@/app/actions/blacklist";
+import { getLeaders } from "@/app/actions/leader";
 
 // --- IMPORT DYNAMIQUE DU BOUTON PDF (Pour éviter l'erreur SSR) ---
 
@@ -63,7 +64,7 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
   const [selectedSlot, setSelectedSlot] = useState<{date: Date, hour: string} | null>(null);
   const [isAddHourOpen, setIsAddHourOpen] = useState(false);
   const [newHour, setNewHour] = useState("04:00");
-
+  const [leader, setLeader] = useState<any[]>([]);
   // --- CHARGEMENT ---
   const loadData = async () => {
     setLoading(true);
@@ -80,6 +81,13 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
     getPrayerFamilies().then(res => {
       if (res.success) setAllFamilies(res.data || []);
     });
+
+    const get = async () => {
+        const leader = (await getLeaders()).data ?? [];
+        setLeader(leader)
+    }
+    get();
+
   }, []);
 
   
@@ -166,8 +174,10 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
 
   const onSelectSlot = async (day: Date, hour: string) => {
     const blackList_ = (await getBlackList( hour)).map((item: any) => item.userId);
-    
+
     let availableUsers =  assignment.family.members.filter((member: any) => isMemberAvailable(day, member) && !blackList_.includes( member.id) );
+    availableUsers = availableUsers.concat(leader)
+    console.log(leader)
     setAvailableUserListe(availableUsers)
     setSelectedSlot({ date: day, hour });
   }
@@ -537,7 +547,7 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
                     </DialogTitle>
                 </DialogHeader>
                 
-                <div className="space-y-4 py-4">
+                <div className="space-y-4 py-4 w-full">
                     <p className="text-sm text-gray-500">
                         Membre de garde (<strong>{assignment?.family?.name}</strong>) :
                     </p>
