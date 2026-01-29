@@ -164,6 +164,7 @@ async function main() {
 
       user && user.phone && await sendSMS({to: user.phone, message});
       smsCount++;
+      console.log(user)
     }
   
 

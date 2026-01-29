@@ -33,7 +33,7 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
   const nextWeek = () => setCurrentDate(addWeeks(currentDate, 1));
   const prevWeek = () => setCurrentDate(addWeeks(currentDate, -1));
 
-  const canChangePosition = new Date() < addDays(event.startDate, 0)
+  const canChangePosition = new Date() < addDays(event.startDate, 0);
   const handleSlotClick = (slot: any) => {
     setSelectedSlot(slot);
     setIsModalOpen(true);
@@ -129,11 +129,11 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
 
                     {dayEvents.map(evt => {
                         const isAssigned = evt.intercessors?.some((u: any) => u.id === currentUserId);
-
+                        const assignedToSomeone = evt.intercessors && evt.intercessors.length > 0;
                         return (
                             <Card 
                                 key={evt.id}
-                                onClick={() => canChangePosition && handleSlotClick(evt)} // Clic activé !
+                                onClick={() => canChangePosition && !assignedToSomeone && handleSlotClick(evt)} // Clic activé !
                                 className={`p-3 text-left space-y-1 border-l-4 shadow-sm cursor-pointer hover:shadow-md transition-all group
                                     ${isAssigned 
                                         ? 'border-l-pink-500 bg-pink-50/40 border-pink-100 ring-1 ring-pink-100'  
