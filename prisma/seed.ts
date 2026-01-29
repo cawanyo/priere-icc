@@ -156,13 +156,13 @@ async function main() {
 
       // Préparer le message
       let message = `Bonjour ${user?.name},\n\n`;
-      message += `Tu es de service cette nuit a la Maison de Prière 🙂!\n\n`;
+      message += `Tu es de service cette nuit à la Maison de Prière 🙂!\n\n`;
       // message += `Jour : ${format(schedule?.date, 'EEEE dd MMMM yyyy', { locale: fr })}\n`;
       // message += `Créneau: ${schedule.startTime} - ${schedule.endTime}\n`;
       message += `Le planing et les thèmes sont disponibles sur la plateforme. https://priere-icc.vercel.app/`;
 
 
-      // user && user.phone && await sendSMS({to: user.phone, message});
+      user && user.phone && await sendSMS({to: user.phone, message});
       smsCount++;
       console.log(user)
     }
