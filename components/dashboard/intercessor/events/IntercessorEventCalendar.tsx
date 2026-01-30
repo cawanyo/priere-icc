@@ -129,7 +129,7 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
 
                     {dayEvents.map(evt => {
                         const isAssigned = evt.intercessors?.some((u: any) => u.id === currentUserId);
-                        const assignedToSomeone = evt.intercessors && evt.intercessors.length > 0;
+                        const assignedToSomeone = evt.intercessors && evt.intercessors.length > 1;
                         return (
                             <Card 
                                 key={evt.id}
