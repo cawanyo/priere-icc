@@ -162,7 +162,7 @@ async function main() {
       message += `Le planing et les thèmes sont disponibles sur la plateforme. https://priere-icc.vercel.app/`;
 
 
-      user && user.phone && await sendSMS({to: user.phone, message});
+      // user && user.phone && await sendSMS({to: user.phone, message});
       smsCount++;
       console.log(user)
     }
