@@ -40,6 +40,8 @@ import { ConfirmDelete } from "../DeleteConfirm";
 import supabase from "@/lib/superbase";
 import {  getBlackList, updateBlackList } from "@/app/actions/blacklist";
 import { getLeaders } from "@/app/actions/leader";
+import { AutoFillButton } from "../dashboard/leader/AutofillButton";
+import { ClearPlanningButton } from "../dashboard/leader/ClearAssignment";
 
 // --- IMPORT DYNAMIQUE DU BOUTON PDF (Pour éviter l'erreur SSR) ---
 
@@ -90,7 +92,6 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
 
   }, []);
 
-  
 
 
   useEffect(() => {
@@ -120,6 +121,7 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
 
     setLoading(true);
     const res = await clearWeeklyAssignment(assignment.id);
+    
     
     if (res.success) {
         setAssignment(null); // On vide l'état local immédiatement
@@ -367,6 +369,18 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
                             familyName={assignment.family.name}
                             schedules={assignment.schedules}
                         />
+
+
+                        {assignment && (
+                            <>
+                                <ClearPlanningButton assignmentId={assignment.id} finallyFunction={loadData} />
+                                <AutoFillButton 
+                                    assignmentId={assignment.id} 
+                                    finallyFunction={loadData}
+                                    date={currentDate} 
+                                />
+                            </>
+                        )}
                     </div>
                 </div>
             )}
