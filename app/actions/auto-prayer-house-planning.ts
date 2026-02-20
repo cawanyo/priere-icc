@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { sendSMS } from "@/lib/sms";
 import { startOfWeek, endOfWeek, eachDayOfInterval, format, isWithinInterval, startOfDay, endOfDay, addDays } from "date-fns";
 import { revalidatePath } from "next/cache";
 import { en } from "zod/v4/locales";
@@ -30,7 +31,7 @@ export async function autoFillPlanning(assignmentId: string, date: Date) {
                 // Indisponibilités de la semaine
                 unavailabilities: {
                   where: { startDate: { lte: weekEnd }, endDate: { gte: weekStart } }
-                }
+                },
               }
             }
           }
@@ -54,6 +55,7 @@ export async function autoFillPlanning(assignmentId: string, date: Date) {
       return {
         id: m.id,
         name: m.name,
+        phone: m.phone,
         unavailabilities: m.unavailabilities,
         forbiddenHours: Array.from(cycle), // Les heures interdites au début de la semaine
         shiftsThisWeek: 0 // Compteur pour équilibrer la charge
@@ -104,6 +106,13 @@ export async function autoFillPlanning(assignmentId: string, date: Date) {
           userId: winner.id,
           assignmentId: assignment.id
         });
+
+        if (winner && winner.phone) {
+          await sendSMS({
+           to: winner.phone, 
+           message: `Bonjour ${winner.name?.split(" ")[0]}, LE MDPI vous informe que vous êtes de service pour la maison de prière le  ${ format(new Date(day.toString()),  "dd:MM:yyyy")},  à ${hour}.`
+        });
+        }
 
         // E. MISE A JOUR DYNAMIQUE DE L'ÉTAT DU VAINQUEUR
         // C'est crucial : on met à jour ses "forbiddenHours" pour les jours suivants de la semaine !
