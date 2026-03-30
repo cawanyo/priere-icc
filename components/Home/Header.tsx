@@ -101,6 +101,7 @@ export function Header() {
 
             {/* --- MENU MOBILE & UTILISATEUR --- */}
             <div className="flex items-center gap-2">
+                
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         {session?.user ? (

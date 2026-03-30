@@ -212,3 +212,10 @@
 .safe-padding-bottom {
   padding-bottom: env(safe-area-inset-bottom, 20px) !important;
 }
+
+/* Padding bas pour les pages sous /dashboard sur mobile (bottom nav = 4rem / 64px) */
+@media (max-width: 767px) {
+  .dashboard-mobile-scroll {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
+}

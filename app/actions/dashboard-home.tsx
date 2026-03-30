@@ -64,6 +64,8 @@ export async function getUserDashboard() {
   if (!user) return null;
 
   const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
   // 1. Prochains services (Planning Jour + Nuit mélangés)
   // A. Planning Jour
@@ -74,7 +76,7 @@ export async function getUserDashboard() {
     },
     orderBy: { date: 'asc' },
     take: 3,
-    include: { template: true } // Pour avoir les horaires si pas dans le planning direct
+    include: { template: true }
   });
 
   // B. Planning Nuit
@@ -88,9 +90,59 @@ export async function getUserDashboard() {
     include: { assignment: { include: { family: true } } }
   });
 
+  // C. Nombre de services ce mois
+  const dayServicesThisMonth = await prisma.planning.count({
+    where: {
+      intercessors: { some: { id: user.id } },
+      date: { gte: startOfMonth, lte: endOfMonth }
+    }
+  });
+
+  const nightServicesThisMonth = await prisma.familySchedule.count({
+    where: {
+      userId: user.id,
+      date: { gte: startOfMonth, lte: endOfMonth }
+    }
+  });
+
+  const servicesThisMonth = dayServicesThisMonth + nightServicesThisMonth;
+
+  // D. Prochains événements (les 2 prochains)
+  const upcomingEvents = await prisma.specialEvent.findMany({
+    where: { startDate: { gte: startOfDay(now) } },
+    orderBy: { startDate: 'asc' },
+    take: 2
+  });
+
+  // E. Témoignages récents approuvés (les 3 derniers)
+  const recentTestimonies = await prisma.testimony.findMany({
+    where: { status: "APPROVED" },
+    orderBy: { createdAt: 'desc' },
+    take: 3,
+    include: { user: { select: { name: true, image: true } }, images: true }
+  });
+
+  // F. Maison de garde cette semaine
+  const weekStart = startOfWeek(normalizeDate(now), { weekStartsOn: 1 });
+  const currentNightWatch = await prisma.familyWeeklyAssignment.findUnique({
+    where: { weekStart },
+    include: {
+      family: true,
+      schedules: {
+        where: { date: startOfDay(now) },
+        include: { user: true },
+        orderBy: { startTime: 'asc' }
+      }
+    }
+  });
+
   return {
     user,
     daySchedules,
-    nightSchedules
+    nightSchedules,
+    servicesThisMonth,
+    upcomingEvents,
+    recentTestimonies,
+    currentNightWatch
   };
 }

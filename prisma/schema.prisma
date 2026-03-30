@@ -47,11 +47,112 @@ model User {
   notifications Notification[]
   passwordResetTokens PasswordResetToken[]
 
-
   prayerFamilyId String?
   prayerFamily   PrayerFamily? @relation(fields: [prayerFamilyId], references: [id])
   familySchedules FamilySchedule[]
- 
+
+  checkIns      CheckIn[]
+
+  // RDV
+  leaderSlots   AppointmentSlot[]   @relation("LeaderSlots")
+  appointments  Appointment[]       @relation("UserAppointments")
+  ledAppointments Appointment[]     @relation("LeaderAppointments")
+}
+
+
+// ── RDV MODULE ─────────────────────────────────────────────────
+
+// Un créneau de disponibilité créé par un leader (30 min)
+model AppointmentSlot {
+  id         String   @id @default(cuid())
+
+  leaderId   String
+  leader     User     @relation("LeaderSlots", fields: [leaderId], references: [id], onDelete: Cascade)
+
+  startTime  DateTime // date + heure précise
+  endTime    DateTime // startTime + 30 min
+
+  isBooked   Boolean  @default(false)
+
+  appointment Appointment?
+
+  createdAt  DateTime @default(now())
+}
+
+// Un rendez-vous entre un leader et un utilisateur
+model Appointment {
+  id       String   @id @default(cuid())
+
+  slotId   String   @unique
+  slot     AppointmentSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+
+  leaderId String
+  leader   User   @relation("LeaderAppointments", fields: [leaderId], references: [id], onDelete: Cascade)
+
+  userId   String
+  user     User   @relation("UserAppointments", fields: [userId], references: [id], onDelete: Cascade)
+
+  status   String  @default("CONFIRMED") // CONFIRMED | CANCELLED
+  cancelReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+// ── CHECK-IN MODULE ────────────────────────────────────────────
+
+model CheckIn {
+  id        String   @id @default(cuid())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Mois de référence (ex: 2026-03-01 00:00 = mars 2026)
+  periodMonth DateTime
+
+  // Bloc 1 — État global (0–10)
+  scoreEnergy      Int  // Énergie / fatigue
+  scorePeace       Int  // Paix intérieure
+  scoreJoy         Int  // Joie
+  scoreClarity     Int  // Clarté spirituelle
+  scoreServiceLoad Int  // Charge de service
+
+  // Bloc 2 — Signaux d'alerte (tableau de strings)
+  alerts    String[]  // ex: ["anxiety", "loneliness", "conflict"]
+
+  alertOther String?  // texte libre "Autre"
+
+  // Bloc 3 — Service
+  hadDifficultMoment  Boolean @default(false)
+  difficultMomentText String?
+  scoreOvergiving     Int     // Trop donné (0–10)
+  scoreSupportFelt    Int     // Se sent soutenu (0–10)
+  needsScheduleAdjust Boolean @default(false)
+
+  // Bloc 4 — Besoin d'accompagnement (tableau de strings)
+  supportNeeds String[] // ex: ["prayer", "interview", "followup", "share"]
+
+  // Consentement et confidentialité
+  consentGiven    Boolean @default(false)
+  visibility      String  @default("TEAM") // "PASTOR_ONLY" | "TEAM"
+
+  // Score calculé (0–100) + statut
+  healthScore  Int    @default(0)  // calculé à la sauvegarde
+  healthStatus String @default("GREEN") // "GREEN" | "ORANGE" | "RED"
+
+  // Commentaire libre
+  comment       String?
+
+  // Suivi côté Leader
+  isContacted   Boolean  @default(false)
+  leaderNote    String?
+  contactedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, periodMonth])
 }
 
 
