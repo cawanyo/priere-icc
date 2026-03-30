@@ -85,8 +85,26 @@ export function Header() {
           )}
         </nav>
 
-        <div className="flex items-center gap-4">
-            {/* BOUTONS NON CONNECTÉ */}
+        <div className="flex items-center gap-2 md:gap-4">
+            {/* BOUTONS LOGIN MOBILE — non connecté seulement */}
+            {!session?.user && (
+                <div className="flex md:hidden items-center gap-2">
+                    <Link
+                        href="/login"
+                        className="text-sm font-semibold text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-full hover:bg-indigo-50 transition-colors"
+                    >
+                        Connexion
+                    </Link>
+                    <Link
+                        href="/signup"
+                        className="text-sm font-semibold text-white bg-pink-600 px-3 py-1.5 rounded-full hover:bg-pink-700 transition-colors"
+                    >
+                        Rejoindre
+                    </Link>
+                </div>
+            )}
+
+            {/* BOUTONS NON CONNECTÉ DESKTOP */}
             {!session?.user && (
                 <div className="hidden md:flex gap-2">
                     <Button variant="ghost" className="text-gray-600 hover:text-pink-600" asChild>
@@ -97,7 +115,6 @@ export function Header() {
                     </Button>
                 </div>
             )}
-            
 
             {/* --- MENU MOBILE & UTILISATEUR --- */}
             <div className="flex items-center gap-2">

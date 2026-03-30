@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { DesktopSidebar } from "@/components/layout/DesktopSidebar";
+import { ResponsiveRedirector } from "@/components/layout/ResponsiveRedirector";
 
 export default async function DashboardLayout({
   children,
@@ -20,6 +21,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-[#f4f6fb]">
+      <ResponsiveRedirector />
       <DesktopSidebar
         userRole={user.role}
         userName={user.name ?? "Membre"}
