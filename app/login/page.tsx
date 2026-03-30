@@ -18,15 +18,18 @@ import Link from "next/link";
 export default function LoginPage() {
   const { status } = useSession();
   const router = useRouter();
-  useEffect(() => {
-    if (status === "authenticated") {
-      router.push("/dashboard");
-    }
-  }, [status, router]);
-
-
   const searchParams = useSearchParams();
   const errorUrl = searchParams.get("error");
+
+  const rawCallback = searchParams.get("callbackUrl");
+  const callbackUrl =
+    rawCallback && rawCallback !== "/" ? rawCallback : "/dashboard";
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push(callbackUrl);
+    }
+  }, [status, router, callbackUrl]);
   
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
@@ -52,7 +55,7 @@ export default function LoginPage() {
         console.log(result.error);
       } else if (result?.ok) {
         toast.success("Connexion réussie !");
-        router.push("/dashboard");
+        router.push(callbackUrl);
       }
     } catch (error) {
       toast.error("Une erreur est survenue lors de la connexion.");
