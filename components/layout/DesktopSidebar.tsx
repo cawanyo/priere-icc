@@ -46,6 +46,8 @@ const LEADER_ITEMS = [
   { href: "/dashboard/desktop/leader/rdv", label: "Mes Rendez-vous", icon: CalendarCheck },
   { href: "/dashboard/leader/prayer", label: "Mur de Prières", icon: LayoutDashboard },
   { href: "/dashboard/leader/planning", label: "Planification", icon: CalendarRange },
+  { href: "/dashboard/leader/events", label: "Gestion d'événements", icon: CalendarRange },
+  { href: "/dashboard/leader/prayer-house", label: "Maison de Prière", icon: Church },
   { href: "/dashboard/leader/team", label: "Équipe", icon: User },
 ];
 

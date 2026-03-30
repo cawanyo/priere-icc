@@ -130,42 +130,7 @@ import { sendEmail } from "@/lib/mail";
 // Vercel ajoute un header d'authentification spécial pour les Crons
 async function main() {
   try {
-    // 1. Définir la plage de "Demain"
-    const today = normalizeDate(new Date());
-    const tomorrow = addDays(today, 1);
-    const afterTomorrow = addDays(tomorrow, 1);
-
-    const weekStart = startOfWeek(tomorrow, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(new Date(tomorrow), { weekStartsOn: 1 });
-    // On cherche si une famille est assignée cette semaine
-    const assignment = await prisma.familyWeeklyAssignment.findUnique({
-      where: { weekStart },
-      include: {
-        schedules: {
-            where: {date: {gte: startOfDay(tomorrow), lt: startOfDay(afterTomorrow)}},
-            include: { user: true,} // On a besoin de voir qui est sur quel créneau
-        },
-        dayThemes: true
-      }
-    });
-    let smsCount = 0;
-
-    // 3. Boucler et envoyer
-    for (const schedule of assignment?.schedules || []) {
-      const user = schedule.user;
-
-      // Préparer le message
-      let message = `Bonjour ${user?.name},\n\n`;
-      message += `Tu es de service cette nuit à la Maison de Prière 🙂!\n\n`;
-      // message += `Jour : ${format(schedule?.date, 'EEEE dd MMMM yyyy', { locale: fr })}\n`;
-      // message += `Créneau: ${schedule.startTime} - ${schedule.endTime}\n`;
-      message += `Le planning et les thèmes sont disponibles sur la plateforme. https://priere-icc.vercel.app/`;
-
-
-      user && user.phone && await sendSMS({to: user.phone, message});
-      smsCount++;
-      console.log(message)
-    }
+   const test  = await prisma.checkIn.deleteMany({})
   
 
   } catch (error) {

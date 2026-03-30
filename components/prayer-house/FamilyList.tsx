@@ -87,12 +87,12 @@ export function FamilyList({ initialFamilies }: { initialFamilies: any[] }) {
                     <CardContent>
                         <div className="flex items-center space-x-2  text-gray-500 mb-4">
                             <Users className="h-4 w-4" />
-                            <span>{family._count.members} membres</span>
+                            <span>{family._count.users} membres</span>
                         </div>
                         
                         {/* Aperçu des membres */}
                         <div className="flex -space-x-2 overflow-hidden h-8 mb-2">
-                            {family.members.slice(0, 5).map((m: any, i: number) => (
+                            {(family.users || []).slice(0, 5).map((m: any, i: number) => (
                                 <Avatar key={i} className="inline-block h-8 w-8 rounded-full ring-2 ring-white">
                                     <AvatarImage src={m.image} />
                                     <AvatarFallback>{m.name?.slice(0,1)}</AvatarFallback>
