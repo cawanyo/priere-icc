@@ -31,7 +31,7 @@ export async function getLeaderStats() {
   const nightWatch = await prisma.familyWeeklyAssignment.findUnique({
     where: { weekStart },
     include: {
-        family: true,
+        prayerFamily: true,
         schedules: {
             where: { date: tomorrowKey }, // Les créneaux de cette date précise
             include: { user: true },
@@ -71,12 +71,12 @@ export async function getUserDashboard() {
   // A. Planning Jour
   const daySchedules = await prisma.planning.findMany({
     where: { 
-        intercessors: { some: { id: user.id } },
+        users: { some: { id: user.id } },
         date: { gte: startOfDay(now) }
     },
     orderBy: { date: 'asc' },
     take: 3,
-    include: { template: true }
+    include: { eventTemplate: true }
   });
 
   // B. Planning Nuit
@@ -87,13 +87,13 @@ export async function getUserDashboard() {
     },
     orderBy: { date: 'asc' },
     take: 3,
-    include: { assignment: { include: { family: true } } }
+    include: { assignment: { include: { prayerFamily: true } } }
   });
 
   // C. Nombre de services ce mois
   const dayServicesThisMonth = await prisma.planning.count({
     where: {
-      intercessors: { some: { id: user.id } },
+      users: { some: { id: user.id } },
       date: { gte: startOfMonth, lte: endOfMonth }
     }
   });
@@ -127,7 +127,7 @@ export async function getUserDashboard() {
   const currentNightWatch = await prisma.familyWeeklyAssignment.findUnique({
     where: { weekStart },
     include: {
-      family: true,
+      prayerFamily: true,
       schedules: {
         where: { date: startOfDay(now) },
         include: { user: true },

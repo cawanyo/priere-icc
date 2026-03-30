@@ -221,8 +221,8 @@ export function PlanningPdfDocument({ title, subtitle, events, startDate, endDat
 
                   {/* Colonne Intercesseurs */}
                   <View style={styles.peopleCol}>
-                    {evt.intercessors && evt.intercessors.length > 0 ? (
-                      evt.intercessors.map((u: any, i: number) => (
+                    {evt.users && evt.users.length > 0 ? (
+                      evt.users.map((u: any, i: number) => (
                         <View key={i} style={styles.personBadge}>
                           <Text style={styles.personText}>{u.name}</Text>
                         </View>

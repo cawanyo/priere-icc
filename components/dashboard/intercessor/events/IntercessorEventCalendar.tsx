@@ -101,7 +101,7 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
             const dayEvents = event.plannings.filter(e => {
                 const isDayMatch = isSameDay(convertKeepDate(e.date), day);
                 if (!showMyPlanningOnly) return isDayMatch;
-                const isAssigned = e.intercessors?.some((u: any) => u.id === currentUserId);
+                const isAssigned = e.users?.some((u: any) => u.id === currentUserId);
                 return isDayMatch && isAssigned;
             });
 
@@ -128,8 +128,8 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
                     </div>
 
                     {dayEvents.map(evt => {
-                        const isAssigned = evt.intercessors?.some((u: any) => u.id === currentUserId);
-                        const assignedToSomeone = evt.intercessors && evt.intercessors.length > 1;
+                        const isAssigned = evt.users?.some((u: any) => u.id === currentUserId);
+                        const assignedToSomeone = evt.users && evt.users.length > 1;
                         return (
                             <Card 
                                 key={evt.id}
@@ -155,9 +155,9 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
                                     {evt.startTime} - {evt.endTime}
                                 </p>
 
-                                {evt.intercessors && evt.intercessors.length > 0 ? (
+                                {evt.users && evt.users.length > 0 ? (
                                     <div className="flex -space-x-2 overflow-hidden pt-2">
-                                        {evt.intercessors.map((u: any) => (
+                                        {evt.users.map((u: any) => (
                                            <div key={u.id} className="flex items-center gap-1">
                                                 <Avatar key={u.id} className="inline-block h-4 w-4 rounded-full ring-2 ring-white">
                                                     <AvatarImage src={u.image} />
@@ -191,7 +191,7 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         event={selectedSlot}
-        isAssigned={selectedSlot?.intercessors?.some((u: any) => u.id === currentUserId) || false}
+        isAssigned={selectedSlot?.users?.some((u: any) => u.id === currentUserId) || false}
       />
     </div>
   );

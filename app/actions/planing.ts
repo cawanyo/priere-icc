@@ -36,7 +36,7 @@ export async function getPlanningEvents(startDate: String, endDate: String) {
       specialEventId: null
     },
     include: {
-      intercessors: true 
+      users: true 
     }
     
   });
@@ -88,10 +88,10 @@ export async function savePlanningEvent(data: any) {
     // 1. Récupérer l'état actuel pour comparer
     const currentEvent = await prisma.planning.findUnique({
       where: { id },
-      include: { intercessors: true }
+      include: { users: true }
     });
 
-    const currentIds = currentEvent?.intercessors.map(u => u.id) || [];
+    const currentIds = currentEvent?.users.map(u => u.id) || [];
     // Trouver les IDs qui sont dans la nouvelle liste MAIS PAS dans l'ancienne
     const newIds = intercessorIds.filter((uid: string) => !currentIds.includes(uid));
 
@@ -101,7 +101,7 @@ export async function savePlanningEvent(data: any) {
         title, description,
         startTime: startTime,
         endTime: endTime,
-        intercessors: { set: connectIntercessors }
+        users: { set: connectIntercessors }
       }
     });
 
@@ -144,7 +144,7 @@ export async function savePlanningEvent(data: any) {
         endTime: endTime,
         recurringId: recurringId || null,
         specialEventId: specialEventId || null,
-        intercessors: { connect: connectIntercessors },
+        users: { connect: connectIntercessors },
         date: new Date(date)
       }
     });

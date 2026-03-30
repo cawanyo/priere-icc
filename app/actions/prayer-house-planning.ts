@@ -18,8 +18,8 @@ export async function getNightPlanning(date: Date) {
     const assignment = await prisma.familyWeeklyAssignment.findUnique({
       where: { weekStart },
       include: {
-        family: {
-            include: { members: true } // On a besoin des membres pour le select
+        prayerFamily: {
+            include: { users: true } // On a besoin des membres pour le select
         },
         schedules: {
             include: { user: true } // On a besoin de voir qui est sur quel créneau

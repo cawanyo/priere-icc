@@ -60,7 +60,7 @@ export function EventModal({ event, isOpen, onClose, onRefresh, date}: EventModa
           endTime: event.endTime || "20:00",
           // On s'assure de formater la date de l'event correctement
           date: format(convertKeepDate(event?.date), "yyyy-MM-dd"),
-          intercessorIds: event.intercessors?.map((u: any) => u.id) || [],
+          intercessorIds: event.users?.map((u: any) => u.id) || [],
         });
       } else {
         // MODE CRÉATION : On utilise la prop 'date' reçue du calendrier

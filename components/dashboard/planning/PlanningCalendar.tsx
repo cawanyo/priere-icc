@@ -151,9 +151,9 @@ export function PlanningCalendar() {
                                     </p>
                                 </div>
                                 
-                                {evt.intercessors && evt.intercessors.length > 0 ? (
+                                {evt.users && evt.users.length > 0 ? (
                                     <div className="flex -space-x-2 overflow-x-auto pt-1 no-scrollbar">
-                                        {evt.intercessors.map((u: any) => (
+                                        {evt.users.map((u: any) => (
                                             <div className="flex items-center gap-1" key={u.id}>
                                                 <Avatar className="inline-block h-6 w-6 rounded-full ring-2 ring-white">
                                                     <AvatarImage src={u.image} />

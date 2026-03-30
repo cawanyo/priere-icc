@@ -20,23 +20,23 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-  User              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
 
 model Appointment {
-  id                              String          @id @default(cuid())
-  slotId                          String          @unique
-  leaderId                        String
-  userId                          String
-  status                          String          @default("CONFIRMED")
-  cancelReason                    String?
-  createdAt                       DateTime        @default(now())
-  updatedAt                       DateTime
-  User_Appointment_leaderIdToUser User            @relation("Appointment_leaderIdToUser", fields: [leaderId], references: [id], onDelete: Cascade)
-  AppointmentSlot                 AppointmentSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
-  User_Appointment_userIdToUser   User            @relation("Appointment_userIdToUser", fields: [userId], references: [id], onDelete: Cascade)
+  id           String          @id @default(cuid())
+  slotId       String          @unique
+  leaderId     String
+  userId       String
+  status       String          @default("CONFIRMED")
+  cancelReason String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  leader       User            @relation("LeaderAppointments", fields: [leaderId], references: [id], onDelete: Cascade)
+  slot         AppointmentSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  user         User            @relation("UserAppointments", fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model AppointmentSlot {
@@ -46,8 +46,8 @@ model AppointmentSlot {
   endTime     DateTime
   isBooked    Boolean      @default(false)
   createdAt   DateTime     @default(now())
-  Appointment Appointment?
-  User        User         @relation(fields: [leaderId], references: [id], onDelete: Cascade)
+  appointment Appointment?
+  leader      User         @relation("LeaderSlots", fields: [leaderId], references: [id], onDelete: Cascade)
 }
 
 model BlackList {
@@ -82,9 +82,9 @@ model CheckIn {
   leaderNote          String?
   contactedAt         DateTime?
   createdAt           DateTime  @default(now())
-  updatedAt           DateTime
+  updatedAt           DateTime  @updatedAt
   comment             String?
-  User                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, periodMonth])
 }
@@ -95,41 +95,41 @@ model EventTemplate {
   startTime      String
   endTime        String
   specialEventId String
-  SpecialEvent   SpecialEvent @relation(fields: [specialEventId], references: [id], onDelete: Cascade)
-  Planning       Planning[]
+  specialEvent   SpecialEvent @relation(fields: [specialEventId], references: [id], onDelete: Cascade)
+  plannings      Planning[]
 }
 
 model FamilyDayTheme {
-  id                     String                 @id @default(cuid())
-  date                   DateTime
-  theme                  String
-  assignmentId           String
-  FamilyWeeklyAssignment FamilyWeeklyAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  id             String                 @id @default(cuid())
+  date           DateTime
+  theme          String
+  assignmentId   String
+  assignment     FamilyWeeklyAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
 
   @@unique([assignmentId, date])
 }
 
 model FamilySchedule {
-  id                     String                 @id @default(cuid())
-  date                   DateTime
-  startTime              String
-  endTime                String
-  assignmentId           String
-  userId                 String?
-  createdAt              DateTime               @default(now())
-  updatedAt              DateTime
-  FamilyWeeklyAssignment FamilyWeeklyAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-  User                   User?                  @relation(fields: [userId], references: [id])
+  id           String                 @id @default(cuid())
+  date         DateTime
+  startTime    String
+  endTime      String
+  assignmentId String
+  userId       String?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  assignment   FamilyWeeklyAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  user         User?                  @relation(fields: [userId], references: [id])
 }
 
 model FamilyWeeklyAssignment {
-  id             String           @id @default(cuid())
-  weekStart      DateTime         @unique
-  familyId       String
-  weekTheme      String?
-  FamilyDayTheme FamilyDayTheme[]
-  FamilySchedule FamilySchedule[]
-  PrayerFamily   PrayerFamily     @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  id              String           @id @default(cuid())
+  weekStart       DateTime         @unique
+  familyId        String
+  weekTheme       String?
+  dayThemes       FamilyDayTheme[]
+  schedules       FamilySchedule[]
+  prayerFamily    PrayerFamily     @relation(fields: [familyId], references: [id], onDelete: Cascade)
 }
 
 model Notification {
@@ -141,7 +141,7 @@ model Notification {
   link      String?
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
-  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model PasswordResetToken {
@@ -150,13 +150,13 @@ model PasswordResetToken {
   userId    String
   expires   DateTime
   createdAt DateTime @default(now())
-  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, token])
 }
 
 model Planning {
-  id             String         @id  @default(cuid())
+  id             String         @id @default(cuid())
   startTime      String
   endTime        String
   title          String
@@ -164,12 +164,12 @@ model Planning {
   recurringId    String?
   specialEventId String?
   createdAt      DateTime       @default(now())
-  updatedAt      DateTime
+  updatedAt      DateTime       @updatedAt
   date           DateTime
   templateId     String?
-  SpecialEvent   SpecialEvent?  @relation(fields: [specialEventId], references: [id], onDelete: Cascade)
-  EventTemplate  EventTemplate? @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  User           User[]
+  specialEvent   SpecialEvent?  @relation(fields: [specialEventId], references: [id], onDelete: Cascade)
+  eventTemplate  EventTemplate? @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  users          User[]
 }
 
 model Prayer {
@@ -182,19 +182,19 @@ model Prayer {
   userId      String?
   status      String   @default("PENDING")
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
-  User        User?    @relation(fields: [userId], references: [id])
+  updatedAt   DateTime @updatedAt
+  user        User?    @relation(fields: [userId], references: [id])
 }
 
 model PrayerFamily {
-  id                     String                   @id @default(cuid())
-  name                   String
-  description            String?
-  color                  String                   @default("#4f46e5")
-  createdAt              DateTime                 @default(now())
-  updatedAt              DateTime
-  FamilyWeeklyAssignment FamilyWeeklyAssignment[]
-  User                   User[]
+  id          String                   @id @default(cuid())
+  name        String
+  description String?
+  color       String                   @default("#4f46e5")
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+  assignments FamilyWeeklyAssignment[]
+  users       User[]
 }
 
 model RecurringSchedule {
@@ -205,7 +205,7 @@ model RecurringSchedule {
   startTime   String
   endTime     String
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime @updatedAt
 }
 
 model RoleRequest {
@@ -213,49 +213,49 @@ model RoleRequest {
   userId    String   @unique
   status    String   @default("PENDING")
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   role      Role     @default(INTERCESSOR)
-  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Session {
-  id           String   @id   @default(cuid())
+  id           String   @id @default(cuid())
   sessionToken String   @unique
   userId       String
   expires      DateTime
-  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model SpecialEvent {
-  id            String          @id @default(cuid())
-  title         String
-  description   String?
-  startDate     DateTime
-  endDate       DateTime
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime
-  EventTemplate EventTemplate[]
-  Planning      Planning[]
+  id             String          @id @default(cuid())
+  title          String
+  description    String?
+  startDate      DateTime
+  endDate        DateTime
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  eventTemplates EventTemplate[]
+  plannings      Planning[]
 }
 
 model Testimony {
-  id             String           @id @default(cuid())
-  name           String
-  userId         String?
-  content        String?
-  audioUrl       String?
-  status         String           @default("PENDING")
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime
-  User           User?            @relation(fields: [userId], references: [id])
-  TestimonyImage TestimonyImage[]
+  id       String           @id @default(cuid())
+  name     String
+  userId   String?
+  content  String?
+  audioUrl String?
+  status   String           @default("PENDING")
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  user      User?           @relation(fields: [userId], references: [id])
+  images    TestimonyImage[]
 }
 
 model TestimonyImage {
   id          String    @id @default(cuid())
   url         String
   testimonyId String
-  Testimony   Testimony @relation(fields: [testimonyId], references: [id], onDelete: Cascade)
+  testimony   Testimony @relation(fields: [testimonyId], references: [id], onDelete: Cascade)
 }
 
 model Unavailability {
@@ -265,36 +265,36 @@ model Unavailability {
   endDate   DateTime
   reason    String?
   createdAt DateTime @default(now())
-  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
-  id                                     String               @id @default(cuid())
-  name                                   String?
-  email                                  String?              @unique
-  emailVerified                          DateTime?
-  image                                  String?
-  password                               String?
-  phone                                  String?
-  createdAt                              DateTime             @default(now())
-  updatedAt                              DateTime
-  role                                   Role                 @default(REQUESTER)
-  prayerFamilyId                         String?
-  Account                                Account[]
-  Appointment_Appointment_leaderIdToUser Appointment[]        @relation("Appointment_leaderIdToUser")
-  Appointment_Appointment_userIdToUser   Appointment[]        @relation("Appointment_userIdToUser")
-  AppointmentSlot                        AppointmentSlot[]
-  CheckIn                                CheckIn[]
-  FamilySchedule                         FamilySchedule[]
-  Notification                           Notification[]
-  PasswordResetToken                     PasswordResetToken[]
-  Prayer                                 Prayer[]
-  RoleRequest                            RoleRequest?
-  Session                                Session[]
-  Testimony                              Testimony[]
-  Unavailability                         Unavailability[]
-  PrayerFamily                           PrayerFamily?        @relation(fields: [prayerFamilyId], references: [id])
-  Planning                               Planning[]
+  id                  String               @id @default(cuid())
+  name                String?
+  email               String?              @unique
+  emailVerified       DateTime?
+  image               String?
+  password            String?
+  phone               String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  role                Role                 @default(REQUESTER)
+  prayerFamilyId      String?
+  accounts            Account[]
+  leaderAppointments  Appointment[]        @relation("LeaderAppointments")
+  userAppointments    Appointment[]        @relation("UserAppointments")
+  slots               AppointmentSlot[]    @relation("LeaderSlots")
+  checkIns            CheckIn[]
+  familySchedules     FamilySchedule[]
+  notifications       Notification[]
+  passwordResetTokens PasswordResetToken[]
+  prayers             Prayer[]
+  roleRequest         RoleRequest?
+  sessions            Session[]
+  testimonies         Testimony[]
+  unavailabilities    Unavailability[]
+  prayerFamily        PrayerFamily?        @relation(fields: [prayerFamilyId], references: [id])
+  plannings           Planning[]
 }
 
 enum Role {

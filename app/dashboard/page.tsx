@@ -179,7 +179,7 @@ export default async function DashboardPage() {
                     </div>
                     <div>
                       <p className="text-[10px] text-violet-200 uppercase font-bold tracking-wide">Cette semaine</p>
-                      <p className="font-bold text-sm">{currentNightWatch.family.name}</p>
+                      <p className="font-bold text-sm">{currentNightWatch.prayerFamily.name}</p>
                     </div>
                   </div>
                   {currentNightWatch.schedules.length > 0 ? (
@@ -339,7 +339,7 @@ export default async function DashboardPage() {
                   </div>
                   <div>
                     <p className="text-[10px] text-violet-200 uppercase font-semibold tracking-wide">Cette semaine</p>
-                    <p className="font-bold text-sm leading-tight">{currentNightWatch.family.name}</p>
+                    <p className="font-bold text-sm leading-tight">{currentNightWatch.prayerFamily.name}</p>
                   </div>
                 </div>
                 {currentNightWatch.schedules.length > 0 ? (

@@ -41,7 +41,7 @@ export default async function FamilyDetailsPage({ params }: { params: Promise<{ 
             
             <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border shadow-sm text-sm text-gray-600">
                 <ShieldCheck className="h-4 w-4 text-green-600" />
-                <span>{family.members.length} Sentinelles actives</span>
+                <span>{family.users.length} Sentinelles actives</span>
             </div>
         </div>
       </div>
@@ -53,7 +53,7 @@ export default async function FamilyDetailsPage({ params }: { params: Promise<{ 
         <div className="lg:col-span-4 order-2 lg:order-1">
             <FamilyMemberManager 
                 familyId={family.id} 
-                members={family.members} 
+                members={family.users} 
                 candidates={candidates || []} 
             />
 

@@ -63,9 +63,9 @@ function CalendarDay({specialEvent, day, handleEventClick}: props) {
                     </p>
 
                     {/* Avatars Intercesseurs */}
-                    {evt.intercessors && evt.intercessors.length > 0 ? (
+                    {evt.users && evt.users.length > 0 ? (
                         <div className="flex -space-x-2 overflow-hidden pt-2">
-                            {evt.intercessors.map((u: any) => (
+                            {evt.users.map((u: any) => (
                                 <div key={u.id} className="flex items-center gap-1">
                                     <Avatar key={u.id} className="inline-block h-4 w-4 rounded-full ring-2 ring-white">
                                         <AvatarImage src={u.image} />

@@ -372,9 +372,9 @@ export function PlanningPdfCalendar({ title, subtitle, events, startDate, endDat
                                 </Text>
                             )}
                             
-                            {showIntercessors && evt.intercessors && evt.intercessors.length > 0 && (
+                            {showIntercessors && evt.users && evt.users.length > 0 && (
                                 <View style={styles.intercessorsContainer}>
-                                    {evt.intercessors.map((u: any, i: number) => (
+                                    {evt.users.map((u: any, i: number) => (
                                         <Text key={i} style={styles.intercessorBadge}>
                                             {u.name.split(' ')[0]}
                                         </Text>

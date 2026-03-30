@@ -30,7 +30,7 @@ export async function GET(req: Request) {
         date: tomorrow
       },
       include: {
-        intercessors: {
+        users: {
           select: { id: true, name: true, phone: true, email: true}
         }
       }
@@ -42,7 +42,7 @@ export async function GET(req: Request) {
     for (const event of events) {
       const timeStr = event.startTime;
       
-      for (const user of event.intercessors) {
+      for (const user of event.users) {
         if (user.email) {
           const message = `Rappel : Bonjour ${user.name}, vous êtes programmé demain à ${timeStr} pour "${event.title}". Merci de votre service !`;
           

@@ -56,7 +56,7 @@ export async function deleteSlot(slotId: string) {
   revalidatePath("/dashboard/mobile/leader/rdv");
 }
 
-// Récupérer les créneaux du leader (passés + futurs)
+// Récupérer les créneaux du leader  (passés + futurs)
 export async function getMySlots(fromISO?: string) {
   const leader = await checkLeaderAccess();
   const from = fromISO ? new Date(fromISO) : new Date();

@@ -93,7 +93,7 @@ export function IntercessorCalendar() {
                     if (!showMyPlanningOnly) return isTodayEvent; // Si pas de filtre, on garde tout
                     
                     // Si filtre actif, on garde seulement si l'user est assigné
-                    const isAssigned = e.intercessors?.some((u: any) => u.id === currentUserId);
+                    const isAssigned = e.users?.some((u: any) => u.id === currentUserId);
                     return isTodayEvent && isAssigned;
                 });
 
@@ -118,7 +118,7 @@ export function IntercessorCalendar() {
                             </div>
                         ) : (
                             dayEvents.map((evt) => {
-                                const isAssigned = evt.intercessors?.some((u: any) => u.id === currentUserId);
+                                const isAssigned = evt.users?.some((u: any) => u.id === currentUserId);
 
                                 return (
                                     <Card 
@@ -143,9 +143,9 @@ export function IntercessorCalendar() {
                                         </div>
                                         
                                         {/* Avatars (Masqués si filtre "Mes créneaux" actif pour alléger, ou gardés selon préférence) */}
-                                        {evt.intercessors && evt.intercessors.length > 0 && (
+                                        {evt.users && evt.users.length > 0 && (
                                             <div className="flex -space-x-2 overflow-hidden pt-1">
-                                                {evt.intercessors.map((u: any) => (
+                                                {evt.users.map((u: any) => (
                                                     <div className="flex items-center gap-1" key={u.id}>
                                                         <Avatar key={u.id} className={`inline-block h-6 w-6 rounded-full ring-2 ${isAssigned ? 'ring-pink-50' : 'ring-white'}`}>
                                                             <AvatarImage src={u.image} />

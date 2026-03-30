@@ -35,6 +35,7 @@ export async function addUnavailability(data: any) {
 
     await prisma.unavailability.create({
       data: {
+        id: crypto.randomUUID(),
         // @ts-ignore
         userId: session.user.id,
         startDate: start,
