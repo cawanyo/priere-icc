@@ -8,7 +8,7 @@ datasource db {
 }
 
 model Account {
-  id                String  @id
+  id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
@@ -40,7 +40,7 @@ model Appointment {
 }
 
 model AppointmentSlot {
-  id          String       @id
+  id          String       @id @default(cuid())
   leaderId    String
   startTime   DateTime
   endTime     DateTime
@@ -58,7 +58,7 @@ model BlackList {
 }
 
 model CheckIn {
-  id                  String    @id
+  id                  String    @id @default(cuid())
   userId              String
   periodMonth         DateTime
   scoreEnergy         Int
@@ -90,7 +90,7 @@ model CheckIn {
 }
 
 model EventTemplate {
-  id             String       @id
+  id             String       @id @default(cuid())
   title          String
   startTime      String
   endTime        String
@@ -100,7 +100,7 @@ model EventTemplate {
 }
 
 model FamilyDayTheme {
-  id                     String                 @id
+  id                     String                 @id @default(cuid())
   date                   DateTime
   theme                  String
   assignmentId           String
@@ -110,7 +110,7 @@ model FamilyDayTheme {
 }
 
 model FamilySchedule {
-  id                     String                 @id
+  id                     String                 @id @default(cuid())
   date                   DateTime
   startTime              String
   endTime                String
@@ -123,7 +123,7 @@ model FamilySchedule {
 }
 
 model FamilyWeeklyAssignment {
-  id             String           @id
+  id             String           @id @default(cuid())
   weekStart      DateTime         @unique
   familyId       String
   weekTheme      String?
@@ -133,7 +133,7 @@ model FamilyWeeklyAssignment {
 }
 
 model Notification {
-  id        String   @id
+  id        String   @id @default(cuid())
   userId    String
   title     String
   message   String?
@@ -145,7 +145,7 @@ model Notification {
 }
 
 model PasswordResetToken {
-  id        String   @id
+  id        String   @id @default(cuid())
   token     String
   userId    String
   expires   DateTime
@@ -156,7 +156,7 @@ model PasswordResetToken {
 }
 
 model Planning {
-  id             String         @id
+  id             String         @id  @default(cuid())
   startTime      String
   endTime        String
   title          String
@@ -173,7 +173,7 @@ model Planning {
 }
 
 model Prayer {
-  id          String   @id
+  id          String   @id @default(cuid())
   subjectType String
   content     String
   name        String?
@@ -187,7 +187,7 @@ model Prayer {
 }
 
 model PrayerFamily {
-  id                     String                   @id
+  id                     String                   @id @default(cuid())
   name                   String
   description            String?
   color                  String                   @default("#4f46e5")
@@ -198,7 +198,7 @@ model PrayerFamily {
 }
 
 model RecurringSchedule {
-  id          String   @id
+  id          String   @id @default(cuid())
   title       String
   description String?
   dayOfWeek   Int
@@ -209,7 +209,7 @@ model RecurringSchedule {
 }
 
 model RoleRequest {
-  id        String   @id
+  id        String   @id @default(cuid())
   userId    String   @unique
   status    String   @default("PENDING")
   createdAt DateTime @default(now())
@@ -219,7 +219,7 @@ model RoleRequest {
 }
 
 model Session {
-  id           String   @id
+  id           String   @id   @default(cuid())
   sessionToken String   @unique
   userId       String
   expires      DateTime
@@ -227,7 +227,7 @@ model Session {
 }
 
 model SpecialEvent {
-  id            String          @id
+  id            String          @id @default(cuid())
   title         String
   description   String?
   startDate     DateTime
@@ -239,7 +239,7 @@ model SpecialEvent {
 }
 
 model Testimony {
-  id             String           @id
+  id             String           @id @default(cuid())
   name           String
   userId         String?
   content        String?
@@ -252,14 +252,14 @@ model Testimony {
 }
 
 model TestimonyImage {
-  id          String    @id
+  id          String    @id @default(cuid())
   url         String
   testimonyId String
   Testimony   Testimony @relation(fields: [testimonyId], references: [id], onDelete: Cascade)
 }
 
 model Unavailability {
-  id        String   @id
+  id        String   @id @default(cuid())
   userId    String
   startDate DateTime
   endDate   DateTime
@@ -269,7 +269,7 @@ model Unavailability {
 }
 
 model User {
-  id                                     String               @id
+  id                                     String               @id @default(cuid())
   name                                   String?
   email                                  String?              @unique
   emailVerified                          DateTime?
