@@ -26,7 +26,7 @@ model Account {
 }
 
 model Appointment {
-  id                              String          @id
+  id                              String          @id @default(cuid())
   slotId                          String          @unique
   leaderId                        String
   userId                          String
