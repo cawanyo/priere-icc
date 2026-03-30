@@ -367,7 +367,7 @@ export default async function DashboardPage() {
               </div>
               <div className="space-y-2.5">
                 {upcomingEvents.map((event) => (
-                  <Link key={event.id}  href={`http://localhost:3000/dashboard/user/intercessor/events/${event.id}`}>
+                  <Link key={event.id}  href={`/dashboard/user/intercessor/events/${event.id}`}>
                     <div className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-4">
                       <div className="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center shrink-0">
                         <ClipboardList className="h-5 w-5 text-pink-500" />

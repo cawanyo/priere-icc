@@ -91,7 +91,13 @@ export async function savePlanningEvent(data: any) {
       include: { users: true }
     });
 
-    const currentIds = currentEvent?.users.map(u => u.id) || [];
+    if (!currentEvent) throw new Error("Événement introuvable");
+
+    const event = currentEvent.specialEventId 
+      ? await prisma.specialEvent.findUnique({ where: { id: currentEvent.specialEventId } }) 
+      : null;
+
+    const currentIds = currentEvent.users.map(u => u.id);
     // Trouver les IDs qui sont dans la nouvelle liste MAIS PAS dans l'ancienne
     const newIds = intercessorIds.filter((uid: string) => !currentIds.includes(uid));
 
@@ -125,7 +131,7 @@ export async function savePlanningEvent(data: any) {
         if (user.phone) {
           await sendSMS({
             to: user.phone, 
-            message: `Bonjour ${user.name?.split(" ")[0]}, LE MDPI vous informe que vous êtes de service le  ${ format(new Date(date),  "dd:MM:yyyy")},  à ${startTime}. Merci de consulter le planing.!`
+            message: `Bonjour ${user.name?.split(" ")[0]}, LE MDPI vous informe que vous êtes de service le  ${ format(new Date(date),  "EEEE dd/MM/yyyy", { locale: fr })},  à ${startTime} pour ${title}. Merci de consulter le planing.!`
         });
         }
         }
