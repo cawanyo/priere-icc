@@ -2,13 +2,13 @@ import { Prisma } from "@prisma/client";
 
 export type SpecialEventWithPlaning = Prisma.SpecialEventGetPayload<{
   include: {
-    plannings: {include : { intercessors: true}},
+    plannings: {include : { users: true}},
   };
 }>;
 
 export type SpecialEventWithTemplate = Prisma.SpecialEventGetPayload<{
   include: {
-    templates: true
+    eventTemplates: true
   };
 }>;
 
@@ -18,7 +18,7 @@ export type SpecialEvent = Prisma.SpecialEventGetPayload<{
 
 export type PlaningWithIntercessor = Prisma.PlanningGetPayload<{
   include: {
-    intercessors: true
+    users: true
   }
 }>
 

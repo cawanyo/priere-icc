@@ -364,11 +364,11 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
                         </Dialog>
 
                         {/* PDF */}
-                        <DownloadNightButton 
+                        {/* <DownloadNightButton 
                             weekDate={currentDate} 
                             familyName={assignment.family.name}
                             schedules={assignment.schedules}
-                        />
+                        /> */}
 
 
                         {assignment && (

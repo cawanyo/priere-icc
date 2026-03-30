@@ -27,6 +27,7 @@ export async function updateBlackList(userId: String, hour: String) {
     try {
         await prisma.blackList.create({
         data: {
+           id: crypto.randomUUID(),
            userId: userId.toString(),
            hour: hour.toString(),
         }});

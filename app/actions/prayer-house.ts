@@ -19,9 +19,9 @@ export async function getPrayerFamilies() {
     const families = await prisma.prayerFamily.findMany({
       include: {
         _count: {
-          select: { members: true }
+          select: { users: true }
         },
-        members: {
+        users: {
             select: { image: true, name: true } // Pour afficher quelques avatars
         }
       },
@@ -68,7 +68,7 @@ export async function getFamilyDetails(id: string) {
       const family = await prisma.prayerFamily.findUnique({
         where: { id },
         include: {
-          members: {
+          users: {
               select: { id: true, name: true, image: true, email: true, phone: true }
           }
         }

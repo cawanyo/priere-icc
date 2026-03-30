@@ -100,7 +100,7 @@ export default async function LeaderDashboardPage() {
                 <div className="space-y-4">
                     <div className="flex items-center justify-between text-sm bg-indigo-50 p-2 rounded">
                         <span className="text-gray-600">Famille de garde :</span>
-                        <span className="font-bold text-indigo-900">{nightWatch.family.name}</span>
+                        <span className="font-bold text-indigo-900">{nightWatch.prayerFamily.name}</span>
                     </div>
 
                     <div className="space-y-2">

@@ -22,9 +22,9 @@ export async function autoFillPlanning(assignmentId: string, date: Date) {
       where: { id: assignmentId },
       include: {
         schedules: true, // Pour savoir quels slots sont déjà pris
-        family: {
+        prayerFamily: {
           include: {
-            members: {
+            users: {
               include: {
                 // Historique pour le calcul de rotation
                 familySchedules: { orderBy: { date: 'asc' }, select: { startTime: true },  },
@@ -42,7 +42,7 @@ export async function autoFillPlanning(assignmentId: string, date: Date) {
     if (!assignment) throw new Error("Assignation introuvable");
 
     // 2. Initialiser l'état des membres (Calcul des créneaux interdits au départ)
-    let memberStates = assignment.family.members.map(m => {
+    let memberStates = assignment.prayerFamily.users.map(m => {
       // Calcul du cycle initial (comme vu précédemment)
       const cycle = new Set<string>();
       m.familySchedules.forEach(s => {

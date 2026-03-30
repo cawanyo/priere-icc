@@ -88,7 +88,7 @@ export async function createSpecialEvent(data: any) {
       description,
       startDate: new Date(startDate),
       endDate: new Date(endDate),
-      templates: {
+      eventTemplates: {
         create: sortedTemplates.map((t: any) => ({
           title: t.title,
           startTime: t.startTime,
@@ -96,13 +96,13 @@ export async function createSpecialEvent(data: any) {
         }))
       }
     },
-    include:{templates:true}
+    include:{eventTemplates:true}
   });
   if(!event){
     return { success: false, message:'Evenement non créé' };
   }
 
-  await createPlaningForEvent(event, event.templates, event.startDate, event.endDate)
+  await createPlaningForEvent(event, event.eventTemplates, event.startDate, event.endDate)
   revalidatePath("/dashboard/leader/events");
   return { success: true, message:'Evenement créé' };
 }
@@ -112,7 +112,7 @@ export async function getSpecialEvents() {
   const events = await prisma.specialEvent.findMany({
     orderBy: { startDate: 'desc' },
     include: { 
-        templates: true,
+        eventTemplates: true,
         }
   });
   return { success: true, data: events };
@@ -125,7 +125,7 @@ export async function getEventDetails(eventId: string) {
     where: { id: eventId },
     include: { 
         // On trie aussi les templates à la récupération pour être sûr
-        plannings: {include: {intercessors: true}}
+        plannings: {include: {users: true}}
 
       } 
     
@@ -207,14 +207,14 @@ export async function updateSpecialEvent(data: any) {
     
     const newEvent = await prisma.specialEvent.findFirst({
       where: {id},
-      include: { templates: true}
+      include: { eventTemplates: true}
     });
 
 
 
     if(newEvent && oldEvent){
-      await createPlaningForEvent(event, newEvent.templates, newEvent?.startDate, addDays(oldEvent.startDate, -1))
-      await createPlaningForEvent(event, newEvent.templates,  addDays(oldEvent.endDate, 1), newEvent.endDate )
+      await createPlaningForEvent(event, newEvent.eventTemplates, newEvent?.startDate, addDays(oldEvent.startDate, -1))
+      await createPlaningForEvent(event, newEvent.eventTemplates,  addDays(oldEvent.endDate, 1), newEvent.endDate )
     }
 
   revalidatePath("/dashboard/leader/events");

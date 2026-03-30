@@ -47,7 +47,7 @@ export async function getIntercessorPlanning(startDate: String, endDate: String)
         specialEventId: null
       },
       include: {
-        intercessors: true
+        users: true
       }
     });
 
@@ -82,7 +82,7 @@ export async function getIntercessorEventDetails(eventId: string) {
   
   const event = await prisma.specialEvent.findUnique({
     where: { id: eventId },
-    include: {plannings: {include: {intercessors: true}}}
+    include: {plannings: {include: {users: true}}}
   });
 
   if (!event) return { success: false, error: "Événement introuvable" };
@@ -105,7 +105,7 @@ export async function selfAssignToEventSlot(slotData: any) {
       await prisma.planning.update({
         where: { id },
         data: {
-          intercessors: {
+          users: {
             connect: { id: user.id }
           }
         }
@@ -127,7 +127,7 @@ export async function selfRemoveFromEventSlot(planningId: string) {
     await prisma.planning.update({
       where: { id: planningId },
       data: {
-        intercessors: {
+        users: {
           disconnect: { id: user.id }
         }
       }

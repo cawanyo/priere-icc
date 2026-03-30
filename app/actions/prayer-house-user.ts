@@ -28,7 +28,7 @@ export async function getUserPrayerHouseData(date: String) {
   const assignment = await prisma.familyWeeklyAssignment.findUnique({
     where: { weekStart },
     include: {
-        family: true,
+        prayerFamily: true,
         schedules: { include: { user: true } },
         dayThemes: true
     }

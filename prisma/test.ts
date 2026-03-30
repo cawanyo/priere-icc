@@ -28,7 +28,7 @@ export async function sendSpecialEventReminders() {
                 }
             },
           include: {
-            intercessors: true,
+            users: true,
             },
           },
         },
@@ -43,10 +43,10 @@ export async function sendSpecialEventReminders() {
     for (const event of events) {
         for (const planning of event.plannings) {
         
-            const participants = planning.intercessors;
+            const participants = planning.users;
             for (const user of participants) {
                 if (!user.phone) continue;
-                const teammates = participants.filter((p) => p.id !== user.id);
+                const teammates = participants.filter((p: any) => p.id !== user.id);
                 let message = `Bonjour ${user.name}, rappel pour l'événement "${event.title}" du ${format(planning.date, "EEEE dd MMMM yyyy", { locale: fr })} à ${planning.startTime}.`;
 
           if (teammates.length > 0) {
@@ -54,7 +54,7 @@ export async function sendSpecialEventReminders() {
                 message += ` Tu seras en binôme avec ${teammates[0].name}.`;
             } 
             else {
-                const names = teammates.slice(0, 2).map(t => t.name).join(", ");
+                const names = teammates.slice(0, 2).map((t: any) => t.name).join(", ");
                 const othersCount = teammates.length - 2;
                 
                 if (othersCount > 0) {

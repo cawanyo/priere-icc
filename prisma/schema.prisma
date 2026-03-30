@@ -4,74 +4,218 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")  
+  url      = env("DATABASE_URL")
 }
-
-
-enum Role {
-  ADMIN
-  LEADER
-  PRAYER_LEADER
-  INTERCESSOR // Intercesseur standard
-  REQUESTER // Utilisateur qui ne fait que déposer des requêtes
-}
-
-enum STATUS {
-  PENDING
-  APPROVED
-  REFUSED
-}
-
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  phone         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  role              Role      @default(REQUESTER)
-
-
-  accounts      Account[]
-  sessions      Session[]
-  prayers       Prayer[]
-  roleRequest RoleRequest?
-  plannings     Planning[]
-  unavailabilities Unavailability[]
-  testimonies Testimony[]
-
-  notifications Notification[]
-  passwordResetTokens PasswordResetToken[]
-
-
-  prayerFamilyId String?
-  prayerFamily   PrayerFamily? @relation(fields: [prayerFamilyId], references: [id])
-  familySchedules FamilySchedule[]
- 
-}
-
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+}
+
+model Appointment {
+  id           String          @id @default(cuid())
+  slotId       String          @unique
+  leaderId     String
+  userId       String
+  status       String          @default("CONFIRMED")
+  cancelReason String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  leader       User            @relation("LeaderAppointments", fields: [leaderId], references: [id], onDelete: Cascade)
+  slot         AppointmentSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  user         User            @relation("UserAppointments", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AppointmentSlot {
+  id          String       @id @default(cuid())
+  leaderId    String
+  startTime   DateTime
+  endTime     DateTime
+  isBooked    Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  appointment Appointment?
+  leader      User         @relation("LeaderSlots", fields: [leaderId], references: [id], onDelete: Cascade)
+}
+
+model BlackList {
+  id        String   @id
+  userId    String
+  hour      String
+  createdAt DateTime @default(now())
+}
+
+model CheckIn {
+  id                  String    @id @default(cuid())
+  userId              String
+  periodMonth         DateTime
+  scoreEnergy         Int
+  scorePeace          Int
+  scoreJoy            Int
+  scoreClarity        Int
+  scoreServiceLoad    Int
+  alerts              String[]
+  alertOther          String?
+  hadDifficultMoment  Boolean   @default(false)
+  difficultMomentText String?
+  scoreOvergiving     Int
+  scoreSupportFelt    Int
+  needsScheduleAdjust Boolean   @default(false)
+  supportNeeds        String[]
+  consentGiven        Boolean   @default(false)
+  visibility          String    @default("TEAM")
+  healthScore         Int       @default(0)
+  healthStatus        String    @default("GREEN")
+  isContacted         Boolean   @default(false)
+  leaderNote          String?
+  contactedAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  comment             String?
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, periodMonth])
+}
+
+model EventTemplate {
+  id             String       @id @default(cuid())
+  title          String
+  startTime      String
+  endTime        String
+  specialEventId String
+  specialEvent   SpecialEvent @relation(fields: [specialEventId], references: [id], onDelete: Cascade)
+  plannings      Planning[]
+}
+
+model FamilyDayTheme {
+  id             String                 @id @default(cuid())
+  date           DateTime
+  theme          String
+  assignmentId   String
+  assignment     FamilyWeeklyAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, date])
+}
+
+model FamilySchedule {
+  id           String                 @id @default(cuid())
+  date         DateTime
+  startTime    String
+  endTime      String
+  assignmentId String
+  userId       String?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  assignment   FamilyWeeklyAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  user         User?                  @relation(fields: [userId], references: [id])
+}
+
+model FamilyWeeklyAssignment {
+  id              String           @id @default(cuid())
+  weekStart       DateTime         @unique
+  familyId        String
+  weekTheme       String?
+  dayThemes       FamilyDayTheme[]
+  schedules       FamilySchedule[]
+  prayerFamily    PrayerFamily     @relation(fields: [familyId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String?
+  type      String
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String
+  userId    String
+  expires   DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, token])
+}
+
+model Planning {
+  id             String         @id @default(cuid())
+  startTime      String
+  endTime        String
+  title          String
+  description    String?
+  recurringId    String?
+  specialEventId String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  date           DateTime
+  templateId     String?
+  specialEvent   SpecialEvent?  @relation(fields: [specialEventId], references: [id], onDelete: Cascade)
+  eventTemplate  EventTemplate? @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  users          User[]
+}
+
+model Prayer {
+  id          String   @id @default(cuid())
+  subjectType String
+  content     String
+  name        String?
+  email       String?
+  phone       String?
+  userId      String?
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User?    @relation(fields: [userId], references: [id])
+}
+
+model PrayerFamily {
+  id          String                   @id @default(cuid())
+  name        String
+  description String?
+  color       String                   @default("#4f46e5")
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+  assignments FamilyWeeklyAssignment[]
+  users       User[]
+}
+
+model RecurringSchedule {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  dayOfWeek   Int
+  startTime   String
+  endTime     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model RoleRequest {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  role      Role     @default(INTERCESSOR)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Session {
@@ -82,161 +226,29 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-
-
-model Prayer {
-  id          String   @id @default(cuid())
-  
-  subjectType String   // Type du sujet (ex: Maladie, Famille...)
-  content     String   // Contenu de la prière
-  
-  // Informations du demandeur (capturées à l'instant T)
-  name        String?
-  email       String?
-  phone       String?
-  
-  // Relation optionnelle si l'utilisateur est connecté
-  userId      String?
-  user        User?    @relation(fields: [userId], references: [id])
-
-  // Statut de la prière
-  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED, ANSWERED
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-
-model RoleRequest {
-  id        String   @id @default(cuid())
-  userId    String   @unique 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // NOUVEAU CHAMP : Le rôle demandé
-  // Par défaut, pour la compatibilité, on pourrait dire INTERCESSOR, mais mieux vaut le rendre explicite
-  role      Role     @default(INTERCESSOR) 
-
-  status    String   @default("PENDING") 
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-
-model Unavailability {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  startDate DateTime
-  endDate   DateTime // Si c'est un jour unique, endDate = startDate (ou fin de journée)
-  reason    String?  // Optionnel : "Vacances", "Travail", etc.
-
-  createdAt DateTime @default(now())
-}
-
-
-
-model Planning {
-  id            String   @id @default(cuid())
-  
-  // Date et Heure précises de l'événement réel
-  startTime     String
-  endTime       String
-  
-  title         String   
-  description   String?
-
-  // Lien optionnel vers la définition récurrente (pour savoir si cet événement remplace une occurrence)
-  recurringId   String?  
-
-  specialEventId String?
-  specialEvent   SpecialEvent? @relation(fields: [specialEventId], references: [id], onDelete: Cascade)
-
-  templateId    String?
-  template      EventTemplate? @relation(fields: [templateId], references: [id], onDelete: Cascade)
-
-  intercessors  User[]   
-
-  date          DateTime
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-model RecurringSchedule {
-  id          String   @id @default(cuid())
-  
-  title       String
-  description String?
-  
-  dayOfWeek   Int      // 0 = Dimanche, 1 = Lundi, ..., 6 = Samedi
-  
-  // Pour stocker l'heure, on utilise DateTime (on ignorera la date) ou String "HH:mm"
-  // DateTime est plus simple pour les comparaisons Prisma, on utilisera une date fixe (ex: 1970-01-01)
-  startTime   String
-  endTime     String
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-
-// prisma/schema.prisma
-
-// ... (Autres modèles inchangés)
-
 model SpecialEvent {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  
-  startDate   DateTime
-  endDate     DateTime
-
-  // Les modèles de créneaux pour cet événement (ex: Matin, Soir)
-  templates   EventTemplate[]
-  
-  // Les assignations réelles liées
-  plannings   Planning[]
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String          @id @default(cuid())
+  title          String
+  description    String?
+  startDate      DateTime
+  endDate        DateTime
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  eventTemplates EventTemplate[]
+  plannings      Planning[]
 }
-
-model EventTemplate {
-  id             String       @id @default(cuid())
-  title          String       // Ex: "Session du Soir"
-  
-  // On stocke l'heure sur une date fictive (ex: 1970-01-01)
-  startTime      String
-  endTime        String 
-
-
-  specialEventId String
-  specialEvent   SpecialEvent @relation(fields: [specialEventId], references: [id], onDelete: Cascade)
-
-  plannings Planning[]
-}
-
 
 model Testimony {
-  id        String   @id @default(cuid())
-  
-  // Identité
-  name      String   // Requis (Nom du compte ou Nom saisi par l'invité)
-  userId    String?  // Optionnel (si connecté)
-  user      User?    @relation(fields: [userId], references: [id])
-
-  // Contenu
-  content   String?  // Texte du témoignage
-  audioUrl  String?  // URL du fichier audio
-  images    TestimonyImage[]  // URL de la photo
-
-  // Modération
-  status    String   @default("PENDING") // PENDING, APPROVED, REJECTED
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id       String           @id @default(cuid())
+  name     String
+  userId   String?
+  content  String?
+  audioUrl String?
+  status   String           @default("PENDING")
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  user      User?           @relation(fields: [userId], references: [id])
+  images    TestimonyImage[]
 }
 
 model TestimonyImage {
@@ -246,106 +258,55 @@ model TestimonyImage {
   testimony   Testimony @relation(fields: [testimonyId], references: [id], onDelete: Cascade)
 }
 
-
-model Notification {
+model Unavailability {
   id        String   @id @default(cuid())
-  
   userId    String
+  startDate DateTime
+  endDate   DateTime
+  reason    String?
+  createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  title     String
-  message   String?
-  type      String   // Ex: "INFO", "SUCCESS", "WARNING", "ASSIGNMENT"
-  link      String?  // Lien vers la page concernée (ex: /dashboard/user/intercessor/planning)
-  
-  isRead    Boolean  @default(false)
-  
-  createdAt DateTime @default(now())
 }
 
-model PasswordResetToken {
-  id        String   @id @default(cuid())
-  token     String   // Le code à 6 chiffres
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expires   DateTime
-  createdAt DateTime @default(now())
-
-  @@unique([userId, token]) // Un code est unique pour un utilisateur donné
+model User {
+  id                  String               @id @default(cuid())
+  name                String?
+  email               String?              @unique
+  emailVerified       DateTime?
+  image               String?
+  password            String?
+  phone               String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  role                Role                 @default(REQUESTER)
+  prayerFamilyId      String?
+  accounts            Account[]
+  leaderAppointments  Appointment[]        @relation("LeaderAppointments")
+  userAppointments    Appointment[]        @relation("UserAppointments")
+  slots               AppointmentSlot[]    @relation("LeaderSlots")
+  checkIns            CheckIn[]
+  familySchedules     FamilySchedule[]
+  notifications       Notification[]
+  passwordResetTokens PasswordResetToken[]
+  prayers             Prayer[]
+  roleRequest         RoleRequest?
+  sessions            Session[]
+  testimonies         Testimony[]
+  unavailabilities    Unavailability[]
+  prayerFamily        PrayerFamily?        @relation(fields: [prayerFamilyId], references: [id])
+  plannings           Planning[]
 }
 
-
-
-model PrayerFamily {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  color       String   @default("#4f46e5") // Pour l'UI
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Membres de la famille
-  members     User[]
-
-  // Les semaines assignées à cette famille
-  assignments FamilyWeeklyAssignment[]
+enum Role {
+  ADMIN
+  LEADER
+  INTERCESSOR
+  REQUESTER
+  PRAYER_LEADER
 }
 
-
-
-model FamilyWeeklyAssignment {
-  id        String   @id @default(cuid())
-  
-  // Semaine identifiée par son Lundi (startOfWeek)
-  weekStart DateTime 
-  
-  familyId  String
-  family    PrayerFamily @relation(fields: [familyId], references: [id], onDelete: Cascade)
-
-  // Les créneaux précis de cette semaine là
-  schedules FamilySchedule[]
-  weekTheme String? 
-
-  // NOUVEAU : Relation vers les thèmes des jours
-  dayThemes FamilyDayTheme[]
-
-  @@unique([weekStart]) // Une seule famille par semaine !
-}
-
-
-model FamilySchedule {
-  id            String   @id @default(cuid())
-  
-  date          DateTime // La date précise (ex: 2024-10-21 00:00)
-  startTime     String   // "00:00"
-  endTime       String   // "01:00"
-  
-  assignmentId  String
-  assignment    FamilyWeeklyAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-
-  userId        String?
-  user          User?    @relation(fields: [userId], references: [id])
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-
-model FamilyDayTheme {
-  id            String   @id @default(cuid())
-  date          DateTime // La date précise (ex: 2024-12-23)
-  theme         String
-  
-  assignmentId  String
-  assignment    FamilyWeeklyAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-
-  @@unique([assignmentId, date]) // Un seul thème par jour pour une assignation
-}
-
-model BlackList {
-  id       String   @id @default(cuid())
-  userId    String
-  hour      String   // Format "HH:mm"
-  createdAt DateTime @default(now())
+enum STATUS {
+  PENDING
+  APPROVED
+  REFUSED
 }

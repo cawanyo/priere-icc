@@ -52,8 +52,8 @@ export function EventFormModal({ isOpen, onClose, eventToEdit }: EventFormModalP
             endDate: format(convertKeepDate(eventToEdit.endDate), "yyyy-MM-dd"),
         });
 
-        if (eventToEdit.templates && eventToEdit.templates.length > 0) {
-            setTemplates(eventToEdit.templates.map((t) => ({
+        if (eventToEdit.eventTemplates && eventToEdit.eventTemplates.length > 0) {
+            setTemplates(eventToEdit.eventTemplates.map((t) => ({
                 title: t.title,
                 startTime: t.startTime,
                 endTime: t.endTime,
