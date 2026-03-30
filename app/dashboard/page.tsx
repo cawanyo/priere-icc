@@ -367,18 +367,20 @@ export default async function DashboardPage() {
               </div>
               <div className="space-y-2.5">
                 {upcomingEvents.map((event) => (
-                  <div key={event.id} className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-4">
-                    <div className="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center shrink-0">
-                      <ClipboardList className="h-5 w-5 text-pink-500" />
+                  <Link key={event.id}  href={`http://localhost:3000/dashboard/user/intercessor/events/${event.id}`}>
+                    <div className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-4">
+                      <div className="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center shrink-0">
+                        <ClipboardList className="h-5 w-5 text-pink-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-800 leading-tight line-clamp-1">{event.title}</p>
+                        <p className="text-xs text-gray-400 mt-0.5 capitalize">
+                          {format(new Date(event.startDate), "EEEE d MMM yyyy", { locale: fr })}
+                        </p>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-gray-300 shrink-0" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-800 leading-tight line-clamp-1">{event.title}</p>
-                      <p className="text-xs text-gray-400 mt-0.5 capitalize">
-                        {format(new Date(event.startDate), "EEEE d MMM yyyy", { locale: fr })}
-                      </p>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-gray-300 shrink-0" />
-                  </div>
+                  </Link>
                 ))}
               </div>
             </section>
