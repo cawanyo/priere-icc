@@ -27,6 +27,9 @@ async function backup() {
     familySchedules,
     familyDayThemes,
     blackList,
+    checkIns,
+    appointments,
+    appointmentSlots,
   ] = await Promise.all([
     prisma.user.findMany(),
     prisma.account.findMany(),
@@ -34,7 +37,7 @@ async function backup() {
     prisma.prayer.findMany(),
     prisma.roleRequest.findMany(),
     prisma.unavailability.findMany(),
-    prisma.planning.findMany({ include: { intercessors: { select: { id: true } } } }),
+    prisma.planning.findMany({ include: { users: { select: { id: true } } } }),
     prisma.recurringSchedule.findMany(),
     prisma.specialEvent.findMany(),
     prisma.eventTemplate.findMany(),
@@ -47,6 +50,9 @@ async function backup() {
     prisma.familySchedule.findMany(),
     prisma.familyDayTheme.findMany(),
     prisma.blackList.findMany(),
+    prisma.checkIn.findMany(),
+    prisma.appointment.findMany(),
+    prisma.appointmentSlot.findMany(),
   ]);
 
   const backup = {
@@ -71,6 +77,9 @@ async function backup() {
       familySchedules: familySchedules.length,
       familyDayThemes: familyDayThemes.length,
       blackList: blackList.length,
+      checkIns: checkIns.length,
+      appointments: appointments.length,
+      appointmentSlots: appointmentSlots.length,
     },
     data: {
       users,
@@ -92,6 +101,9 @@ async function backup() {
       familySchedules,
       familyDayThemes,
       blackList,
+      checkIns,
+      appointments,
+      appointmentSlots,
     },
   };
 

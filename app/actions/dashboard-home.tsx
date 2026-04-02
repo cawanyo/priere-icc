@@ -129,7 +129,7 @@ export async function getUserDashboard() {
     include: {
       prayerFamily: true,
       schedules: {
-        where: { date: startOfDay(now) },
+        where: { date: addDays(startOfDay(now),1) },
         include: { user: true },
         orderBy: { startTime: 'asc' }
       }

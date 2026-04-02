@@ -43,14 +43,18 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { name, content } = body;
+    const { name, content, audioUrl } = body;
 
-    if (!name || !content) {
-      return NextResponse.json({ error: "Champs requis" }, { status: 400 });
+    if (!name) {
+      return NextResponse.json({ error: "Nom requis" }, { status: 400 });
+    }
+
+    if (!content && !audioUrl) {
+      return NextResponse.json({ error: "Contenu ou audio requis" }, { status: 400 });
     }
 
     const testimony = await prisma.testimony.create({
-      data: { name, content, userId, status: "PENDING" },
+      data: { name, content: content || null, audioUrl: audioUrl || null, userId, status: "PENDING" },
     });
 
     return NextResponse.json({ testimony });
