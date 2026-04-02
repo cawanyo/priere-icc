@@ -179,7 +179,7 @@ export default async function DashboardPage() {
                     </div>
                     <div>
                       <p className="text-[10px] text-violet-200 uppercase font-bold tracking-wide">Cette semaine</p>
-                      <p className="font-bold text-sm">{currentNightWatch.prayerFamily.name}</p>
+                      <div className="flex flex-1 justify-between"> <p className="font-bold text-sm">{currentNightWatch.prayerFamily.name}</p>  <p className=" italic">Pour demain</p></div>
                     </div>
                   </div>
                   {currentNightWatch.schedules.length > 0 ? (

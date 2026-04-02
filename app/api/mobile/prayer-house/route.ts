@@ -45,10 +45,10 @@ export async function GET(req: Request) {
       include: {
         prayerFamily: true,
         schedules: {
-          where: { date: startOfDay(now) },
-          orderBy: { startTime: "asc" },
+          orderBy: [{ date: "asc" }, { startTime: "asc" }],
           include: { user: { select: { id: true, name: true, image: true } } },
         },
+        dayThemes: { orderBy: { date: "asc" } },
       },
     });
 
@@ -62,11 +62,17 @@ export async function GET(req: Request) {
       include: { assignment: { include: { prayerFamily: true } } },
     });
 
+    const me = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { prayerFamilyId: true },
+    });
+
     return NextResponse.json({
       families,
       assignments,
       currentAssignment,
       myNightSchedules,
+      myFamilyId: me?.prayerFamilyId ?? null,
     });
   } catch (error) {
     console.error("[MOBILE_PRAYER_HOUSE_ERROR]", error);

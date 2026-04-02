@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "e940ae26-c295-4e0b-bb3c-b0d5f9cb1bca"
+      }
+    },
+    "android": {
+      "package": "com.chris_akjb.prayericc"
+    }
+  }
+}
