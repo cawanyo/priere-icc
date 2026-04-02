@@ -39,6 +39,7 @@ export default async function DashboardPage() {
     { href: "/dashboard/desktop/prayer-house", label: "Maison de Prière", icon: Church, color: "text-pink-500", bg: "bg-pink-50" },
   ];
 
+  
   return (
     <>
       {/* ── VERSION DESKTOP ── */}
@@ -179,7 +180,7 @@ export default async function DashboardPage() {
                     </div>
                     <div>
                       <p className="text-[10px] text-violet-200 uppercase font-bold tracking-wide">Cette semaine</p>
-                      <div className="flex flex-1 justify-between"> <p className="font-bold text-sm">{currentNightWatch.prayerFamily.name}</p>  <p className=" italic">Pour demain</p></div>
+                      <div className=""> <p className="font-bold text-sm">{currentNightWatch.prayerFamily.name}</p>  <p className=" italic">De service demain</p></div>
                     </div>
                   </div>
                   {currentNightWatch.schedules.length > 0 ? (
@@ -339,12 +340,13 @@ export default async function DashboardPage() {
                   </div>
                   <div>
                     <p className="text-[10px] text-violet-200 uppercase font-semibold tracking-wide">Cette semaine</p>
-                    <p className="font-bold text-sm leading-tight">{currentNightWatch.prayerFamily.name}</p>
+                    <div><p className="font-bold text-sm leading-tight">{currentNightWatch.prayerFamily.name}</p> <p className=" italic">De service demain</p></div>
                   </div>
                 </div>
                 {currentNightWatch.schedules.length > 0 ? (
                   <div className="space-y-1.5">
-                    {currentNightWatch.schedules.slice(0, 3).map((s) => (
+                    
+                    {currentNightWatch.schedules.slice(0, 4).map((s) => (
                       <div key={s.id} className="flex items-center justify-between bg-white/15 rounded-xl px-3 py-1.5">
                         <span className="text-xs font-mono text-violet-200">{s.startTime}</span>
                         <span className="text-xs font-medium text-white">{s.user?.name ?? "Non assigné"}</span>
