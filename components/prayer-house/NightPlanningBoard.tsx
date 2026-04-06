@@ -176,8 +176,8 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
 
   const onSelectSlot = async (day: Date, hour: string) => {
     const blackList_ = (await getBlackList( hour)).map((item: any) => item.userId);
-
-    let availableUsers =  assignment.family.members.filter((member: any) => isMemberAvailable(day, member) && !blackList_.includes( member.id) );
+    console.log(assignment)
+    let availableUsers =  assignment.prayerFamily.users.filter((member: any) => isMemberAvailable(day, member) && !blackList_.includes( member.id) );
     availableUsers = availableUsers.concat(leader)
     console.log(leader)
     setAvailableUserListe(availableUsers)
