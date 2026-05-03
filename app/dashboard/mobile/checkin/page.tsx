@@ -137,7 +137,7 @@ function MonthPicker({
 
 function CheckInReadView({ checkIn }: { checkIn: NonNullable<CheckInData> }) {
   const cfg = STATUS_CONFIG[checkIn.healthStatus as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.GREEN;
-
+  
   return (
     <div className="space-y-4">
       {/* Score */}
@@ -224,12 +224,12 @@ function CheckInReadView({ checkIn }: { checkIn: NonNullable<CheckInData> }) {
       )}
 
       {/* Confidentialité */}
-      <div className="flex items-center gap-2 bg-gray-50 rounded-xl p-3">
+      {/* <div className="flex items-center gap-2 bg-gray-50 rounded-xl p-3">
         <ShieldCheck className="h-4 w-4 text-gray-400 shrink-0" />
         <p className="text-xs text-gray-500">
           {checkIn.visibility === "PASTOR_ONLY" ? "Visible Pasteur uniquement" : "Visible Admin + Pasteur"}
         </p>
-      </div>
+      </div> */}
     </div>
   );
 }
@@ -342,17 +342,15 @@ export default function MobileCheckInPage() {
     <div className="min-h-screen bg-[#f4f6fb] pb-24">
 
       {/* Header */}
-      <div className=" bg-gradient-to-br from-indigo-600 via-indigo-500 to-violet-600 px-5 pt-6 pb-12 overflow-hidden">
-        <div className="absolute -top-8 -right-8 w-40 h-40 bg-white/10 rounded-full" />
-        <div className="absolute top-14 -right-4 w-20 h-20 bg-white/10 rounded-full" />
-        <Activity className="text-white/20 absolute bottom-4 right-6 h-16 w-16" />
+      <div className=" bg-gradient-to-br from-indigo-600 via-indigo-500 to-violet-600 px-5 pt-6 pb-12 overflow-hidden relative">
+
         <h1 className="text-white text-xl font-bold relative">Mon Check-in</h1>
         <p className="text-indigo-200 text-xs capitalize mt-0.5 relative">
           Suivi de ton bien-être spirituel
         </p>
       </div>
 
-      <div className="px-4 -mt-6 space-y-4">
+      <div className="px-4 mt-6 space-y-4">
 
         {/* Sélecteur de mois */}
         <MonthPicker year={selYear} month={selMonth} onChange={handleMonthChange} />

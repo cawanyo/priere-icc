@@ -28,7 +28,7 @@ export function UserNightBoard() {
     loadData();
   }, [currentDate]);
 
-
+  
 
   // --- RENDU ---
 
@@ -59,7 +59,7 @@ export function UserNightBoard() {
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const days = Array.from({ length: 5 }).map((_, i) => addDays(weekStart, i));
   const hours = ["00:00", "01:00", "02:00", "03:00"];
-
+  console.log(assignment)
   return (
     <div className="space-y-6">
         
@@ -118,7 +118,7 @@ export function UserNightBoard() {
                 <div>
                     <h4 className="font-bold text-yellow-800">Repos cette semaine</h4>
                     <p className="text-sm text-yellow-700 mt-1">
-                        C'est la famille <strong>"{assignment.family.name}"</strong> qui est de garde cette semaine.
+                        C'est la famille <strong>"{assignment.prayerFamily.name}"</strong> qui est de garde cette semaine.
                         <br/>Profitez-en pour vous reposer ou intercéder librement !
                     </p>
                 </div>

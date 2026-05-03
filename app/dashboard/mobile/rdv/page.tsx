@@ -201,13 +201,12 @@ export default function UserRdvPage() {
 
         {/* Header */}
         <div className="bg-gradient-to-br from-violet-600 to-indigo-600 px-5 pt-6 pb-12 overflow-hidden">
-          <div className="absolute -top-8 -right-8 w-40 h-40 bg-white/10 rounded-full" />
-          <CalendarRange className="text-white/15 absolute bottom-3 right-5 h-14 w-14" />
+     
           <h1 className="text-white text-xl font-bold relative">Rendez-vous</h1>
           <p className="text-violet-200 text-xs mt-0.5 relative">Prendre ou gérer un RDV</p>
         </div>
 
-        <div className="px-4 -mt-4 space-y-4">
+        <div className="px-4 mt-4 space-y-4">
 
           {/* RDV actif */}
           {confirmedAppt && (

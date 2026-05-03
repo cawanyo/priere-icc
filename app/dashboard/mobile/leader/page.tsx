@@ -91,14 +91,18 @@ export default async function MobileLeaderPage() {
     <div className="min-h-screen bg-[#f4f6fb] pb-24">
 
       {/* Header */}
-      <div className=" bg-gradient-to-br from-indigo-700 to-violet-700 px-5 pt-6 pb-12 overflow-hidden">
-        <div className="absolute -top-8 -right-8 w-40 h-40 bg-white/10 rounded-full" />
-        <LayoutDashboard className="text-white/20 absolute bottom-3 right-5 h-14 w-14" />
-        <h1 className="text-white text-xl font-bold relative">Espace Leader</h1>
-        <p className="text-indigo-200 text-xs mt-0.5 relative">Pilotage et gestion</p>
+      <div className="  bg-indigo-700 to-violet-700  flex items-center p-5  overflow-hidden">
+        <div className=" w-40 h-40  rounded-full " >
+          <LayoutDashboard className="text-white-14 w-14" />
+        </div>
+        <div>
+          <h1 className="text-white text-xl font-bold ">Espace Leader</h1>
+          <p className="text-indigo-200 text-xs mt-0.5 ">Pilotage et gestion</p>
+        </div>
+       
       </div>
 
-      <div className="px-4 -mt-6 space-y-3">
+      <div className="px-4 mt-6 space-y-3">
         {items.map((item) => {
           const Icon = item.icon;
           return (
