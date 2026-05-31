@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { startOfWeek, endOfWeek, addDays, format } from "date-fns";
+import { startOfWeek, endOfWeek, addDays, format, addWeeks } from "date-fns";
 import { pusherServer } from "@/lib/pusher";
 import { createNotification } from "./notifications";
 import { sendSMS } from "@/lib/sms";
@@ -11,8 +11,9 @@ import { sendSMS } from "@/lib/sms";
 // 1. Récupérer le planning d'une semaine donnée
 export async function getNightPlanning(date: Date) {
   // On cale la date sur le Lundi de la semaine (00:00)
-  const weekStart = startOfWeek(new Date(date), { weekStartsOn: 1 });
-  
+  const date_cast = new Date(date)
+  const weekStart = startOfWeek(addWeeks(date_cast,1), { weekStartsOn: 1 });
+
   try {
     // On cherche si une famille est assignée cette semaine
     const assignment = await prisma.familyWeeklyAssignment.findUnique({
@@ -29,7 +30,7 @@ export async function getNightPlanning(date: Date) {
     });
 
     // Si pas d'assignation, on renvoie null, le front affichera le bouton "Assigner une famille"
-    return { success: true, assignment };
+    return { success: true, assignment , date: weekStart, data: date_cast};
   } catch (error) {
     return { success: false, error: "Erreur chargement planning nuit" , errorDetails: error  };
   }

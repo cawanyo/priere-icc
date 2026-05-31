@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { format, startOfWeek, addWeeks, addDays, isSameDay, startOfDay, endOfDay, isWithinInterval } from "date-fns";
-import { fr, se } from "date-fns/locale";
+import { fr, is, se } from "date-fns/locale";
 import { 
     ChevronLeft, 
     ChevronRight, 
@@ -70,13 +70,16 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
   // --- CHARGEMENT ---
   const loadData = async () => {
     setLoading(true);
+    console.log(currentDate, "date")
     const planRes = await getNightPlanning(currentDate);
+    console.log(planRes)
     if (planRes.success) setAssignment(planRes.assignment);
     setLoading(false);
   };
 
   useEffect(() => {
     loadData();
+
   }, [currentDate]);
 
   useEffect(() => {
@@ -176,10 +179,8 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
 
   const onSelectSlot = async (day: Date, hour: string) => {
     const blackList_ = (await getBlackList( hour)).map((item: any) => item.userId);
-    console.log(assignment)
     let availableUsers =  assignment.prayerFamily.users.filter((member: any) => isMemberAvailable(day, member) && !blackList_.includes( member.id) );
     availableUsers = availableUsers.concat(leader)
-    console.log(leader)
     setAvailableUserListe(availableUsers)
     setSelectedSlot({ date: day, hour });
   }
@@ -419,6 +420,7 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
                                     const schedule = getSchedule(day, hour);
                                     // CORRECTION : Est-ce que la case est vraiment prise ?
                                     const isFilled = schedule && schedule.user;
+                                    
 
                                     return (
                                         <div 
