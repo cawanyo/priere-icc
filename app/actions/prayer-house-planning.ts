@@ -12,7 +12,7 @@ import { sendSMS } from "@/lib/sms";
 export async function getNightPlanning(date: Date) {
   // On cale la date sur le Lundi de la semaine (00:00)
   const date_cast = new Date(date)
-  const weekStart = startOfWeek(addWeeks(date_cast,1), { weekStartsOn: 1 });
+  const weekStart = startOfWeek(date_cast, { weekStartsOn: 1 });
 
   try {
     // On cherche si une famille est assignée cette semaine
