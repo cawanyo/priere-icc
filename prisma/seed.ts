@@ -174,7 +174,55 @@ async function main() {
   }
 }
 
-main()
+
+
+
+async function main_special() {
+  try {
+    // 1. Définir la plage de "Demain"
+    const today = normalizeDate(new Date());
+    const tomorrow = addDays(today, 1);
+    const afterTomorrow = addDays(tomorrow, 1);
+
+    const weekStart = startOfWeek(tomorrow, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(new Date(tomorrow), { weekStartsOn: 1 });
+    // On cherche si une famille est assignée cette semaine
+    const plannings = await prisma.planning.findMany({
+      where: { date: {gte: startOfDay(tomorrow), lt: startOfDay(afterTomorrow)}},
+      include: {
+        specialEvent: true,
+        users:true
+
+      }
+    });
+    let smsCount = 0;
+
+    // 3. Boucler et envoyer
+   
+    for (const planning of plannings || []) {
+
+       for(const user of planning.users) {
+      // Préparer le message
+      let message = `Bonjour ${user?.name},\n\n`;
+      message += `Rappel pour la conduite de pirère : ${format(planning.date, 'EEEE dd MMMM yyyy', { locale: fr })} pour ${planning.specialEvent?.title} à ${planning.startTime} 🙂!\n\n`;
+      // message += `Jour : ${format(schedule?.date, 'EEEE dd MMMM yyyy', { locale: fr })}\n`;
+      // message += `Créneau: ${schedule.startTime} - ${schedule.endTime}\n`;
+      // message += `Le planning et les thèmes sont disponibles sur la plateforme. https://priere-icc.vercel.app/`;
+
+      
+      user && user.phone && await sendSMS({to: user.phone, message});
+      smsCount++;
+      console.log(message,)
+       }
+    }
+  
+
+  } catch (error) {
+    console.error("[CRON ERROR]", error);
+   
+  }
+}
+main_special()
   .catch((e) => {
     console.error(e);
     process.exit(1);
