@@ -2,6 +2,8 @@ export const dynamic = "force-dynamic"; // Toujours important pour que les donn�
 
 import { Suspense } from "react"; // <--- IMPORT IMPORTANT
 import { getUsers, getAdminStats } from "@/app/actions/admin";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 import { PaginationControl } from "@/components/ui/pagination-control";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,7 +19,7 @@ import {
 
 import { UserActions } from "@/components/admin/UserActions";
 import { Role } from "@prisma/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, UserPlus, Users as UsersIcon } from "lucide-react";
 import { AdminStats } from "@/components/admin/AdminSats";
 import { UserFilters } from "@/components/admin/UseFilter";
 
@@ -65,14 +67,39 @@ export default async function AdminUsersPage({
   const metadata = usersRes.success ? usersRes.metadata : null;
 
   return (
-    <div className="flex-1 space-y-8 p-8 pt-6 bg-gray-50/30 min-h-screen">
-      <div className="flex items-center justify-between space-y-2">
+    <div className="flex-1 space-y-8 p-4 sm:p-8 pt-6 bg-gray-50/30 min-h-screen">
+      {/* Navigation Administration */}
+      <div className="flex items-center gap-2 border-b pb-4">
+        <Link
+          href="/dashboard/admin/users"
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-indigo-600 text-white shadow-sm"
+        >
+          <UsersIcon className="h-4 w-4" />
+          Utilisateurs
+        </Link>
+        <Link
+          href="/dashboard/leader/team"
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-indigo-700 hover:bg-white transition-colors"
+        >
+          <UserPlus className="h-4 w-4 text-pink-600" />
+          Demandes d&apos;adhésion & Équipe
+        </Link>
+      </div>
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <h2 className="text-3xl font-serif font-bold tracking-tight text-indigo-900">Gestion des Utilisateurs</h2>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
                 Consultez et gérez les membres ({metadata?.totalCount || 0} total).
             </p>
         </div>
+
+        <Link href="/dashboard/leader/team">
+          <Button variant="outline" className="gap-2 bg-white text-pink-700 border-pink-200 hover:bg-pink-50 shadow-sm">
+            <UserPlus className="h-4 w-4 text-pink-600" />
+            Voir les demandes d&apos;adhésion
+          </Button>
+        </Link>
       </div>
 
       <AdminStats stats={stats} />

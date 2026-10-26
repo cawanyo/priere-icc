@@ -62,10 +62,27 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
+    jwt: async ({ token, user }) => {
+      if (user) {
+        token.role = (user as any).role;
+        token.phone = (user as any).phone;
+      } else if (!token.role && token.sub) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { role: true, phone: true }
+        });
+        if (dbUser) {
+          token.role = dbUser.role;
+          token.phone = dbUser.phone;
+        }
+      }
+      return token;
+    },
     session: async ({ session, token }) => {
       if (session?.user) {
-        // @ts-ignore
-        session.user.id = token.sub; // Ensure ID is passed to session
+        session.user.id = token.sub as string;
+        session.user.role = token.role as any;
+        session.user.phone = token.phone as any;
       }
       return session;
     },

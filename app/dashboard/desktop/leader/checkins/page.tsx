@@ -320,7 +320,7 @@ export default function DesktopLeaderCheckInsPage() {
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [selectedDetail, setSelectedDetail] = useState<NonNullable<CheckInDetail> | null>(null);
-  const searchTimeout = useRef<NodeJS.Timeout | null>(null);
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   async function load(userName?: string) {
     setLoading(true);

@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react"; 
-import { Menu, LogOut, User, ShieldCheck, HeartHandshake } from "lucide-react";
+import { Menu, LogOut, User, ShieldCheck, HeartHandshake, UserPlus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -175,11 +175,19 @@ export function Header() {
                                     </Link>
                                 </DropdownMenuItem>
 
-                                {/* Section Admin (Conditionnelle) */}
+                                {/* Section Admin / Leader (Conditionnelle) */}
                                 {session.user.role === "ADMIN" && (
                                     <DropdownMenuItem asChild className="cursor-pointer bg-red-50 text-red-700 focus:bg-red-100 focus:text-red-800 mt-1">
                                         <Link href="/dashboard/admin/users">
                                             <ShieldCheck className="mr-2 h-4 w-4" /> Administration
+                                        </Link>
+                                    </DropdownMenuItem>
+                                )}
+
+                                {(session.user.role === "ADMIN" || session.user.role === "LEADER") && (
+                                    <DropdownMenuItem asChild className="cursor-pointer bg-pink-50 text-pink-700 focus:bg-pink-100 focus:text-pink-800 mt-1">
+                                        <Link href="/dashboard/leader/team">
+                                            <UserPlus className="mr-2 h-4 w-4 text-pink-600" /> Demandes d'adhésion
                                         </Link>
                                     </DropdownMenuItem>
                                 )}

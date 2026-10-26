@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import {
   Home, Church, CalendarRange, HeartPulse,
   CalendarCheck, LayoutDashboard, User,
-  Activity, Settings, ChevronRight, Cross,
-  Sparkles,
+  Activity, Settings, ChevronRight,
+  Sparkles, ShieldCheck, UserPlus, Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -48,12 +48,18 @@ const LEADER_ITEMS = [
   { href: "/dashboard/leader/planning", label: "Planification", icon: CalendarRange },
   { href: "/dashboard/leader/events", label: "Gestion d'événements", icon: CalendarRange },
   { href: "/dashboard/leader/prayer-house", label: "Maison de Prière", icon: Church },
-  { href: "/dashboard/leader/team", label: "Équipe", icon: User },
+  { href: "/dashboard/leader/team", label: "Demandes & Équipe", icon: Users },
+];
+
+const ADMIN_ITEMS = [
+  { href: "/dashboard/admin/users", label: "Gestion Utilisateurs", icon: ShieldCheck },
+  { href: "/dashboard/leader/team", label: "Demandes d'adhésion", icon: UserPlus },
 ];
 
 export function DesktopSidebar({ userRole, userName, userImage }: DesktopSidebarProps) {
   const pathname = usePathname();
   const isLeader = ["LEADER", "ADMIN"].includes(userRole);
+  const isAdmin = userRole === "ADMIN";
 
   function isActive(href: string, exact: boolean) {
     return exact ? pathname === href : pathname.startsWith(href);
@@ -79,6 +85,7 @@ export function DesktopSidebar({ userRole, userName, userImage }: DesktopSidebar
         <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl">
           <div className="relative shrink-0">
             <Avatar className="h-9 w-9">
+              {userImage && <AvatarImage src={userImage} />}
               <AvatarFallback className="bg-indigo-100 text-indigo-700 font-bold text-sm">
                 {userName.slice(0, 2).toUpperCase()}
               </AvatarFallback>
@@ -150,6 +157,37 @@ export function DesktopSidebar({ userRole, userName, userImage }: DesktopSidebar
                   >
                     <Icon className={cn("h-4 w-4 shrink-0", active ? "text-white" : "text-gray-400 group-hover:text-violet-500")} />
                     <span className="flex-1 truncate">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Section Administration */}
+        {isAdmin && (
+          <div>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 mb-2">
+              Administration
+            </p>
+            <div className="space-y-0.5">
+              {ADMIN_ITEMS.map((item) => {
+                const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group",
+                      active
+                        ? "bg-rose-600 text-white shadow-sm"
+                        : "text-gray-600 hover:bg-rose-50 hover:text-rose-700"
+                    )}
+                  >
+                    <Icon className={cn("h-4 w-4 shrink-0", active ? "text-white" : "text-gray-400 group-hover:text-rose-500")} />
+                    <span className="flex-1 truncate">{item.label}</span>
+                    {active && <ChevronRight className="h-3 w-3 text-white/60 shrink-0" />}
                   </Link>
                 );
               })}
