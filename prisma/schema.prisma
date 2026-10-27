@@ -94,6 +94,9 @@ model EventTemplate {
   title          String
   startTime      String
   endTime        String
+  daysMode       String       @default("ALL")
+  daysOfWeek     Int[]        @default([])
+  specificDates  String[]     @default([])
   specialEventId String
   specialEvent   SpecialEvent @relation(fields: [specialEventId], references: [id], onDelete: Cascade)
   plannings      Planning[]

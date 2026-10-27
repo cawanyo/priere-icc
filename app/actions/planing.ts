@@ -131,7 +131,7 @@ export async function savePlanningEvent(data: any) {
         if (user.phone) {
           await sendSMS({
             to: user.phone, 
-            message: `Bonjour ${user.name?.split(" ")[0]}, LE MDPI vous informe que vous êtes de service le  ${ format(new Date(date),  "EEEE dd/MM/yyyy", { locale: fr })},  à ${startTime} pour ${title}. Merci de consulter le planing.!`
+            message: `Bonjour ${user.name?.split(" ")[0]}, LE MDPI vous informe que vous êtes de service le  ${ format(new Date(date),  "EEEE dd/MM/yyyy", { locale: fr })},  à ${startTime} pour ${event?.title}. Merci de consulter le planing.!`
         });
         }
         }
