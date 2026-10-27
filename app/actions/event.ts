@@ -171,28 +171,30 @@ export async function updateSpecialEvent(data: SpecialEventInput) {
     }
   });
 
-  // 2. Gestion des templates
-  const incomingTemplateIds = (templates || [])
-    .map((t) => t.id)
-    .filter((tid): tid is string => Boolean(tid));
-
-  // Supprimer les templates qui ont été retirés (la cascade Prisma supprimera leurs plannings)
-  await prisma.eventTemplate.deleteMany({
-    where: {
-      specialEventId: id,
-      id: { notIn: incomingTemplateIds }
-    },
+  // 2. Récupérer TOUS les plannings actuels de cet événement
+  // Important : on charge les plannings avant toute modification de template
+  // pour pouvoir réconcilier les créneaux par (date + heure début + heure fin)
+  const existingPlannings = await prisma.planning.findMany({
+    where: { specialEventId: id },
+    select: {
+      id: true,
+      date: true,
+      startTime: true,
+      endTime: true,
+      title: true,
+      templateId: true,
+    }
   });
 
-  // 3. Mettre à jour ou créer chaque template et ajuster les plannings
-  for (const t of (templates || [])) {
-    let currentTemplateId = t.id;
-    let templateRecord;
+  // 3. Traiter les templates reçus (mettre à jour les existants ou créer les nouveaux)
+  const incomingTemplates = templates || [];
+  const validTemplateRecords = [];
 
-    if (currentTemplateId) {
+  for (const t of incomingTemplates) {
+    if (t.id) {
       // Template existant : mise à jour
-      templateRecord = await prisma.eventTemplate.update({
-        where: { id: currentTemplateId },
+      const updated = await prisma.eventTemplate.update({
+        where: { id: t.id },
         data: {
           title: t.title,
           startTime: t.startTime,
@@ -202,19 +204,10 @@ export async function updateSpecialEvent(data: SpecialEventInput) {
           specificDates: t.specificDates || [],
         }
       });
-
-      // Mettre à jour le titre et les heures sur les plannings existants de ce template
-      await prisma.planning.updateMany({
-        where: { templateId: currentTemplateId },
-        data: {
-          title: t.title,
-          startTime: t.startTime,
-          endTime: t.endTime,
-        }
-      });
+      validTemplateRecords.push(updated);
     } else {
-      // Nouveau template ajouté lors de l'édition
-      templateRecord = await prisma.eventTemplate.create({
+      // Nouveau template
+      const created = await prisma.eventTemplate.create({
         data: {
           title: t.title,
           startTime: t.startTime,
@@ -225,58 +218,99 @@ export async function updateSpecialEvent(data: SpecialEventInput) {
           specialEventId: id,
         }
       });
-      currentTemplateId = templateRecord.id;
+      validTemplateRecords.push(created);
     }
+  }
 
-    // Calculer les dates cibles où ce template doit exister entre eventStartDate et eventEndDate
-    const targetDatesMap = new Map<string, Date>();
+  const validTemplateIds = validTemplateRecords.map((tr) => tr.id);
+
+  // 4. Calculer tous les créneaux cibles attendus selon les templates et les dates de l'événement
+  interface TargetSlot {
+    date: Date;
+    dateKey: string;
+    startTime: string;
+    endTime: string;
+    title: string;
+    templateId: string;
+  }
+
+  const targetSlotsMap = new Map<string, TargetSlot>();
+
+  for (const tmpl of validTemplateRecords) {
     let iter = new Date(eventStartDate);
     while (iter <= eventEndDate) {
-      if (templateAppliesToDate(templateRecord, iter)) {
+      if (templateAppliesToDate(tmpl, iter)) {
         const dateKey = iter.toISOString().slice(0, 10);
-        targetDatesMap.set(dateKey, new Date(iter));
+        // Clé unique d'un créneau identique : date + heure début + heure fin
+        const slotKey = `${dateKey}_${tmpl.startTime}_${tmpl.endTime}`;
+        targetSlotsMap.set(slotKey, {
+          date: new Date(iter),
+          dateKey,
+          startTime: tmpl.startTime,
+          endTime: tmpl.endTime,
+          title: tmpl.title,
+          templateId: tmpl.id,
+        });
       }
       iter = addDays(iter, 1);
     }
+  }
 
-    // Récupérer les plannings existants pour ce template
-    const existingPlannings = await prisma.planning.findMany({
-      where: { templateId: currentTemplateId },
-      select: { id: true, date: true }
-    });
+  // 5. Réconciliation intelligente des créneaux :
+  // - Conserver les créneaux identiques (date + heure début + heure fin) en préservant les personnes planifiées
+  // - Supprimer les créneaux de l'ancien planning qui ne correspondent plus aux nouveaux horaires
+  // - Créer les nouveaux créneaux ajoutés
+  for (const ep of existingPlannings) {
+    const epDateKey = ep.date.toISOString().slice(0, 10);
+    const epSlotKey = `${epDateKey}_${ep.startTime}_${ep.endTime}`;
 
-    // - Supprimer les créneaux qui ne sont plus dans les dates cibles
-    // - Conserver intacts les créneaux qui y sont (préservation des inscriptions d'intercesseurs)
-    for (const ep of existingPlannings) {
-      const epDateKey = ep.date.toISOString().slice(0, 10);
-      if (targetDatesMap.has(epDateKey)) {
-        targetDatesMap.delete(epDateKey);
-      } else {
-        await prisma.planning.delete({ where: { id: ep.id } });
-      }
-    }
-
-    // - Créer les créneaux pour les nouvelles dates restantes dans targetDatesMap
-    const newRecordsToCreate = [];
-    for (const dateObj of Array.from(targetDatesMap.values())) {
-      newRecordsToCreate.push({
-        title: templateRecord.title,
-        startTime: templateRecord.startTime,
-        endTime: templateRecord.endTime,
-        date: dateObj,
-        specialEventId: id,
-        templateId: currentTemplateId,
+    if (targetSlotsMap.has(epSlotKey)) {
+      // CRÉNEAU IDENTIQUE TROUVÉ : on le conserve intact pour préserver les personnes planifiées
+      const target = targetSlotsMap.get(epSlotKey)!;
+      await prisma.planning.update({
+        where: { id: ep.id },
+        data: {
+          title: target.title,
+          templateId: target.templateId,
+        }
       });
-    }
-
-    if (newRecordsToCreate.length > 0) {
-      await prisma.planning.createMany({
-        data: newRecordsToCreate,
+      // Retirer du targetSlotsMap pour ne pas le recréer
+      targetSlotsMap.delete(epSlotKey);
+    } else {
+      // ANCIEN CRÉNEAU SUPPRIMÉ OU HORAIRES MODIFIÉS :
+      // On retire ce qui n'existe plus dans la nouvelle configuration
+      await prisma.planning.delete({
+        where: { id: ep.id }
       });
     }
   }
 
-  // 4. Nettoyage de sécurité : supprimer tout planning hors de l'intervalle de l'événement
+  // 6. Création des nouveaux créneaux restants dans targetSlotsMap
+  const newPlanningsToCreate = Array.from(targetSlotsMap.values()).map((ts) => ({
+    title: ts.title,
+    startTime: ts.startTime,
+    endTime: ts.endTime,
+    date: ts.date,
+    specialEventId: id,
+    templateId: ts.templateId,
+  }));
+
+  if (newPlanningsToCreate.length > 0) {
+    await prisma.planning.createMany({
+      data: newPlanningsToCreate,
+    });
+  }
+
+  // 7. Nettoyer les anciens templates qui ne font plus partie des templates validés
+  // (Tous les plannings conservés pointent déjà vers un validTemplateId, donc pas de cascade indésirable)
+  await prisma.eventTemplate.deleteMany({
+    where: {
+      specialEventId: id,
+      id: { notIn: validTemplateIds }
+    }
+  });
+
+  // 8. Nettoyage de sécurité : supprimer tout planning hors de l'intervalle de l'événement
   await prisma.planning.deleteMany({
     where: {
       specialEventId: id,
@@ -289,7 +323,7 @@ export async function updateSpecialEvent(data: SpecialEventInput) {
 
   revalidatePath("/dashboard/leader/events");
   revalidatePath(`/dashboard/leader/events/${id}`);
-  return { success: true, message: "Événement mis à jour" };
+  return { success: true, message: "Événement et planning mis à jour" };
 }
 
 export async function deleteSpecialEvent(id: string) {

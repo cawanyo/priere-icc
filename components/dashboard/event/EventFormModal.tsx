@@ -6,11 +6,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, Clock, ArrowDownAZ, Loader2, Calendar as CalendarIcon, Check } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Clock,
+  ArrowDownAZ,
+  Loader2,
+  Calendar as CalendarIcon,
+  Check,
+  Sparkles,
+  Sliders,
+  Layers,
+} from "lucide-react";
 import { createSpecialEvent, updateSpecialEvent } from "@/app/actions/event";
 import { toast } from "sonner";
 import { SpecialEventWithTemplate } from "@/lib/types";
 import { convertKeepDate } from "@/lib/utils";
+import { sliceTimeSlots } from "@/lib/event-utils";
 import { format, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -40,6 +52,16 @@ const DAYS_OF_WEEK = [
   { value: 0, label: "Dim", full: "Dimanche" },
 ];
 
+const DURATION_PRESETS = [
+  { label: "30 min", value: 30 },
+  { label: "45 min", value: 45 },
+  { label: "1 heure", value: 60 },
+  { label: "1h30", value: 90 },
+  { label: "2 heures", value: 120 },
+  { label: "3 heures", value: 180 },
+  { label: "4 heures", value: 240 },
+];
+
 function EventFormInner({
   eventToEdit,
   onClose,
@@ -49,7 +71,12 @@ function EventFormInner({
 }) {
   const [loading, setLoading] = useState(false);
 
-  // Initialisation directe sans useEffect
+  // Mode de gestion des créneaux : Découpage automatique ou Saisie manuelle
+  const [slotMode, setSlotMode] = useState<"AUTO" | "MANUAL">(() =>
+    eventToEdit ? "MANUAL" : "AUTO"
+  );
+
+  // État du formulaire principal
   const [formData, setFormData] = useState(() => ({
     title: eventToEdit?.title || "",
     description: eventToEdit?.description || "",
@@ -57,6 +84,20 @@ function EventFormInner({
     endDate: eventToEdit ? format(convertKeepDate(eventToEdit.endDate), "yyyy-MM-dd") : "",
   }));
 
+  // État du générateur de découpage automatique
+  const [autoGen, setAutoGen] = useState({
+    startTime: "08:00",
+    endTime: "20:00",
+    durationPreset: "60", // "custom" ou valeur en minutes
+    customDuration: "60",
+    baseTitle: "",
+    daysMode: "ALL" as "ALL" | "WEEK_DAYS" | "SPECIFIC_DATES",
+    daysOfWeek: [] as number[],
+    specificDates: [] as string[],
+    replaceExisting: true,
+  });
+
+  // Liste des créneaux (templates) finaux
   const [templates, setTemplates] = useState<Template[]>(() => {
     if (eventToEdit?.eventTemplates && eventToEdit.eventTemplates.length > 0) {
       return eventToEdit.eventTemplates.map((t) => ({
@@ -81,7 +122,7 @@ function EventFormInner({
     ];
   });
 
-  // Calcul dynamique de toutes les dates de la période de l'événement
+  // Calcul dynamique des dates de l'événement
   const eventDates = useMemo(() => {
     if (!formData.startDate || !formData.endDate) return [];
     const partsStart = formData.startDate.split("-").map(Number);
@@ -109,7 +150,73 @@ function EventFormInner({
     return dates;
   }, [formData.startDate, formData.endDate]);
 
-  // --- GESTION DES TEMPLATES ---
+  // Durée effective en minutes pour le générateur
+  const effectiveDurationMinutes = useMemo(() => {
+    if (autoGen.durationPreset === "custom") {
+      const val = parseInt(autoGen.customDuration, 10);
+      return isNaN(val) || val <= 0 ? 60 : val;
+    }
+    const val = parseInt(autoGen.durationPreset, 10);
+    return isNaN(val) || val <= 0 ? 60 : val;
+  }, [autoGen.durationPreset, autoGen.customDuration]);
+
+  // Prévisualisation en temps réel des créneaux découpés
+  const previewSlices = useMemo(() => {
+    return sliceTimeSlots({
+      startTime: autoGen.startTime,
+      endTime: autoGen.endTime,
+      durationMinutes: effectiveDurationMinutes,
+      baseTitle: autoGen.baseTitle,
+      daysMode: autoGen.daysMode,
+      daysOfWeek: autoGen.daysOfWeek,
+      specificDates: autoGen.specificDates,
+    });
+  }, [
+    autoGen.startTime,
+    autoGen.endTime,
+    effectiveDurationMinutes,
+    autoGen.baseTitle,
+    autoGen.daysMode,
+    autoGen.daysOfWeek,
+    autoGen.specificDates,
+  ]);
+
+  // Appliquer les créneaux découpés dans la liste des templates
+  const handleApplySlices = () => {
+    if (previewSlices.length === 0) {
+      toast.error("Veuillez renseigner des horaires valides pour le découpage.");
+      return;
+    }
+
+    if (autoGen.replaceExisting) {
+      setTemplates(
+        previewSlices.map((s) => ({
+          title: s.title,
+          startTime: s.startTime,
+          endTime: s.endTime,
+          daysMode: (s.daysMode as "ALL" | "WEEK_DAYS" | "SPECIFIC_DATES") || "ALL",
+          daysOfWeek: s.daysOfWeek || [],
+          specificDates: s.specificDates || [],
+        }))
+      );
+      toast.success(`${previewSlices.length} créneaux découpés proposés !`);
+    } else {
+      setTemplates([
+        ...templates,
+        ...previewSlices.map((s) => ({
+          title: s.title,
+          startTime: s.startTime,
+          endTime: s.endTime,
+          daysMode: (s.daysMode as "ALL" | "WEEK_DAYS" | "SPECIFIC_DATES") || "ALL",
+          daysOfWeek: s.daysOfWeek || [],
+          specificDates: s.specificDates || [],
+        })),
+      ]);
+      toast.success(`${previewSlices.length} créneaux ajoutés à la liste !`);
+    }
+  };
+
+  // --- GESTION MANUELLE DES TEMPLATES ---
   const addTemplate = () => {
     setTemplates([
       ...templates,
@@ -184,6 +291,11 @@ function EventFormInner({
       return;
     }
 
+    if (templates.length === 0) {
+      toast.error("Veuillez définir au moins un créneau horaire.");
+      return;
+    }
+
     for (let i = 0; i < templates.length; i++) {
       const t = templates[i];
       const slotName = t.title ? `"${t.title}"` : `créneau ${i + 1}`;
@@ -251,15 +363,15 @@ function EventFormInner({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="event-description" className="font-semibold text-gray-700">
-              Description (facultative)
+            <Label htmlFor="event-desc" className="font-semibold text-gray-700">
+              Description
             </Label>
             <Textarea
-              id="event-description"
-              placeholder="Précisions sur le programme, thématiques ou consignes..."
-              className="min-h-16"
+              id="event-desc"
+              placeholder="Détails, intentions de prière ou instructions pour cet événement..."
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="resize-none h-20"
             />
           </div>
 
@@ -289,39 +401,222 @@ function EventFormInner({
           </div>
         </div>
 
-        {/* Créneaux */}
+        {/* Section Créneaux */}
         <div className="space-y-4 pt-4 border-t">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                Créneaux de l&apos;événement
+                Créneaux horaires de l&apos;événement
               </h4>
               <p className="text-xs text-gray-500">
-                Définissez les horaires et la fréquence (tous les jours ou certains jours).
+                Découpez automatiquement une plage horaire ou saisissez manuellement vos créneaux.
               </p>
             </div>
+
+            {/* Switcher de mode : Découpage auto vs Saisie manuelle */}
+            <div className="inline-flex rounded-xl bg-gray-100 p-1 self-start sm:self-auto border border-gray-200">
+              <button
+                type="button"
+                onClick={() => setSlotMode("AUTO")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  slotMode === "AUTO"
+                    ? "bg-white text-indigo-700 shadow-xs"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+                Découpage auto
+              </button>
+              <button
+                type="button"
+                onClick={() => setSlotMode("MANUAL")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  slotMode === "MANUAL"
+                    ? "bg-white text-indigo-700 shadow-xs"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                <Sliders className="h-3.5 w-3.5 text-gray-500" />
+                Saisie manuelle
+              </button>
+            </div>
+          </div>
+
+          {/* --- PANNEAU DE DÉCOUPAGE AUTOMATIQUE --- */}
+          {slotMode === "AUTO" && (
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/40 to-white border border-indigo-100 shadow-xs space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white shrink-0">
+                    <Sparkles className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-indigo-950 uppercase tracking-wider">
+                      Générateur de créneaux découpés
+                    </h5>
+                    <p className="text-[11px] text-gray-500">
+                      Renseignez la plage horaire globale et la durée pour découper en créneaux réguliers.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ligne 1 : Heures début/fin et Durée */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-gray-700">Heure de début générale</Label>
+                  <div className="relative">
+                    <Clock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                    <Input
+                      type="time"
+                      className="h-9 pl-8 bg-white text-xs font-medium"
+                      value={autoGen.startTime}
+                      onChange={(e) => setAutoGen({ ...autoGen, startTime: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-gray-700">Heure de fin générale</Label>
+                  <div className="relative">
+                    <Clock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                    <Input
+                      type="time"
+                      className="h-9 pl-8 bg-white text-xs font-medium"
+                      value={autoGen.endTime}
+                      onChange={(e) => setAutoGen({ ...autoGen, endTime: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-gray-700">Durée de chaque créneau</Label>
+                  <select
+                    className="w-full h-9 rounded-md border border-gray-300 bg-white px-3 text-xs font-medium text-gray-800 shadow-xs focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    value={autoGen.durationPreset}
+                    onChange={(e) => setAutoGen({ ...autoGen, durationPreset: e.target.value })}
+                  >
+                    {DURATION_PRESETS.map((p) => (
+                      <option key={p.value} value={p.value}>
+                        {p.label}
+                      </option>
+                    ))}
+                    <option value="custom">Personnalisé (en minutes)...</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Option durée personnalisée si sélectionnée */}
+              {autoGen.durationPreset === "custom" && (
+                <div className="flex items-center gap-2 max-w-xs">
+                  <Input
+                    type="number"
+                    min={5}
+                    max={1440}
+                    placeholder="Durée en minutes"
+                    className="h-8 text-xs bg-white"
+                    value={autoGen.customDuration}
+                    onChange={(e) => setAutoGen({ ...autoGen, customDuration: e.target.value })}
+                  />
+                  <span className="text-xs text-gray-500">minutes par créneau</span>
+                </div>
+              )}
+
+              {/* Titre optionnel */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-gray-700">
+                    Titre de base (optionnel)
+                  </Label>
+                  <Input
+                    placeholder="Ex: Intercession, Prière continue..."
+                    className="h-8 bg-white text-xs"
+                    value={autoGen.baseTitle}
+                    onChange={(e) => setAutoGen({ ...autoGen, baseTitle: e.target.value })}
+                  />
+                </div>
+
+                <div className="flex items-center sm:items-end pb-1 gap-2">
+                  <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={autoGen.replaceExisting}
+                      onChange={(e) => setAutoGen({ ...autoGen, replaceExisting: e.target.checked })}
+                      className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                    />
+                    <span>Remplacer les créneaux existants ci-dessous</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Prévisualisation dynamique & Bouton d'application */}
+              <div className="pt-3 border-t border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="text-xs text-indigo-900">
+                  {previewSlices.length > 0 ? (
+                    <span className="font-medium flex items-center gap-1.5 flex-wrap">
+                      <Layers className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+                      <strong>{previewSlices.length} créneaux découpés proposés :</strong>{" "}
+                      <span className="text-gray-600 font-mono text-[11px]">
+                        {previewSlices
+                          .slice(0, 4)
+                          .map((s) => `${s.startTime}-${s.endTime}`)
+                          .join(", ")}
+                        {previewSlices.length > 4 ? ` (+${previewSlices.length - 4} autres)` : ""}
+                      </span>
+                    </span>
+                  ) : (
+                    <span className="text-amber-700">
+                      Renseignez des heures valides pour générer les créneaux découpés.
+                    </span>
+                  )}
+                </div>
+
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleApplySlices}
+                  disabled={previewSlices.length === 0}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs h-8 shadow-sm gap-1.5 shrink-0"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Proposer les {previewSlices.length} créneaux
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Barre d'action au-dessus de la liste */}
+          <div className="flex items-center justify-between pt-2">
+            <span className="text-xs font-semibold text-gray-700 flex items-center gap-2">
+              <span>Liste des créneaux finaux</span>
+              <span className="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                {templates.length}
+              </span>
+            </span>
+
             <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 type="button"
                 onClick={sortTemplates}
-                className="h-8 text-xs"
+                className="h-7 text-xs bg-white"
               >
-                <ArrowDownAZ className="h-3.5 w-3.5 mr-1" /> Trier
+                <ArrowDownAZ className="h-3 w-3 mr-1" /> Trier
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 type="button"
                 onClick={addTemplate}
-                className="text-indigo-600 hover:bg-indigo-50 border-indigo-200 h-8 text-xs"
+                className="text-indigo-600 hover:bg-indigo-50 border-indigo-200 h-7 text-xs bg-white"
               >
-                <Plus className="h-3.5 w-3.5 mr-1" /> Ajouter un créneau
+                <Plus className="h-3 w-3 mr-1" /> Ajouter manuellement
               </Button>
             </div>
           </div>
 
+          {/* --- LISTE DES CRÉNEAUX FINAUX (Directement modifiables) --- */}
           <div className="space-y-4">
             {templates.map((t, index) => {
               const mode = t.daysMode || "ALL";
@@ -333,6 +628,9 @@ function EventFormInner({
                 >
                   {/* Ligne 1: Titre et suppression */}
                   <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-gray-400 w-5 text-center">
+                      #{index + 1}
+                    </span>
                     <Input
                       placeholder="Nom du créneau (ex: Prière du matin, Intercession midi...)"
                       className="h-9 bg-white flex-1 font-medium text-sm"
@@ -357,7 +655,7 @@ function EventFormInner({
                       <Clock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
                       <Input
                         type="time"
-                        className="h-8 pl-8 bg-white text-xs"
+                        className="h-8 pl-8 bg-white text-xs font-medium"
                         value={t.startTime}
                         onChange={(e) => updateTemplateField(index, "startTime", e.target.value)}
                       />
@@ -367,7 +665,7 @@ function EventFormInner({
                       <Clock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
                       <Input
                         type="time"
-                        className="h-8 pl-8 bg-white text-xs"
+                        className="h-8 pl-8 bg-white text-xs font-medium"
                         value={t.endTime}
                         onChange={(e) => updateTemplateField(index, "endTime", e.target.value)}
                       />
