@@ -12,9 +12,16 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
-const VAPID_PUBLIC_KEY =
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
+const DEFAULT_VAPID_PUBLIC_KEY =
   "BGZYRSOOiM424bgqk0oHsYqcDNYtWpMwbXpAcUk5DT98o3cL1nmHke_gfOSBI9dLdshvfgj9cM-xyc8BwYMNXag";
+
+function getVapidPublicKey(): string {
+  const envKey = (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "").trim().replace(/^["']|["']$/g, "");
+  if (envKey.length >= 80 && !envKey.includes("votre_")) {
+    return envKey;
+  }
+  return DEFAULT_VAPID_PUBLIC_KEY;
+}
 
 // Fonction d'abonnement exportée pour être réutilisée partout (ex: cloche de notif, profil)
 export async function subscribeUserToPush(): Promise<{ success: boolean; message?: string }> {
@@ -29,7 +36,7 @@ export async function subscribeUserToPush(): Promise<{ success: boolean; message
     }
 
     const registration = await navigator.serviceWorker.ready;
-    const convertedKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+    const convertedKey = urlBase64ToUint8Array(getVapidPublicKey());
 
     let subscription = await registration.pushManager.getSubscription();
     if (!subscription) {
@@ -94,7 +101,7 @@ export function PwaManager() {
           // Si les notifications sont déjà accordées, synchroniser discrètement l'abonnement
           if ("Notification" in window && Notification.permission === "granted") {
             try {
-              const convertedKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+              const convertedKey = urlBase64ToUint8Array(getVapidPublicKey());
               let sub = await registration.pushManager.getSubscription();
               if (!sub) {
                 sub = await registration.pushManager.subscribe({
