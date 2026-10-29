@@ -76,11 +76,11 @@ export function MobileBottomNav({ userRole }: MobileBottomNavProps) {
   ].filter((item) => item.show);
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
-      <div
-        className="flex justify-around items-center h-16 px-1"
-        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
-      >
+    <nav
+      className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-lg z-50"
+      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+    >
+      <div className="flex justify-around items-center h-16 px-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (

@@ -12,8 +12,6 @@ export default async function DesktopEspacePage() {
   const isMinistere = ["INTERCESSOR", "PRAYER_LEADER", "LEADER", "ADMIN"].includes(user.role);
 
   const items = [
-    { title: "Mes Prières", description: "Suivre mes requêtes et leur statut.", href: "/dashboard/user/prayer", icon: Church, color: "text-pink-600", bg: "bg-pink-50", show: true },
-    { title: "Mes Témoignages", description: "Partager ce que Dieu a fait.", href: "/dashboard/user/testimonies", icon: Sparkles, color: "text-yellow-600", bg: "bg-yellow-50", show: true },
     { title: "Disponibilités", description: "Signaler mes absences au planning.", href: "/dashboard/user/intercessor/availability", icon: Calendar1, color: "text-violet-600", bg: "bg-violet-50", show: isMinistere },
     { title: "Mon Profil", description: "Gérer mes informations personnelles.", href: "/dashboard/user/profile", icon: CircleUserRound, color: "text-blue-600", bg: "bg-blue-50", show: true },
   ].filter((i) => i.show);
@@ -26,7 +24,7 @@ export default async function DesktopEspacePage() {
         </div>
         <div>
           <h1 className="text-lg font-bold text-gray-900">Mon Espace</h1>
-          <p className="text-xs text-gray-400">Prières, témoignages et profil</p>
+          <p className="text-xs text-gray-400">Disponibilités et profil</p>
         </div>
       </div>
       <div className="px-8 py-6 max-w-3xl">

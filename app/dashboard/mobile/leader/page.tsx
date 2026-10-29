@@ -41,15 +41,6 @@ export default async function MobileLeaderPage() {
       highlight: true,
     },
     {
-      title: "Mur de Prières",
-      description: "Vue globale des requêtes.",
-      href: "/dashboard/leader/prayer",
-      icon: LayoutDashboard,
-      color: "text-orange-600",
-      bg: "bg-orange-50",
-      highlight: false,
-    },
-    {
       title: "Planification Hebdo",
       description: "Gérer le planning récurrent.",
       href: "/dashboard/leader/planning",

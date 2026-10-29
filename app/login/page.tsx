@@ -72,7 +72,7 @@ export default function LoginPage() {
       <ImageLeft />
 
       {/* --- RIGHT SIDE: FORM --- */}
-      <div className="flex items-center justify-center py-12 px-8 bg-background">
+      <div className="flex items-center justify-center py-6 sm:py-12 px-4 sm:px-8 bg-background">
         <motion.div 
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -135,10 +135,6 @@ export default function LoginPage() {
               Créer un compte
             </Link>
           </div>
-          
-          <Button variant="link" className="mt-2 w-fit mx-auto text-muted-foreground" onClick={() => router.push("/")}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Retour à l'acceuil
-          </Button>
         </motion.div>
       </div>
     </div>

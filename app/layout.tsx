@@ -17,6 +17,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   themeColor: "#312e81",
+  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {
@@ -79,11 +80,11 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
         <Providers>
-          <div className="min-h-screen w-full flex flex-col justify-between bg-white safe-padding-bottom">
+          <div className="min-h-screen min-h-[100dvh] w-full flex flex-col bg-white">
             <Suspense fallback={<LoadingOverlay />}>
               <Header />
             </Suspense>
-            <main className=""> 
+            <main className="flex-1 w-full"> 
               {children}
             </main>
             <Footer/>
