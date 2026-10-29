@@ -143,7 +143,7 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
-// Notifications Push (Optionnel et prêt pour l'avenir)
+// Notifications Push natives (sur l'écran verrouillé et le centre de notifications)
 self.addEventListener("push", (event) => {
   if (!event.data) return;
 
@@ -152,8 +152,11 @@ self.addEventListener("push", (event) => {
     const title = data.title || "Ministère de la Prière ICC";
     const options = {
       body: data.body || "Vous avez une nouvelle notification.",
-      icon: "/icons/icon-192x192.png",
+      icon: data.icon || "/icons/icon-192x192.png",
       badge: "/icons/icon-96x96.png",
+      vibrate: [100, 50, 100],
+      tag: data.tag || "priere-icc-alert",
+      renotify: true,
       data: {
         url: data.url || "/dashboard",
       },

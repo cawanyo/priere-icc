@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SecurityForm } from "@/components/profile/SecurityForm";
 import { ProfileForm } from "@/components/profile/ProfileForm";
+import { PushNotificationCard } from "@/components/profile/PushNotificationCard";
 import { IntercessorJourney } from "@/components/profile/IntercessorRoad";
 import { getUserWithRoleRequest } from "@/app/actions/role-request";
 import { useEffect, useState } from "react";
@@ -89,7 +90,7 @@ export default function ProfilePage() {
           </TabsList>
 
           {/* ONGLET GÉNÉRAL */}
-          <TabsContent value="general" className="animate-in fade-in-50 duration-500">
+          <TabsContent value="general" className="animate-in fade-in-50 duration-500 space-y-6">
             <Card className="border-none shadow-md">
               <CardHeader>
                 <CardTitle>Profil Utilisateur</CardTitle>
@@ -101,6 +102,8 @@ export default function ProfilePage() {
                 <ProfileForm user={user} />
               </CardContent>
             </Card>
+
+            <PushNotificationCard />
           </TabsContent>
 
           {/* ONGLET SÉCURITÉ */}

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { revalidatePath } from "next/cache";
+import { sendWebPushToUser } from "@/lib/web-push";
 
 // Récupérer les notifications de l'utilisateur connecté
 export async function getUserNotifications() {
@@ -69,10 +70,10 @@ export async function markAllAsRead() {
   revalidatePath("/dashboard");
 }
 
-// Créer une notification (Utilitaire interne à appeler depuis d'autres actions)
+// Créer une notification (Utilitaire interne : sauvegarde en base + envoi Push natif)
 export async function createNotification(userId: string, title: string, message: string, type: string = "INFO", link?: string) {
   try {
-    await prisma.notification.create({
+    const notif = await prisma.notification.create({
       data: {
         userId,
         title,
@@ -81,7 +82,19 @@ export async function createNotification(userId: string, title: string, message:
         link
       }
     });
-    return { success: true };
+
+    // Envoi de la notification Web Push sur l'écran du smartphone / ordinateur
+    try {
+      await sendWebPushToUser(userId, {
+        title,
+        body: message,
+        url: link || "/dashboard",
+      });
+    } catch (pushErr) {
+      console.warn("[Notification] Échec envoi push non bloquant:", pushErr);
+    }
+
+    return { success: true, data: notif };
   } catch (error) {
     console.error("Erreur création notif:", error);
     return { success: false };

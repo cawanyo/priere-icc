@@ -1,13 +1,65 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, X, Share, PlusSquare, Sparkles, Check } from "lucide-react";
+import { Download, X, Share, PlusSquare, Sparkles, Check, BellRing } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { urlBase64ToUint8Array } from "@/lib/utils";
+import { savePushSubscription } from "@/app/actions/push-subscription";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
+const VAPID_PUBLIC_KEY =
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
+  "BGZYRSOOiM424bgqk0oHsYqcDNYtWpMwbXpAcUk5DT98o3cL1nmHke_gfOSBI9dLdshvfgj9cM-xyc8BwYMNXag";
+
+// Fonction d'abonnement exportée pour être réutilisée partout (ex: cloche de notif, profil)
+export async function subscribeUserToPush(): Promise<{ success: boolean; message?: string }> {
+  if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator)) {
+    return { success: false, message: "Les notifications ne sont pas supportées sur cet appareil." };
+  }
+
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") {
+      return { success: false, message: "Autorisation des notifications refusée." };
+    }
+
+    const registration = await navigator.serviceWorker.ready;
+    const convertedKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+
+    let subscription = await registration.pushManager.getSubscription();
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: convertedKey as unknown as BufferSource,
+      });
+    }
+
+    const subJson = subscription.toJSON();
+    if (!subJson.endpoint || !subJson.keys?.p256dh || !subJson.keys?.auth) {
+      return { success: false, message: "Impossible de générer le jeton d'abonnement." };
+    }
+
+    const res = await savePushSubscription(
+      {
+        endpoint: subJson.endpoint,
+        keys: {
+          p256dh: subJson.keys.p256dh,
+          auth: subJson.keys.auth,
+        },
+      },
+      navigator.userAgent
+    );
+
+    return res;
+  } catch (error) {
+    console.error("[PWA] Erreur abonnement push:", error);
+    return { success: false, message: "Erreur lors de l'abonnement aux notifications." };
+  }
 }
 
 export function PwaManager() {
@@ -27,6 +79,7 @@ export function PwaManager() {
   });
   const [showIosGuide, setShowIosGuide] = useState(false);
   const [isBannerVisible, setIsBannerVisible] = useState(false);
+  const [showPushPrompt, setShowPushPrompt] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -35,22 +88,46 @@ export function PwaManager() {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/sw.js")
-        .then((registration) => {
-          // Vérification des mises à jour du service worker à chaque navigation
+        .then(async (registration) => {
           registration.update().catch(() => {});
+
+          // Si les notifications sont déjà accordées, synchroniser discrètement l'abonnement
+          if ("Notification" in window && Notification.permission === "granted") {
+            try {
+              const convertedKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+              let sub = await registration.pushManager.getSubscription();
+              if (!sub) {
+                sub = await registration.pushManager.subscribe({
+                  userVisibleOnly: true,
+                  applicationServerKey: convertedKey as unknown as BufferSource,
+                });
+              }
+              const subJson = sub.toJSON();
+              if (subJson.endpoint && subJson.keys?.p256dh && subJson.keys?.auth) {
+                await savePushSubscription(
+                  {
+                    endpoint: subJson.endpoint,
+                    keys: { p256dh: subJson.keys.p256dh, auth: subJson.keys.auth },
+                  },
+                  navigator.userAgent
+                );
+              }
+            } catch {
+              // Échec silencieux de la synchronisation d'arrière-plan
+            }
+          }
         })
         .catch((error) => {
           console.warn("[PWA] Erreur enregistrement SW:", error);
         });
     }
 
-    // 2. Capture de l'événement beforeinstallprompt (Android, Chrome, Edge)
+    // 2. Capture de l'événement beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setIsInstallable(true);
 
-      // Vérifier si l'utilisateur n'a pas fermé la bannière récemment (7 jours)
       const dismissedUntil = localStorage.getItem("pwa_dismissed_until");
       const isDismissed = dismissedUntil && new Date().getTime() < parseInt(dismissedUntil, 10);
       if (!isDismissed && !isStandalone) {
@@ -60,12 +137,11 @@ export function PwaManager() {
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
-    // Si sur iOS et pas installé, vérifier aussi la date de fermeture
+    // Si sur iOS et pas encore installé
     if (isIos && !isStandalone) {
       const dismissedUntil = localStorage.getItem("pwa_dismissed_until");
       const isDismissed = dismissedUntil && new Date().getTime() < parseInt(dismissedUntil, 10);
       if (!isDismissed) {
-        // Laisser 3 secondes avant d'afficher la suggestion discrète
         const timer = setTimeout(() => setIsBannerVisible(true), 3000);
         return () => {
           clearTimeout(timer);
@@ -74,7 +150,17 @@ export function PwaManager() {
       }
     }
 
-    // 3. Suivi du statut de connexion (Online / Offline)
+    // 3. Si l'app est déjà installée et que les notifications ne sont pas encore activées
+    if (isStandalone && "Notification" in window && Notification.permission === "default") {
+      const pushDismissed = localStorage.getItem("pwa_push_dismissed_until");
+      const isDismissed = pushDismissed && new Date().getTime() < parseInt(pushDismissed, 10);
+      if (!isDismissed) {
+        const timer = setTimeout(() => setShowPushPrompt(true), 4000);
+        return () => clearTimeout(timer);
+      }
+    }
+
+    // 4. Suivi du statut de connexion (Online / Offline)
     const handleOnline = () => toast.success("Connexion Internet rétablie !");
     const handleOffline = () => toast.warning("Vous êtes actuellement hors ligne.");
 
@@ -90,7 +176,6 @@ export function PwaManager() {
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
-      // Déclencher le prompt natif Chrome/Android
       await deferredPrompt.prompt();
       const choiceResult = await deferredPrompt.userChoice;
       if (choiceResult.outcome === "accepted") {
@@ -98,27 +183,41 @@ export function PwaManager() {
         setIsInstallable(false);
         setDeferredPrompt(null);
         toast.success("Application installée avec succès !");
+
+        // Proposer les notifications après installation
+        setTimeout(() => setShowPushPrompt(true), 2000);
       }
     } else if (isIos) {
-      // Ouvrir le guide d'installation pour iOS Safari
       setShowIosGuide(true);
     }
   };
 
-  const handleDismiss = () => {
+  const handleDismissBanner = () => {
     setIsBannerVisible(false);
-    // Masquer pendant 7 jours
     const inSevenDays = new Date().getTime() + 7 * 24 * 60 * 60 * 1000;
     localStorage.setItem("pwa_dismissed_until", inSevenDays.toString());
   };
 
-  // Si l'application tourne déjà en mode autonome, ne rien afficher
-  if (isStandalone) return null;
+  const handleEnablePush = async () => {
+    setShowPushPrompt(false);
+    const res = await subscribeUserToPush();
+    if (res.success) {
+      toast.success("Notifications activées ! Vous recevrez les alertes sur cet appareil.");
+    } else {
+      toast.error(res.message || "Impossible d'activer les notifications.");
+    }
+  };
+
+  const handleDismissPush = () => {
+    setShowPushPrompt(false);
+    const inSevenDays = new Date().getTime() + 7 * 24 * 60 * 60 * 1000;
+    localStorage.setItem("pwa_push_dismissed_until", inSevenDays.toString());
+  };
 
   return (
     <>
-      {/* Bannière discrète d'installation PWA */}
-      {isBannerVisible && (isInstallable || isIos) && (
+      {/* 1. Bannière d'installation PWA */}
+      {isBannerVisible && (isInstallable || isIos) && !isStandalone && (
         <aside
           role="region"
           aria-label="Installation de l'application"
@@ -149,7 +248,7 @@ export function PwaManager() {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={handleDismiss}
+                  onClick={handleDismissBanner}
                   className="h-8 text-xs text-gray-500 hover:text-gray-800 rounded-lg"
                 >
                   Plus tard
@@ -158,7 +257,7 @@ export function PwaManager() {
             </div>
 
             <button
-              onClick={handleDismiss}
+              onClick={handleDismissBanner}
               aria-label="Fermer la bannière"
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 p-1 rounded-md"
             >
@@ -168,7 +267,58 @@ export function PwaManager() {
         </aside>
       )}
 
-      {/* Modale d'instructions d'installation pour iOS (Safari) */}
+      {/* 2. Bannière d'activation des notifications push */}
+      {showPushPrompt && (
+        <aside
+          role="region"
+          aria-label="Activation des notifications"
+          className="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:w-96 z-50 bg-indigo-900 text-white rounded-2xl shadow-2xl p-4 animate-in fade-in slide-in-from-bottom-4 duration-300"
+        >
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-indigo-200 shrink-0">
+              <BellRing className="h-5 w-5 text-indigo-300" />
+            </div>
+
+            <div className="flex-1 min-w-0 pr-6">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-200">
+                Alertes & Créneaux de Prière
+              </h4>
+              <p className="text-xs text-indigo-100 mt-0.5 leading-snug">
+                Recevez directement vos rappels de créneaux et notifications sur votre écran.
+              </p>
+
+              <div className="flex items-center gap-2 mt-3">
+                <Button
+                  size="sm"
+                  onClick={handleEnablePush}
+                  className="h-8 text-xs bg-white hover:bg-gray-100 text-indigo-900 font-semibold rounded-lg gap-1.5 shadow-xs"
+                >
+                  <BellRing className="h-3.5 w-3.5" />
+                  Activer
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleDismissPush}
+                  className="h-8 text-xs text-indigo-300 hover:text-white rounded-lg"
+                >
+                  Plus tard
+                </Button>
+              </div>
+            </div>
+
+            <button
+              onClick={handleDismissPush}
+              aria-label="Fermer l'alerte"
+              className="absolute top-3 right-3 text-indigo-300 hover:text-white p-1 rounded-md"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </aside>
+      )}
+
+      {/* 3. Guide d'installation iOS Safari */}
       {showIosGuide && (
         <div
           role="dialog"
