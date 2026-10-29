@@ -1,4 +1,3 @@
-// components/auth/SessionWatcher.tsx
 "use client";
 
 import { useSession } from "next-auth/react";
@@ -11,23 +10,28 @@ export function SessionWatcher() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Liste des chemins publics qui ne nécessitent pas de redirection
-    const publicPaths = ["/", "/login", "/signup", "/testimonies", "/forgot-password"];
+    // Si sur la racine
+    if (pathname === "/") {
+      if (status === "authenticated") {
+        router.replace("/dashboard");
+      } else if (status === "unauthenticated") {
+        router.replace("/login");
+      }
+      return;
+    }
+
+    // Liste des chemins publics
+    const publicPaths = ["/login", "/signup", "/forgot-password"];
     
-    // On vérifie si le chemin actuel est public
     const isPublicPath = publicPaths.some(path => 
-      pathname === path || (path !== "/" && pathname.startsWith(path))
+      pathname === path || pathname.startsWith(path)
     );
 
-    // Exception : /testimonies/submit est protégé, même si /testimonies est public
-    const isProtectedException = pathname === "/testimonies/submit";
-
-    // Si l'utilisateur n'est plus connecté ("unauthenticated") ET qu'il est sur une page protégée
-    // On le redirige vers la page d'accueil ou de login
-    if (status === "unauthenticated" && (!isPublicPath || isProtectedException)) {
-      router.push("/login"); // Ou "/" selon votre préférence
+    // Si non connecté sur une page protégée
+    if (status === "unauthenticated" && !isPublicPath) {
+      router.replace("/login");
     }
   }, [status, pathname, router]);
 
-  return null; // Ce composant n'affiche rien visuellement
+  return null;
 }

@@ -135,10 +135,6 @@ export default function LoginPage() {
               Créer un compte
             </Link>
           </div>
-          
-          <Button variant="link" className="mt-2 w-fit mx-auto text-muted-foreground" onClick={() => router.push("/")}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Retour à l'acceuil
-          </Button>
         </motion.div>
       </div>
     </div>

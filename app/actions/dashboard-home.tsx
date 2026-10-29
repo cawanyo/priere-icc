@@ -114,15 +114,7 @@ export async function getUserDashboard() {
     take: 2
   });
 
-  // E. Témoignages récents approuvés (les 3 derniers)
-  const recentTestimonies = await prisma.testimony.findMany({
-    where: { status: "APPROVED" },
-    orderBy: { createdAt: 'desc' },
-    take: 3,
-    include: { user: { select: { name: true, image: true } }, images: true }
-  });
-
-  // F. Maison de garde cette semaine
+  // E. Maison de garde cette semaine
   const weekStart = startOfWeek(normalizeDate(now), { weekStartsOn: 1 });
   const currentNightWatch = await prisma.familyWeeklyAssignment.findUnique({
     where: { weekStart },
@@ -142,7 +134,6 @@ export async function getUserDashboard() {
     nightSchedules,
     servicesThisMonth,
     upcomingEvents,
-    recentTestimonies,
     currentNightWatch
   };
 }

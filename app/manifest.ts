@@ -79,17 +79,17 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       {
+        name: "Dashboard",
+        short_name: "Dashboard",
+        description: "Accéder à mon tableau de bord",
+        url: "/dashboard",
+        icons: [{ src: "/icons/icon-96x96.png", sizes: "96x96" }],
+      },
+      {
         name: "Planning de prière",
         short_name: "Planning",
         description: "Accéder au planning des créneaux",
         url: "/dashboard/desktop/planning",
-        icons: [{ src: "/icons/icon-96x96.png", sizes: "96x96" }],
-      },
-      {
-        name: "Déposer une prière",
-        short_name: "Prière",
-        description: "Envoyer une intention de prière",
-        url: "/prayer",
         icons: [{ src: "/icons/icon-96x96.png", sizes: "96x96" }],
       },
       {

@@ -53,25 +53,6 @@ export default async function MobileEspacePage() {
       bg: "bg-pink-50",
       show: true,
     },
-
-    {
-      title: "Mes Prières",
-      description: "Suivre mes requêtes et leur statut.",
-      href: "/dashboard/user/prayer",
-      icon: Church,
-      color: "text-pink-600",
-      bg: "bg-pink-50",
-      show: true,
-    },
-    {
-      title: "Mes Témoignages",
-      description: "Partager ce que Dieu a fait.",
-      href: "/dashboard/user/testimonies",
-      icon: Sparkles,
-      color: "text-yellow-600",
-      bg: "bg-yellow-50",
-      show: true,
-    },
     {
       title: "Disponibilités",
       description: "Signaler mes absences au planning.",

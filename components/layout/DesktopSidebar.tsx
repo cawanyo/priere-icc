@@ -44,7 +44,6 @@ const NAV_SECTIONS = [
 const LEADER_ITEMS = [
   { href: "/dashboard/desktop/leader/checkins", label: "Suivi des Stars", icon: Activity },
   { href: "/dashboard/desktop/leader/rdv", label: "Mes Rendez-vous", icon: CalendarCheck },
-  { href: "/dashboard/leader/prayer", label: "Mur de Prières", icon: LayoutDashboard },
   { href: "/dashboard/leader/planning", label: "Planification", icon: CalendarRange },
   { href: "/dashboard/leader/events", label: "Gestion d'événements", icon: CalendarRange },
   { href: "/dashboard/leader/prayer-house", label: "Maison de Prière", icon: Church },

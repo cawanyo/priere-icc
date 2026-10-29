@@ -25,7 +25,6 @@ export default async function DashboardPage() {
   const nightSchedules = dashboardData?.nightSchedules || [];
   const servicesThisMonth = dashboardData?.servicesThisMonth ?? 0;
   const upcomingEvents = dashboardData?.upcomingEvents || [];
-  const recentTestimonies = dashboardData?.recentTestimonies || [];
   const currentNightWatch = dashboardData?.currentNightWatch;
 
   const upcomingSchedules = [...daySchedules, ...nightSchedules]
@@ -201,30 +200,6 @@ export default async function DashboardPage() {
                 </div>
               )}
 
-              {/* Témoignages récents */}
-              {recentTestimonies.length > 0 && (
-                <div className="bg-white rounded-2xl shadow-sm p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-                      <span className="w-1 h-4 bg-yellow-400 rounded-full block" />
-                      Témoignages
-                    </h2>
-                    <Link href="/testimonies" className="text-xs text-indigo-500 font-medium hover:text-indigo-700">Voir tout</Link>
-                  </div>
-                  <div className="space-y-3">
-                    {recentTestimonies.slice(0, 3).map((t) => (
-                      <div key={t.id} className="flex items-start gap-3">
-                        <div className="w-8 h-8 bg-yellow-100 rounded-xl flex items-center justify-center shrink-0 text-sm">✨</div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-gray-800">{t.name}</p>
-                          {t.content && <p className="text-[11px] text-gray-400 line-clamp-2 mt-0.5 leading-relaxed">{t.content}</p>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {/* Accès Mon Espace */}
               <div className="bg-white rounded-2xl shadow-sm p-5 space-y-2">
                 <h2 className="text-sm font-bold text-gray-800 flex items-center gap-2 mb-3">
@@ -232,9 +207,8 @@ export default async function DashboardPage() {
                   Mon Espace
                 </h2>
                 {[
-                  { href: "/dashboard/user/prayer", label: "Mes Prières", color: "text-pink-500" },
-                  { href: "/dashboard/user/testimonies", label: "Mes Témoignages", color: "text-yellow-500" },
                   { href: "/dashboard/user/profile", label: "Mon Profil", color: "text-blue-500" },
+                  { href: "/dashboard/user/intercessor/availability", label: "Disponibilités", color: "text-violet-500" },
                 ].map(({ href, label, color }) => (
                   <Link key={href} href={href} className="flex items-center justify-between text-sm text-gray-600 hover:text-indigo-700 py-1.5 px-2 rounded-xl hover:bg-gray-50 transition-all">
                     <span className={`font-medium ${color}`}>{label}</span>
@@ -383,37 +357,6 @@ export default async function DashboardPage() {
                       <ChevronRight className="h-4 w-4 text-gray-300 shrink-0" />
                     </div>
                   </Link>
-                ))}
-              </div>
-            </section>
-          )}
-          {recentTestimonies.length > 0 && (
-            <section>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-                  <span className="w-1 h-4 bg-yellow-400 rounded-full block" />
-                  Témoignages récents
-                </h2>
-                <Link href="/testimonies" className="text-xs text-indigo-500 font-medium flex items-center gap-0.5">
-                  Voir tout <ChevronRight className="h-3 w-3" />
-                </Link>
-              </div>
-              <div className="space-y-2.5">
-                {recentTestimonies.map((t) => (
-                  <div key={t.id} className="bg-white rounded-2xl p-4 shadow-sm">
-                    <div className="flex items-start gap-3">
-                      <div className="w-9 h-9 bg-yellow-100 rounded-xl flex items-center justify-center shrink-0">
-                        <span className="h-4 w-4 text-yellow-500">✨</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-800 leading-tight">{t.name}</p>
-                        {t.content && <p className="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">{t.content}</p>}
-                        <p className="text-[10px] text-gray-300 mt-1.5">
-                          {format(new Date(t.createdAt), "d MMM yyyy", { locale: fr })}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
                 ))}
               </div>
             </section>
