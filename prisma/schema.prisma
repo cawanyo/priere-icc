@@ -147,6 +147,18 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model PasswordResetToken {
   id        String   @id @default(cuid())
   token     String
@@ -290,6 +302,7 @@ model User {
   checkIns            CheckIn[]
   familySchedules     FamilySchedule[]
   notifications       Notification[]
+  pushSubscriptions   PushSubscription[]
   passwordResetTokens PasswordResetToken[]
   prayers             Prayer[]
   roleRequest         RoleRequest?

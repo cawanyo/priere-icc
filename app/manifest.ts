@@ -1,0 +1,104 @@
+import type { MetadataRoute } from "next";
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: "Ministère de la Prière ICC",
+    short_name: "Prière ICC",
+    description: "Application officielle du Ministère de la Prière ICC - Horaires de prière, intercession, rendez-vous et plannings.",
+    start_url: "/",
+    id: "/",
+    scope: "/",
+    display: "standalone",
+    background_color: "#ffffff",
+    theme_color: "#312e81",
+    orientation: "portrait",
+    lang: "fr",
+    dir: "ltr",
+    categories: ["lifestyle", "social"],
+    icons: [
+      {
+        src: "/icons/icon-72x72.png",
+        sizes: "72x72",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/icon-96x96.png",
+        sizes: "96x96",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/icon-128x128.png",
+        sizes: "128x128",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/icon-144x144.png",
+        sizes: "144x144",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/icon-152x152.png",
+        sizes: "152x152",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/icon-192x192.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/icon-384x384.png",
+        sizes: "384x384",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/icon-512x512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/maskable-icon-192x192.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "maskable",
+      },
+      {
+        src: "/icons/maskable-icon-512x512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
+    ],
+    shortcuts: [
+      {
+        name: "Planning de prière",
+        short_name: "Planning",
+        description: "Accéder au planning des créneaux",
+        url: "/dashboard/desktop/planning",
+        icons: [{ src: "/icons/icon-96x96.png", sizes: "96x96" }],
+      },
+      {
+        name: "Déposer une prière",
+        short_name: "Prière",
+        description: "Envoyer une intention de prière",
+        url: "/prayer",
+        icons: [{ src: "/icons/icon-96x96.png", sizes: "96x96" }],
+      },
+      {
+        name: "Maison de Prière",
+        short_name: "Maison",
+        description: "Accéder à la maison de prière",
+        url: "/dashboard/desktop/prayer-house",
+        icons: [{ src: "/icons/icon-96x96.png", sizes: "96x96" }],
+      },
+    ],
+  };
+}

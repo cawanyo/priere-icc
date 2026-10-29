@@ -58,3 +58,65 @@ export function templateAppliesToDate(
 
   return true;
 }
+
+export interface SliceSlotsOptions {
+  startTime: string; // "HH:mm"
+  endTime: string;   // "HH:mm"
+  durationMinutes: number; // e.g. 60
+  baseTitle?: string;
+  daysMode?: "ALL" | "WEEK_DAYS" | "SPECIFIC_DATES";
+  daysOfWeek?: number[];
+  specificDates?: string[];
+}
+
+// Découpe automatiquement une plage horaire [startTime -> endTime] en créneaux d'une durée donnée
+export function sliceTimeSlots(options: SliceSlotsOptions): SpecialEventTemplateInput[] {
+  const { startTime, endTime, durationMinutes, baseTitle, daysMode, daysOfWeek, specificDates } = options;
+  if (!startTime || !endTime || !durationMinutes || durationMinutes <= 0) return [];
+
+  const [startH, startM] = startTime.split(":").map(Number);
+  const [endH, endM] = endTime.split(":").map(Number);
+
+  if (isNaN(startH) || isNaN(startM) || isNaN(endH) || isNaN(endM)) return [];
+
+  const startTotalMinutes = startH * 60 + startM;
+  let endTotalMinutes = endH * 60 + endM;
+
+  // Si l'heure de fin est inférieure ou égale à l'heure de début, on traverse minuit (ex: 22h -> 06h)
+  if (endTotalMinutes <= startTotalMinutes) {
+    endTotalMinutes += 24 * 60;
+  }
+
+  const slots: SpecialEventTemplateInput[] = [];
+  let currentMin = startTotalMinutes;
+
+  while (currentMin < endTotalMinutes) {
+    const nextMin = Math.min(currentMin + durationMinutes, endTotalMinutes);
+
+    const slotStartH = Math.floor((currentMin % (24 * 60)) / 60);
+    const slotStartM = (currentMin % (24 * 60)) % 60;
+    const slotEndH = Math.floor((nextMin % (24 * 60)) / 60);
+    const slotEndM = (nextMin % (24 * 60)) % 60;
+
+    const formattedStart = `${String(slotStartH).padStart(2, "0")}:${String(slotStartM).padStart(2, "0")}`;
+    const formattedEnd = `${String(slotEndH).padStart(2, "0")}:${String(slotEndM).padStart(2, "0")}`;
+
+    const title = baseTitle?.trim()
+      ? `${baseTitle.trim()} (${formattedStart} - ${formattedEnd})`
+      : `Créneau ${formattedStart} - ${formattedEnd}`;
+
+    slots.push({
+      title,
+      startTime: formattedStart,
+      endTime: formattedEnd,
+      daysMode: daysMode || "ALL",
+      daysOfWeek: daysOfWeek ? [...daysOfWeek] : [],
+      specificDates: specificDates ? [...specificDates] : [],
+    });
+
+    currentMin = nextMin;
+  }
+
+  return slots;
+}
+

@@ -6,28 +6,44 @@ import { Header } from "@/components/Home/Header";
 import Footer from "@/components/Home/Footer";
 import { Suspense } from "react";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
+import { PwaManager } from "@/components/pwa/PwaManager";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
 
-
-
 export const viewport: Viewport = {
-  width: 'device-width',
+  width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  // This helps with the keyboard pushing content up smoothly
-  // interactiveWidget: 'resizes-content',
-  // viewportFit: 'cover',
+  themeColor: "#312e81",
 };
-
-
 
 export const metadata: Metadata = {
   title: "Ministère de la Prière ICC",
   description: "Rejoignez la communauté de prière.",
-  // Ajoutez ceci :
+  manifest: "/manifest.webmanifest",
+  applicationName: "Prière ICC",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Prière ICC",
+    startupImage: ["/icons/icon-512x512.png"],
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: "/icons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: "/icons/icon-192x192.png",
+  },
   openGraph: {
     title: "Ministère de la Prière ICC",
     description: "Rejoignez la communauté de prière.",
@@ -46,18 +62,24 @@ export const metadata: Metadata = {
   },
 };
 
-
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    // ADD THIS PROP: suppressHydrationWarning
-    <html lang="en" suppressHydrationWarning>
+    <html lang="fr" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Prière ICC" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+      </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
         <Providers>
-          <div className="min-h-screen w-full flex flex-col justify-between  bg-white safe-padding-bottom " >
+          <div className="min-h-screen w-full flex flex-col justify-between bg-white safe-padding-bottom">
             <Suspense fallback={<LoadingOverlay />}>
               <Header />
             </Suspense>
@@ -66,6 +88,7 @@ export default function RootLayout({
             </main>
             <Footer/>
           </div>
+          <PwaManager />
         </Providers>
       </body>
     </html>

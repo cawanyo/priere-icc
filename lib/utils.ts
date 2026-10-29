@@ -22,6 +22,21 @@ export const normalizeDate = (dateInput: Date | string) => {
   return new Date(d.valueOf() + d.getTimezoneOffset() * 60000);
 };
 
-export const  convertKeepDate =(date: Date) => {
-  return new Date(date.toUTCString().slice(0,-3));
+export const convertKeepDate = (date: Date) => {
+  return new Date(date.toUTCString().slice(0, -3));
+};
+
+export function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
 }
