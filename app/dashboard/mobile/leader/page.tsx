@@ -8,8 +8,6 @@ import {
   Users,
   Home,
   ArrowRight,
-  Activity,
-  CalendarCheck,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -22,24 +20,6 @@ export default async function MobileLeaderPage() {
   }
 
   const items = [
-    {
-      title: "Suivi des Stars",
-      description: "Santé spirituelle de l'équipe.",
-      href: "/dashboard/mobile/leader/checkins",
-      icon: Activity,
-      color: "text-indigo-600",
-      bg: "bg-indigo-50",
-      highlight: true,
-    },
-    {
-      title: "Mes Rendez-vous",
-      description: "Disponibilités et RDV avec l'équipe.",
-      href: "/dashboard/mobile/leader/rdv",
-      icon: CalendarCheck,
-      color: "text-violet-600",
-      bg: "bg-violet-50",
-      highlight: true,
-    },
     {
       title: "Planification Hebdo",
       description: "Gérer le planning récurrent.",

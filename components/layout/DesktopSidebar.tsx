@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Home, Church, CalendarRange, HeartPulse,
-  CalendarCheck, LayoutDashboard, User,
-  Activity, Settings, ChevronRight,
+  Home, Church, CalendarRange,
+  LayoutDashboard, User,
+  Settings, ChevronRight,
   Sparkles, ShieldCheck, UserPlus, Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -27,13 +27,6 @@ const NAV_SECTIONS = [
     ],
   },
   {
-    label: "Bien-être",
-    items: [
-      { href: "/dashboard/desktop/checkin", label: "Mon Check-in", icon: HeartPulse, exact: false, show: () => true },
-      { href: "/dashboard/desktop/rdv", label: "Rendez-vous", icon: CalendarCheck, exact: false, show: () => true },
-    ],
-  },
-  {
     label: "Mon Espace",
     items: [
       { href: "/dashboard/desktop/espace", label: "Mon Espace", icon: User, exact: false, show: () => true },
@@ -42,8 +35,6 @@ const NAV_SECTIONS = [
 ];
 
 const LEADER_ITEMS = [
-  { href: "/dashboard/desktop/leader/checkins", label: "Suivi des Stars", icon: Activity },
-  { href: "/dashboard/desktop/leader/rdv", label: "Mes Rendez-vous", icon: CalendarCheck },
   { href: "/dashboard/leader/planning", label: "Planification", icon: CalendarRange },
   { href: "/dashboard/leader/events", label: "Gestion d'événements", icon: CalendarRange },
   { href: "/dashboard/leader/prayer-house", label: "Maison de Prière", icon: Church },

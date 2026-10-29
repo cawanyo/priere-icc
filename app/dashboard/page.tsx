@@ -4,8 +4,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   CalendarRange, ClipboardList, CheckCircle2,
   Moon, Clock, ChevronRight, Star,
-  Church, Heart, Sparkles, ArrowRight,
-  CalendarCheck,
+  Church, Sparkles, ArrowRight,
+  User, CalendarDays,
 } from "lucide-react";
 import { checkUser } from "../actions/user";
 import { getUserDashboard } from "../actions/dashboard-home";
@@ -127,22 +127,22 @@ export default async function DashboardPage() {
       border: "border-violet-100",
     },
     {
-      href: "/dashboard/desktop/checkin",
-      label: "Mon Check-in",
-      description: "Bilan & suivi spirituel",
-      icon: Heart,
-      color: "text-rose-600",
-      bg: "bg-rose-50/80",
-      border: "border-rose-100",
+      href: "/dashboard/user/intercessor/availability",
+      label: "Disponibilités",
+      description: "Gérer mes indisponibilités",
+      icon: CalendarDays,
+      color: "text-amber-600",
+      bg: "bg-amber-50/80",
+      border: "border-amber-100",
     },
     {
-      href: "/dashboard/desktop/rdv",
-      label: "Rendez-vous",
-      description: "Accompagnement pastoral",
-      icon: CalendarCheck,
-      color: "text-emerald-600",
-      bg: "bg-emerald-50/80",
-      border: "border-emerald-100",
+      href: "/dashboard/desktop/espace",
+      label: "Mon Espace",
+      description: "Profil & informations",
+      icon: User,
+      color: "text-blue-600",
+      bg: "bg-blue-50/80",
+      border: "border-blue-100",
     },
   ];
 
@@ -162,18 +162,18 @@ export default async function DashboardPage() {
       bg: "bg-violet-50",
     },
     {
-      href: "/dashboard/mobile/checkin",
-      label: "Check-in",
-      icon: Heart,
-      color: "text-rose-600",
-      bg: "bg-rose-50",
+      href: "/dashboard/user/intercessor/availability",
+      label: "Dispos",
+      icon: CalendarDays,
+      color: "text-amber-600",
+      bg: "bg-amber-50",
     },
     {
-      href: "/dashboard/mobile/rdv",
-      label: "RDV",
-      icon: CalendarCheck,
-      color: "text-emerald-600",
-      bg: "bg-emerald-50",
+      href: "/dashboard/mobile/espace",
+      label: "Mon Espace",
+      icon: User,
+      color: "text-blue-600",
+      bg: "bg-blue-50",
     },
   ];
 

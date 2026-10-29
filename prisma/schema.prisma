@@ -25,68 +25,11 @@ model Account {
   @@unique([provider, providerAccountId])
 }
 
-model Appointment {
-  id           String          @id @default(cuid())
-  slotId       String          @unique
-  leaderId     String
-  userId       String
-  status       String          @default("CONFIRMED")
-  cancelReason String?
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  leader       User            @relation("LeaderAppointments", fields: [leaderId], references: [id], onDelete: Cascade)
-  slot         AppointmentSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
-  user         User            @relation("UserAppointments", fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model AppointmentSlot {
-  id          String       @id @default(cuid())
-  leaderId    String
-  startTime   DateTime
-  endTime     DateTime
-  isBooked    Boolean      @default(false)
-  createdAt   DateTime     @default(now())
-  appointment Appointment?
-  leader      User         @relation("LeaderSlots", fields: [leaderId], references: [id], onDelete: Cascade)
-}
-
 model BlackList {
   id        String   @id
   userId    String
   hour      String
   createdAt DateTime @default(now())
-}
-
-model CheckIn {
-  id                  String    @id @default(cuid())
-  userId              String
-  periodMonth         DateTime
-  scoreEnergy         Int
-  scorePeace          Int
-  scoreJoy            Int
-  scoreClarity        Int
-  scoreServiceLoad    Int
-  alerts              String[]
-  alertOther          String?
-  hadDifficultMoment  Boolean   @default(false)
-  difficultMomentText String?
-  scoreOvergiving     Int
-  scoreSupportFelt    Int
-  needsScheduleAdjust Boolean   @default(false)
-  supportNeeds        String[]
-  consentGiven        Boolean   @default(false)
-  visibility          String    @default("TEAM")
-  healthScore         Int       @default(0)
-  healthStatus        String    @default("GREEN")
-  isContacted         Boolean   @default(false)
-  leaderNote          String?
-  contactedAt         DateTime?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-  comment             String?
-  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, periodMonth])
 }
 
 model EventTemplate {
@@ -296,10 +239,6 @@ model User {
   role                Role                 @default(REQUESTER)
   prayerFamilyId      String?
   accounts            Account[]
-  leaderAppointments  Appointment[]        @relation("LeaderAppointments")
-  userAppointments    Appointment[]        @relation("UserAppointments")
-  slots               AppointmentSlot[]    @relation("LeaderSlots")
-  checkIns            CheckIn[]
   familySchedules     FamilySchedule[]
   notifications       Notification[]
   pushSubscriptions   PushSubscription[]
