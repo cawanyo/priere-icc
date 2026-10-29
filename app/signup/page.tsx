@@ -98,7 +98,7 @@ export default function SignupPage() {
       <ImageLeft />
 
       {/* --- RIGHT SIDE: FORM --- */}
-      <div className="flex items-center justify-center py-12 px-8 bg-background">
+      <div className="flex items-center justify-center py-6 sm:py-12 px-4 sm:px-8 bg-background">
         <motion.div 
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}

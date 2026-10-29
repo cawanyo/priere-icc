@@ -61,8 +61,8 @@ export default function ProfilePage() {
   const isIntercessorOrLeader = user.role === "INTERCESSOR" || user.role === "LEADER" || user.role === "ADMIN";
 
   return (
-    <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="bg-gray-50/50 py-6 sm:py-12 px-4 sm:px-6">
+      <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
         
         {/* En-tête */}
         <div className="flex items-center gap-4">

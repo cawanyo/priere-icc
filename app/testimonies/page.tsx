@@ -26,10 +26,10 @@ export default async function TestimoniesPage({
   });
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="bg-white">
       
       {/* Hero Section */}
-      <section className="bg-indigo-900 text-white py-20 px-4 relative overflow-hidden">
+      <section className="bg-indigo-900 text-white py-10 sm:py-20 px-4 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-pink-500 rounded-full blur-[100px] opacity-20 transform translate-x-1/2 -translate-y-1/2" />
         
         <div className="max-w-4xl mx-auto text-center relative z-10">
@@ -54,7 +54,7 @@ export default async function TestimoniesPage({
       </section>
 
       {/* Liste des témoignages */}
-      <section className="py-20 px-4 md:px-8 max-w-7xl mx-auto">
+      <section className="py-10 sm:py-20 px-4 md:px-8 max-w-7xl mx-auto">
         {testimonies && testimonies.length > 0 ? (
             <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

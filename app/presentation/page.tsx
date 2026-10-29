@@ -27,7 +27,7 @@ export default function Home() {
   return (
     <>
       {/* SECTION HERO */}
-      <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[45vh] sm:h-[60vh] flex items-center justify-center overflow-hidden">
         {/* Image de fond avec un zoom lent et continu (effet Ken Burns) */}
         <motion.div
           className="absolute inset-0 w-full h-full"
@@ -74,7 +74,7 @@ export default function Home() {
       </section>
 
       {/* NOUVELLE SECTION : PROGRAMMES */}
-      <section className="bg-gray-50 py-20">
+      <section className="bg-gray-50 py-10 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
                 <motion.h2 

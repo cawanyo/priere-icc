@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 
 export default function SubmitTestimonyPage() {
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 flex items-center justify-center">
+    <div className="bg-gray-50 py-6 sm:py-12 px-4 flex items-center justify-center">
       <div className="max-w-2xl w-full space-y-8">
         
         <Link href="/testimonies" className="flex items-center text-sm text-gray-500 hover:text-indigo-900 transition-colors w-fit">

@@ -13,10 +13,10 @@ export default async function PrayerPage() {
     
   }
   return (
-    <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="bg-gray-50/50 py-6 sm:py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-10">
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+        <div className="text-center mb-6 sm:mb-8">
+          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
             "Approchons-nous donc avec assurance du trône de la grâce afin d'obtenir miséricorde et de trouver grâce, pour être secourus dans nos besoins." <br/>
             <span className="text-sm font-semibold text-primary">- Hébreux 4:16</span>
           </p>
@@ -35,7 +35,7 @@ export default async function PrayerPage() {
           </div>
 
           {/* Zone du formulaire */}
-          <div className="w-full md:w-2/3 p-8 md:p-12">
+          <div className="w-full md:w-2/3 p-5 sm:p-8 md:p-12">
             <PrayerRequestForm user={user?? undefined}/>
           </div>
         </div>

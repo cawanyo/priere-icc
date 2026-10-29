@@ -35,12 +35,12 @@ export function Header() {
     <header 
         className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-md safe-padding-top"   
     >
-      <div className="container mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+      <div className="container mx-auto px-4 md:px-6 h-14 sm:h-16 flex items-center justify-between">
         
         {/* LOGO */}
         <div className="flex items-center gap-2">
-            <Link href="/" className="flex items-center gap-2 font-bold text-xl tracking-tight">
-            <div className="h-12 w-12 rounded-full flex items-center justify-center p-[2px]">
+            <Link href="/" className="flex items-center gap-2 font-bold text-lg sm:text-xl tracking-tight">
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full flex items-center justify-center p-[2px]">
                 <Image 
                   src={'/icc.jpeg'} 
                   height={64} 
