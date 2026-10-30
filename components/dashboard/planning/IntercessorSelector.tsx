@@ -67,27 +67,23 @@ export function IntercessorSelector({ selectedIds, onChange }: IntercessorSelect
             <CommandList >
                 <CommandEmpty>Aucun membre trouvé.</CommandEmpty>
                 <CommandGroup>
-                  <ScrollArea>
+                  <ScrollArea className="max-h-60">
                     {members.map((member) => (
                         <CommandItem
                           key={member.id}
                           value={`${member.name || ""} ${member.email || ""} ${member.phone || ""}`}
                           onSelect={() => toggleSelection(member.id)}
+                          className="cursor-pointer py-2 px-2.5"
                         >
                           <Check
                             className={cn(
-                              "mr-2 h-4 w-4",
-                              selectedIds.includes(member.id) ? "opacity-100" : "opacity-0"
+                              "mr-2 h-4 w-4 shrink-0",
+                              selectedIds.includes(member.id) ? "opacity-100 text-indigo-600" : "opacity-0"
                             )}
                           />
-                          <div className="flex flex-col text-left">
-                            <span className="font-medium text-foreground">{member.name || "Membre"}</span>
-                            {(member.email || member.phone) && (
-                              <span className="text-xs text-muted-foreground">
-                                {[member.email, member.phone].filter(Boolean).join(" • ")}
-                              </span>
-                            )}
-                          </div>
+                          <span className="text-sm font-medium text-slate-800">
+                            {member.name || "Membre"}
+                          </span>
                         </CommandItem>
                     ))} 
                 </ScrollArea>
@@ -100,14 +96,12 @@ export function IntercessorSelector({ selectedIds, onChange }: IntercessorSelect
       {/* Affichage des tags sélectionnés */}
       <div className="flex flex-wrap gap-2">
         {selectedMembers.map(member => (
-            <Badge key={member.id} variant="secondary" className="pl-2 pr-1 py-1 flex items-center gap-1">
-                {member.name || member.email || member.phone || "Membre"}
+            <Badge key={member.id} variant="secondary" className="pl-2.5 pr-1.5 py-1 text-xs flex items-center gap-1.5 rounded-lg">
+                <span>{member.name || "Membre"}</span>
                  
-                <div className=" inline" onClick={() => toggleSelection(member.id)}>
-                 <X size={13} className="text-red-400 hover:cursor-pointer hover:text-red-500 ml-3" />
+                <div className="inline cursor-pointer hover:bg-slate-200 rounded p-0.5" onClick={() => toggleSelection(member.id)}>
+                 <X size={13} className="text-slate-400 hover:text-slate-700" />
                 </div>
-                
-
             </Badge>
         ))}
       </div>
