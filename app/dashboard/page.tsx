@@ -6,6 +6,7 @@ import {
   Moon, Clock, ChevronRight,
   Church, Sparkles, ArrowRight,
 } from "lucide-react";
+import { NotificationBell } from "@/components/layout/notifications";
 import { checkUser } from "../actions/user";
 import { getUserDashboard } from "../actions/dashboard-home";
 import { format, isSameDay, addDays } from "date-fns";
@@ -109,10 +110,13 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <div className="hidden lg:flex items-center gap-2.5 bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-2 text-xs text-slate-600">
-            <Sparkles className="h-4 w-4 text-amber-500 shrink-0" />
-            <span className="italic">« La prière fervente du juste a une grande efficacité. »</span>
-            <span className="font-semibold text-slate-500 not-italic">— Jacques 5:16</span>
+          <div className="flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-2.5 bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-2 text-xs text-slate-600">
+              <Sparkles className="h-4 w-4 text-amber-500 shrink-0" />
+              <span className="italic">« La prière fervente du juste a une grande efficacité. »</span>
+              <span className="font-semibold text-slate-500 not-italic">— Jacques 5:16</span>
+            </div>
+            <NotificationBell />
           </div>
         </div>
 
@@ -373,6 +377,7 @@ export default async function DashboardPage() {
                 </p>
               </div>
             </div>
+            <NotificationBell />
           </div>
         </div>
 

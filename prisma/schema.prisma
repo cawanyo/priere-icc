@@ -166,16 +166,6 @@ model RecurringSchedule {
   updatedAt   DateTime @updatedAt
 }
 
-model RoleRequest {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  status    String   @default("PENDING")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  role      Role     @default(INTERCESSOR)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
@@ -236,7 +226,7 @@ model User {
   phone               String?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
-  role                Role                 @default(REQUESTER)
+  role                Role                 @default(PRAYER_LEADER)
   prayerFamilyId      String?
   accounts            Account[]
   familySchedules     FamilySchedule[]
@@ -244,7 +234,6 @@ model User {
   pushSubscriptions   PushSubscription[]
   passwordResetTokens PasswordResetToken[]
   prayers             Prayer[]
-  roleRequest         RoleRequest?
   sessions            Session[]
   testimonies         Testimony[]
   unavailabilities    Unavailability[]

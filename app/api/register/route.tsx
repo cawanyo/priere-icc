@@ -49,7 +49,8 @@ export async function POST(req: Request) {
         name, 
         email: actualEmail, 
         phone: actualPhone, 
-        password: hashedPassword 
+        password: hashedPassword,
+        role: "PRAYER_LEADER",
       },
     });
 

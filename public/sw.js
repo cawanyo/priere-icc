@@ -170,17 +170,24 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const urlToOpen = event.notification.data?.url || "/dashboard";
+  const rawUrl = event.notification.data?.url || "/dashboard";
 
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      // Résolution de l'URL absolue par rapport à l'origine du site
+      const targetUrl = new URL(rawUrl, self.location.origin).href;
+
+      // 1. Si un onglet de l'application est déjà ouvert, naviguer vers l'URL et mettre au premier plan
       for (const client of clientList) {
-        if (client.url === urlToOpen && "focus" in client) {
+        if ("navigate" in client) {
+          client.navigate(targetUrl);
           return client.focus();
         }
       }
+
+      // 2. Sinon ouvrir une nouvelle fenêtre vers la page
       if (self.clients.openWindow) {
-        return self.clients.openWindow(urlToOpen);
+        return self.clients.openWindow(targetUrl);
       }
     })
   );

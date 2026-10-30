@@ -6,7 +6,7 @@ import {
   Home, Church, CalendarRange,
   LayoutDashboard, User,
   Settings, ChevronRight,
-  Sparkles, ShieldCheck, UserPlus, Users,
+  Sparkles, ShieldCheck, Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -38,12 +38,11 @@ const LEADER_ITEMS = [
   { href: "/dashboard/leader/planning", label: "Planification", icon: CalendarRange },
   { href: "/dashboard/leader/events", label: "Gestion d'événements", icon: CalendarRange },
   { href: "/dashboard/leader/prayer-house", label: "Maison de Prière", icon: Church },
-  { href: "/dashboard/leader/team", label: "Demandes & Équipe", icon: Users },
+  { href: "/dashboard/leader/team", label: "Gestion Équipe", icon: Users },
 ];
 
 const ADMIN_ITEMS = [
   { href: "/dashboard/admin/users", label: "Gestion Utilisateurs", icon: ShieldCheck },
-  { href: "/dashboard/leader/team", label: "Demandes d'adhésion", icon: UserPlus },
 ];
 
 export function DesktopSidebar({ userRole, userName, userImage }: DesktopSidebarProps) {
