@@ -38,18 +38,31 @@ export default function TeamManagementPage() {
 
   const filteredMembers = useMemo(() => {
     return allMembers.filter((m) => {
-      const matchRole = roleFilter === "ALL" || m.role === roleFilter;
-      const query = searchQuery.trim().toLowerCase();
+      const isConducteur = m.role === "PRAYER_LEADER" || m.role === "REQUESTER";
+      const matchRole =
+        roleFilter === "ALL" ||
+        m.role === roleFilter ||
+        (roleFilter === "PRAYER_LEADER" && isConducteur);
+
+      const query = searchQuery.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const userName = (m.name || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const userEmail = (m.email || "").toLowerCase();
+      const userPhone = (m.phone || "").replace(/\s+/g, "");
+
       const matchSearch =
         !query ||
-        m.name?.toLowerCase().includes(query) ||
-        m.email?.toLowerCase().includes(query) ||
-        m.phone?.toLowerCase().includes(query);
+        userName.includes(query) ||
+        userEmail.includes(query) ||
+        userPhone.includes(query.replace(/\s+/g, ""));
+
       return matchRole && matchSearch;
     });
   }, [allMembers, roleFilter, searchQuery]);
 
-  const prayerLeadersCount = useMemo(() => allMembers.filter((m) => m.role === "PRAYER_LEADER").length, [allMembers]);
+  const prayerLeadersCount = useMemo(() => 
+    allMembers.filter((m) => m.role === "PRAYER_LEADER" || m.role === "REQUESTER").length, 
+    [allMembers]
+  );
   const leadersCount = useMemo(() => allMembers.filter((m) => m.role === "LEADER" || m.role === "ADMIN").length, [allMembers]);
 
   return (

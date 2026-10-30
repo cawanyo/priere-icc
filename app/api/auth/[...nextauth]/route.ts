@@ -24,11 +24,17 @@ export const authOptions: NextAuthOptions = {
             throw new Error("Invalid credentials");
           }
   
+          const rawId = credentials.identifier.trim();
+          const cleanEmail = rawId.toLowerCase();
+          const cleanPhone = rawId.replace(/\s+/g, "");
+
           const user = await prisma.user.findFirst({
               where: {
                   OR: [
-                      { email: credentials.identifier },
-                      { phone: credentials.identifier }
+                      { email: cleanEmail },
+                      { phone: cleanPhone },
+                      { email: rawId },
+                      { phone: rawId }
                   ]
               }
           });
@@ -45,18 +51,30 @@ export const authOptions: NextAuthOptions = {
           if (!isCorrectPassword) {
             throw new Error("Invalid credentials");
           }
+
+          if (user.role === "REQUESTER") {
+            user.role = "PRAYER_LEADER";
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { role: "PRAYER_LEADER" }
+            }).catch(console.error);
+          }
   
           return user;
         },
       }),
   
   ],
-  // events: {
-  //   async createUser({ user }) {
-  //     console.log("🆕 User created via OAuth. Generating roadmap...");
-  //     //init_roadmap(user.id)
-  //   }
-  // },
+  events: {
+    async createUser({ user }) {
+      if (user.id) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { role: "PRAYER_LEADER" }
+        }).catch(console.error);
+      }
+    }
+  },
   
   session: {
     strategy: "jwt",
@@ -64,15 +82,24 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     jwt: async ({ token, user }) => {
       if (user) {
-        token.role = (user as any).role;
+        const uRole = (user as any).role;
+        token.role = uRole === "REQUESTER" ? "PRAYER_LEADER" : uRole;
         token.phone = (user as any).phone;
-      } else if (!token.role && token.sub) {
+      } else if (token.sub) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.sub },
           select: { role: true, phone: true }
         });
         if (dbUser) {
-          token.role = dbUser.role;
+          if (dbUser.role === "REQUESTER") {
+            await prisma.user.update({
+              where: { id: token.sub },
+              data: { role: "PRAYER_LEADER" }
+            }).catch(console.error);
+            token.role = "PRAYER_LEADER";
+          } else {
+            token.role = dbUser.role;
+          }
           token.phone = dbUser.phone;
         }
       }
@@ -81,7 +108,7 @@ export const authOptions: NextAuthOptions = {
     session: async ({ session, token }) => {
       if (session?.user) {
         session.user.id = token.sub as string;
-        session.user.role = token.role as any;
+        session.user.role = (token.role === "REQUESTER" ? "PRAYER_LEADER" : token.role) as any;
         session.user.phone = token.phone as any;
       }
       return session;
