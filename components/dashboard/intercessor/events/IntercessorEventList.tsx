@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Calendar, ArrowRight, CalendarDays, Sparkles } from "lucide-react";
+import { Calendar, ArrowRight, CalendarDays } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import Link from "next/link";

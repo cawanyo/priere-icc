@@ -14,7 +14,6 @@ import {
   Loader2,
   Calendar as CalendarIcon,
   Check,
-  Sparkles,
   Sliders,
   Layers,
 } from "lucide-react";
@@ -424,7 +423,7 @@ function EventFormInner({
                     : "text-gray-600 hover:text-gray-900"
                 }`}
               >
-                <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+                <Layers className="h-3.5 w-3.5 text-indigo-600" />
                 Découpage auto
               </button>
               <button
@@ -448,7 +447,7 @@ function EventFormInner({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white shrink-0">
-                    <Sparkles className="h-4 w-4" />
+                    <Layers className="h-4 w-4" />
                   </div>
                   <div>
                     <h5 className="text-xs font-bold text-indigo-950 uppercase tracking-wider">
@@ -578,7 +577,7 @@ function EventFormInner({
                   disabled={previewSlices.length === 0}
                   className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs h-8 shadow-sm gap-1.5 shrink-0"
                 >
-                  <Sparkles className="h-3.5 w-3.5" />
+                  <Layers className="h-3.5 w-3.5" />
                   Proposer les {previewSlices.length} créneaux
                 </Button>
               </div>

@@ -157,8 +157,21 @@ export async function getEventDetails(eventId: string) {
   const event: SpecialEventWithPlaning | null = await prisma.specialEvent.findUnique({
     where: { id: eventId },
     include: { 
-      plannings: { include: { users: true } }
+      plannings: { include: { users: true } },
+      eventTemplates: true,
     } 
+  });
+  if (!event) return { success: false, error: "Événement introuvable" };
+  return { success: true, event };
+}
+
+export async function getEventForEdit(eventId: string) {
+  await checkLeader();
+  const event = await prisma.specialEvent.findUnique({
+    where: { id: eventId },
+    include: {
+      eventTemplates: true,
+    }
   });
   if (!event) return { success: false, error: "Événement introuvable" };
   return { success: true, event };

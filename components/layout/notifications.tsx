@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,10 +11,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area"; 
 import { getUserNotifications, markAsRead, markAllAsRead } from "@/app/actions/notifications";
+import { subscribeUserToPush } from "@/components/pwa/PwaManager";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useRealtime } from "@/hooks/useRealRime";
+import { toast } from "sonner";
 
 function resolveNotificationLink(notif: { title?: string; message?: string; link?: string }): string {
   if (notif.link && notif.link !== "/" && notif.link !== "/dashboard" && notif.link !== "/dashboard/") {
@@ -39,6 +41,29 @@ function resolveNotificationLink(notif: { title?: string; message?: string; link
 export function NotificationBell() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [pushStatus, setPushStatus] = useState<"granted" | "default" | "denied" | "unsupported">("granted");
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setPushStatus(Notification.permission);
+    } else {
+      setPushStatus("unsupported");
+    }
+  }, []);
+
+  const handleEnablePush = async () => {
+    try {
+      const res = await subscribeUserToPush();
+      if (res.success) {
+        setPushStatus("granted");
+        toast.success("Notifications push activées !");
+      } else {
+        toast.error(res.message || "Impossible d'activer les notifications");
+      }
+    } catch {
+      toast.error("Erreur d'activation");
+    }
+  };
 
   const result = useRealtime({
     queryKey: ['notifications'],
@@ -99,6 +124,25 @@ export function NotificationBell() {
                 </Button>
             )}
         </div>
+
+        {pushStatus === "default" && (
+          <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 bg-indigo-50/70 border-b border-indigo-100 text-xs">
+            <div className="flex items-center gap-2 min-w-0">
+              <Bell className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+              <span className="text-[11px] text-indigo-900 font-medium truncate">
+                Activer les notifications push
+              </span>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-6 px-2 text-[10px] font-bold bg-white text-indigo-700 border-indigo-200 hover:bg-indigo-100 rounded-md shrink-0 cursor-pointer"
+              onClick={handleEnablePush}
+            >
+              Activer
+            </Button>
+          </div>
+        )}
 
         <ScrollArea className="max-h-[360px] h-auto">
             {notifications.length === 0 ? (

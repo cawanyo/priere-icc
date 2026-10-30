@@ -95,12 +95,13 @@ export async function sendWebPushToUser(userId: string, payload: WebPushPayload)
           notificationPayload
         );
       } catch (err: unknown) {
-        const error = err as { statusCode?: number };
-        // Si l'abonnement est expiré, révoqué ou clé VAPID changée (410, 404, 401, 403)
-        if (error.statusCode === 410 || error.statusCode === 404 || error.statusCode === 401 || error.statusCode === 403) {
+        const error = err as { statusCode?: number; body?: string };
+        // Nettoyer uniquement si l'abonnement est explicitement révoqué ou expiré côté FCM/APNS (410 Gone ou 404 Not Found)
+        if (error.statusCode === 410 || error.statusCode === 404) {
+          console.log(`[WebPush] Abonnement expiré supprimé: ${sub.id}`);
           await prisma.pushSubscription.delete({ where: { id: sub.id } }).catch(() => {});
         } else {
-          console.error(`[WebPush] Erreur d'envoi pour sub ${sub.id}:`, err);
+          console.error(`[WebPush] Erreur d'envoi pour sub ${sub.id} (code ${error.statusCode}):`, err);
         }
       }
     });
@@ -144,7 +145,7 @@ export async function sendWebPushToAll(payload: WebPushPayload) {
         );
       } catch (err: unknown) {
         const error = err as { statusCode?: number };
-        if (error.statusCode === 410 || error.statusCode === 404 || error.statusCode === 401 || error.statusCode === 403) {
+        if (error.statusCode === 410 || error.statusCode === 404) {
           await prisma.pushSubscription.delete({ where: { id: sub.id } }).catch(() => {});
         }
       }

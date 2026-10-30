@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { checkUser } from "@/app/actions/user";
 import Link from "next/link";
 import {
-  Church, Sparkles, Calendar1, CircleUserRound, ChevronRight,
+  Church, Calendar1, CircleUserRound, ChevronRight,
 } from "lucide-react";
 
 export default async function DesktopEspacePage() {

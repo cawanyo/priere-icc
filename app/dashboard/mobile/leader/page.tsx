@@ -3,7 +3,7 @@ import { checkUser } from "@/app/actions/user";
 import Link from "next/link";
 import {
   CalendarRange,
-  Sparkles,
+  CalendarDays,
   Users,
   Moon,
   ChevronRight,
@@ -39,7 +39,7 @@ export default async function MobileLeaderPage() {
       title: "Événements Spéciaux",
       description: "Organisation des temps forts et séminaires",
       href: "/dashboard/leader/events",
-      icon: Sparkles,
+      icon: CalendarDays,
       color: "text-amber-600",
       bg: "bg-amber-50",
     },

@@ -12,7 +12,7 @@ import {
   AlertDialogTrigger,
   AlertDialogCancel 
 } from "@/components/ui/alert-dialog";
-import { Sparkles, Loader2 } from "lucide-react";
+import { CalendarCheck, Loader2 } from "lucide-react";
 import { autoFillPlanning } from "@/app/actions/auto-prayer-house-planning";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -49,9 +49,9 @@ export function AutoFillButton({ assignmentId, date, disabled, finallyFunction }
       <AlertDialogTrigger asChild>
         <Button 
           disabled={disabled || loading}
-          className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs rounded-xl shadow-xs"
         >
-          <Sparkles className="mr-2 h-4 w-4" />
+          <CalendarCheck className="mr-2 h-4 w-4" />
           Compléter auto.
         </Button>
       </AlertDialogTrigger>

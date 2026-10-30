@@ -67,7 +67,7 @@ export function PushNotificationCard() {
   return (
     <div className="space-y-3">
       {permission === "granted" && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-emerald-50/70 border border-emerald-100">
+        <div className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-emerald-50/70 border border-emerald-100">
           <div className="flex items-start gap-3 min-w-0">
             <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
             <div>
@@ -75,31 +75,10 @@ export function PushNotificationCard() {
                 Notifications push actives sur cet appareil
               </p>
               <p className="text-[11px] text-emerald-800/80 mt-0.5 leading-relaxed">
-                Vous recevrez les rappels de créneaux, temps forts et alertes en direct.
+                Vous recevrez les rappels de créneaux et alertes en direct.
               </p>
             </div>
           </div>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleTest}
-            disabled={isTesting}
-            className="self-start sm:self-auto h-8 px-3 text-xs bg-white text-emerald-800 border-emerald-200 hover:bg-emerald-100/60 rounded-xl font-medium shrink-0 cursor-pointer shadow-xs gap-1.5"
-          >
-            {isTesting ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span>Envoi...</span>
-              </>
-            ) : (
-              <>
-                <Send className="h-3.5 w-3.5 text-emerald-600" />
-                <span>Tester la réception</span>
-              </>
-            )}
-          </Button>
         </div>
       )}
 

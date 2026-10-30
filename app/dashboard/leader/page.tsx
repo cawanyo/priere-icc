@@ -1,6 +1,6 @@
 import { getLeaderStats } from "@/app/actions/dashboard-home";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Users, Moon, ArrowRight, ShieldCheck, ShieldAlert, Sparkles, CalendarRange } from "lucide-react";
+import { Calendar, Users, Moon, ArrowRight, ShieldCheck, ShieldAlert, CalendarDays, CalendarRange } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -34,7 +34,7 @@ export default async function LeaderDashboardPage() {
           </Button>
           <Button asChild size="sm" className="h-8 text-xs rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs">
             <Link href="/dashboard/leader/events">
-              <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+              <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
               Événements
             </Link>
           </Button>
@@ -84,7 +84,7 @@ export default async function LeaderDashboardPage() {
             <span className="text-[11px] text-slate-500">Événement spécial actif</span>
           </div>
           <div className="h-10 w-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-            <Sparkles className="h-5 w-5" />
+            <CalendarDays className="h-5 w-5" />
           </div>
         </div>
 
@@ -109,7 +109,7 @@ export default async function LeaderDashboardPage() {
         <div className="lg:col-span-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-              <Sparkles className="h-4 w-4 text-amber-500" />
+              <CalendarDays className="h-4 w-4 text-amber-500" />
               Prochain Événement Spécial
             </span>
             {nextEvent && (

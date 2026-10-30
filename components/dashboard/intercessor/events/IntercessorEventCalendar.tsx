@@ -13,7 +13,6 @@ import {
   Users, 
   ChevronRight, 
   ChevronLeft, 
-  Sparkles,
   Filter,
   Check,
   UserCheck
@@ -102,40 +101,35 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      {/* 1. Carte Héros de Présentation de l'Événement */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-5 sm:p-7 shadow-xl border border-indigo-800/40">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
-          <div className="space-y-2 min-w-0 flex-1">
+      {/* 1. Carte de Présentation sobre */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1.5 min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-indigo-200 border border-white/10 backdrop-blur-xs">
-                <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-                Programme Spécial
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-indigo-500/20 text-indigo-100 border border-indigo-400/20">
-                <CalendarIcon className="h-3.5 w-3.5 text-indigo-300" />
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200/80">
+                <CalendarIcon className="h-3 w-3 text-slate-500" />
                 Du {format(eventStartDate, "d MMMM", { locale: fr })} au {format(eventEndDate, "d MMMM yyyy", { locale: fr })}
               </span>
             </div>
 
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white leading-tight">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 leading-snug">
               {event.title}
             </h1>
 
             {event.description && (
-              <p className="text-xs sm:text-sm text-indigo-200/90 leading-relaxed max-w-2xl">
+              <p className="text-xs sm:text-sm text-slate-500 max-w-2xl leading-relaxed">
                 {event.description}
               </p>
             )}
           </div>
 
-          {/* Résumé des réservations */}
-          <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2.5 pt-4 sm:pt-0 border-t sm:border-t-0 border-white/10 shrink-0">
-            <div className="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/10 text-center sm:text-right">
-              <span className="text-[11px] uppercase tracking-wider text-indigo-300 font-semibold block">
+          <div className="flex items-center gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 shrink-0">
+            <div className="text-right">
+              <span className="text-[11px] text-slate-400 font-medium block">
                 Votre engagement
               </span>
-              <span className="text-lg sm:text-xl font-bold text-white flex items-center gap-1.5 justify-center sm:justify-end">
-                <CheckCircle2 className="h-4.5 w-4.5 text-emerald-400" />
+              <span className="text-sm font-bold text-slate-900 flex items-center gap-1.5 justify-end">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 {mySlotsCount} créneau{mySlotsCount > 1 ? "x" : ""}
               </span>
             </div>
@@ -148,12 +142,12 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
               className={cn(
                 "h-8 text-xs font-semibold rounded-xl transition-all cursor-pointer",
                 showMyPlanningOnly
-                  ? "bg-white text-indigo-950 border-white hover:bg-slate-100 shadow-sm"
-                  : "bg-white/10 hover:bg-white/20 text-white border-white/20"
+                  ? "bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"
+                  : "text-slate-600 border-slate-200 hover:bg-slate-50"
               )}
             >
               <Filter className="h-3.5 w-3.5 mr-1.5" />
-              {showMyPlanningOnly ? "Voir tous les créneaux" : "Mes créneaux uniquement"}
+              {showMyPlanningOnly ? "Tous les créneaux" : "Mes créneaux"}
             </Button>
           </div>
         </div>
@@ -311,17 +305,17 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
                 key={slot.id}
                 onClick={() => handleOpenSlot(slot)}
                 className={cn(
-                  "group relative flex flex-col justify-between p-4 rounded-2xl border transition-all cursor-pointer shadow-xs hover:shadow-md",
+                  "group relative flex flex-col justify-between p-4 rounded-2xl border transition-all cursor-pointer shadow-xs hover:shadow-sm",
                   isAssigned
-                    ? "bg-gradient-to-br from-emerald-50/70 via-white to-white border-emerald-200/90 ring-1 ring-emerald-200/50"
-                    : "bg-white hover:bg-slate-50/80 border-slate-200/80"
+                    ? "bg-emerald-50/30 border-emerald-300 ring-1 ring-emerald-200"
+                    : "bg-white hover:bg-slate-50 border-slate-200/80"
                 )}
               >
                 {/* Ligne du haut : Horaires & Statut */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-indigo-50 text-indigo-800 border border-indigo-100 font-mono">
-                      <Clock className="h-3.5 w-3.5 text-indigo-600" />
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200 font-mono">
+                      <Clock className="h-3.5 w-3.5 text-slate-500" />
                       {slot.startTime} - {slot.endTime}
                     </span>
                   </div>

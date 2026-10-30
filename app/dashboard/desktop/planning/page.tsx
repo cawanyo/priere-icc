@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { checkUser } from "@/app/actions/user";
 import Link from "next/link";
-import { CalendarRange, ClipboardList, ChevronRight, Sparkles } from "lucide-react";
+import { CalendarRange, ClipboardList, ChevronRight, Calendar } from "lucide-react";
 
 export default async function DesktopPlanningPage() {
   const user = await checkUser();
@@ -73,8 +73,8 @@ export default async function DesktopPlanningPage() {
         )}
         {items.length > 0 && (
           <div className="bg-indigo-50 rounded-2xl p-4 flex items-start gap-3">
-            <Sparkles className="h-4 w-4 text-indigo-400 mt-0.5 shrink-0" />
-            <p className="text-xs text-indigo-600 leading-relaxed">
+            <Calendar className="h-4 w-4 text-indigo-500 mt-0.5 shrink-0" />
+            <p className="text-xs text-indigo-700 leading-relaxed">
               Consulte ton planning régulièrement pour rester à jour sur tes créneaux de service.
             </p>
           </div>
