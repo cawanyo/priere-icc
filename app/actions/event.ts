@@ -14,6 +14,7 @@ import {
   type SpecialEventInput,
   type SpecialEventTemplateInput,
 } from "@/lib/event-utils";
+import { sendWebPushToAll } from "@/lib/web-push";
 
 async function checkLeader() {
   const session = await getServerSession(authOptions);
@@ -123,7 +124,19 @@ export async function createSpecialEvent(data: SpecialEventInput) {
   }
 
   await createPlaningForEvent(event, event.eventTemplates, event.startDate, event.endDate);
+
+  try {
+    await sendWebPushToAll({
+      title: `Nouvel Événement : ${event.title} 🕊️`,
+      body: "Un nouveau temps fort d'intercession est planifié. Consultez et réservez vos créneaux !",
+      url: `/dashboard/user/intercessor/events/${event.id}`,
+    });
+  } catch (e) {
+    console.warn("[Event] Échec push broadcast:", e);
+  }
+
   revalidatePath("/dashboard/leader/events");
+  revalidatePath("/dashboard/user/intercessor/events");
   return { success: true, message: "Événement créé" };
 }
 

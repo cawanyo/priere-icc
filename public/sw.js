@@ -145,27 +145,43 @@ self.addEventListener("fetch", (event) => {
 
 // Notifications Push natives (sur l'écran verrouillé et le centre de notifications)
 self.addEventListener("push", (event) => {
-  if (!event.data) return;
+  let title = "Ministère de la Prière ICC";
+  let body = "Vous avez une nouvelle notification.";
+  let url = "/dashboard";
+  let tag = "priere-icc-alert";
+  let icon = "/icons/icon-192x192.png";
+  let badge = "/icons/icon-96x96.png";
 
-  try {
-    const data = event.data.json();
-    const title = data.title || "Ministère de la Prière ICC";
-    const options = {
-      body: data.body || "Vous avez une nouvelle notification.",
-      icon: data.icon || "/icons/icon-192x192.png",
-      badge: "/icons/icon-96x96.png",
-      vibrate: [100, 50, 100],
-      tag: data.tag || "priere-icc-alert",
-      renotify: true,
-      data: {
-        url: data.url || "/dashboard",
-      },
-    };
-
-    event.waitUntil(self.registration.showNotification(title, options));
-  } catch (e) {
-    console.error("[SW] Erreur réception push:", e);
+  if (event.data) {
+    try {
+      const data = event.data.json();
+      if (data.title) title = data.title;
+      if (data.body) body = data.body;
+      if (data.url) url = data.url;
+      if (data.tag) tag = data.tag;
+      if (data.icon) icon = data.icon;
+      if (data.badge) badge = data.badge;
+    } catch {
+      try {
+        const text = event.data.text();
+        if (text) body = text;
+      } catch {}
+    }
   }
+
+  const options = {
+    body,
+    icon,
+    badge,
+    vibrate: [100, 50, 100],
+    tag,
+    renotify: true,
+    data: {
+      url,
+    },
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
 self.addEventListener("notificationclick", (event) => {

@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { addDays, getDay, format, isSameDay } from "date-fns";
 import { revalidatePath } from "next/cache";
+import { createNotification } from "./notifications";
 export async function checkIntercessorAccess() {
   const session = await getServerSession(authOptions);
   // @ts-ignore
@@ -110,7 +111,14 @@ export async function selfAssignToEventSlot(slotData: any) {
           }
         }
       });
-    
+
+    await createNotification(
+      user.id,
+      "Créneau confirmé 🕊️",
+      `Vous êtes inscrit(e) sur le créneau "${title || "Intercession"}" de ${startTime} à ${endTime}.`,
+      "SUCCESS",
+      specialEventId ? `/dashboard/user/intercessor/events/${specialEventId}` : "/dashboard/desktop/planning"
+    );
 
     revalidatePath("/dashboard/user/intercessor/events");
     return { success: true, message: "Vous êtes inscrit sur ce créneau." };
@@ -124,6 +132,8 @@ export async function selfRemoveFromEventSlot(planningId: string) {
   const user = await checkIntercessorOrPrayerLeaderAccess();
 
   try {
+    const slot = await prisma.planning.findUnique({ where: { id: planningId } });
+
     await prisma.planning.update({
       where: { id: planningId },
       data: {
@@ -133,8 +143,15 @@ export async function selfRemoveFromEventSlot(planningId: string) {
       }
     });
 
-    // Optionnel : Si le créneau devient vide et qu'il n'a pas d'autre info importante,
-    // on pourrait vouloir le supprimer pour qu'il redevienne virtuel, mais gardons-le réel pour l'instant.
+    if (slot) {
+      await createNotification(
+        user.id,
+        "Désinscription confirmée",
+        `Votre retrait du créneau "${slot.title || "Intercession"}" (${slot.startTime} - ${slot.endTime}) a été pris en compte.`,
+        "INFO",
+        slot.specialEventId ? `/dashboard/user/intercessor/events/${slot.specialEventId}` : "/dashboard/desktop/planning"
+      );
+    }
 
     revalidatePath("/dashboard/user/intercessor/events");
     return { success: true, message: "Vous vous êtes retiré du créneau." };
