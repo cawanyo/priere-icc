@@ -377,7 +377,6 @@ export default async function DashboardPage() {
                 </p>
               </div>
             </div>
-            <NotificationBell />
           </div>
         </div>
 

@@ -23,7 +23,7 @@ export default async function ProfilePage() {
   const initials = (user.name || "U").slice(0, 2).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] py-6 md:py-8 px-4 sm:px-6">
+    <div className="min-h-screen bg-[#f8fafc] py-6 md:py-8 px-4 sm:px-6 mb-10">
       <div className="max-w-3xl mx-auto space-y-6">
         
         {/* En-tête profil épuré */}
