@@ -84,15 +84,10 @@ export async function getAdminStats() {
   const totalUsers = await prisma.user.count();
   const intercessors = await prisma.user.count({ where: { role: "INTERCESSOR" } });
   const admins = await prisma.user.count({ where: { role: "ADMIN" } });
-  const requesters = await prisma.user.count({ where: { role: "REQUESTER" } });
+  const prayerLeaders = await prisma.user.count({ where: { role: "PRAYER_LEADER" } });
 
-  return { totalUsers, intercessors, admins, requesters };
+  return { totalUsers, intercessors, admins, prayerLeaders };
 }
-
-// app/actions/admin.ts
-// ... (checkAdmin, deleteUser, updateUserRole, getAdminStats restent inchangés) ...
-
-// --- NOUVELLE FONCTION : Récupération des utilisateurs ---
 
 export type UserFilters = {
   page?: number;

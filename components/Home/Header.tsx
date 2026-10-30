@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react"; 
-import { LogOut, User, ShieldCheck, UserPlus } from "lucide-react";
+import { LogOut, User, ShieldCheck, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -122,9 +122,9 @@ export function Header() {
                       )}
 
                       {(session.user.role === "ADMIN" || session.user.role === "LEADER") && (
-                          <DropdownMenuItem asChild className="cursor-pointer bg-pink-50 text-pink-700 focus:bg-pink-100 focus:text-pink-800 mt-1">
+                          <DropdownMenuItem asChild className="cursor-pointer bg-indigo-50/70 text-indigo-700 focus:bg-indigo-100 focus:text-indigo-800 mt-1">
                               <Link href="/dashboard/leader/team">
-                                  <UserPlus className="mr-2 h-4 w-4 text-pink-600" /> Demandes d'adhésion
+                                  <Users className="mr-2 h-4 w-4 text-indigo-600" /> Équipe de prière
                               </Link>
                           </DropdownMenuItem>
                       )}

@@ -29,7 +29,6 @@ export async function getUserNotifications() {
         }
       });
   
-      // CORRECTION ICI : On retourne un objet structuré dans 'data'
       return { 
         success: true, 
         data: { 

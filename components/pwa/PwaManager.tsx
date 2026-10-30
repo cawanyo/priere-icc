@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, X, Share, PlusSquare, Sparkles, Check, BellRing } from "lucide-react";
+import { Download, X, Share, PlusSquare, Sparkles, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { urlBase64ToUint8Array } from "@/lib/utils";
@@ -86,7 +86,6 @@ export function PwaManager() {
   });
   const [showIosGuide, setShowIosGuide] = useState(false);
   const [isBannerVisible, setIsBannerVisible] = useState(false);
-  const [showPushPrompt, setShowPushPrompt] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -157,17 +156,7 @@ export function PwaManager() {
       }
     }
 
-    // 3. Si l'app est déjà installée et que les notifications ne sont pas encore activées
-    if (isStandalone && "Notification" in window && Notification.permission === "default") {
-      const pushDismissed = localStorage.getItem("pwa_push_dismissed_until");
-      const isDismissed = pushDismissed && new Date().getTime() < parseInt(pushDismissed, 10);
-      if (!isDismissed) {
-        const timer = setTimeout(() => setShowPushPrompt(true), 4000);
-        return () => clearTimeout(timer);
-      }
-    }
-
-    // 4. Suivi du statut de connexion (Online / Offline)
+    // 3. Suivi du statut de connexion (Online / Offline)
     const handleOnline = () => toast.success("Connexion Internet rétablie !");
     const handleOffline = () => toast.warning("Vous êtes actuellement hors ligne.");
 
@@ -190,9 +179,6 @@ export function PwaManager() {
         setIsInstallable(false);
         setDeferredPrompt(null);
         toast.success("Application installée avec succès !");
-
-        // Proposer les notifications après installation
-        setTimeout(() => setShowPushPrompt(true), 2000);
       }
     } else if (isIos) {
       setShowIosGuide(true);
@@ -205,22 +191,6 @@ export function PwaManager() {
     localStorage.setItem("pwa_dismissed_until", inSevenDays.toString());
   };
 
-  const handleEnablePush = async () => {
-    setShowPushPrompt(false);
-    const res = await subscribeUserToPush();
-    if (res.success) {
-      toast.success("Notifications activées ! Vous recevrez les alertes sur cet appareil.");
-    } else {
-      toast.error(res.message || "Impossible d'activer les notifications.");
-    }
-  };
-
-  const handleDismissPush = () => {
-    setShowPushPrompt(false);
-    const inSevenDays = new Date().getTime() + 7 * 24 * 60 * 60 * 1000;
-    localStorage.setItem("pwa_push_dismissed_until", inSevenDays.toString());
-  };
-
   return (
     <>
       {/* 1. Bannière d'installation PWA */}
@@ -228,7 +198,7 @@ export function PwaManager() {
         <aside
           role="region"
           aria-label="Installation de l'application"
-          className="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:w-96 z-50 bg-white/95 backdrop-blur-md rounded-2xl border border-indigo-100 shadow-2xl p-4 animate-in fade-in slide-in-from-bottom-4 duration-300"
+          className="fixed bottom-20 left-4 right-4 md:bottom-6 md:left-auto md:right-6 md:w-96 z-50 bg-white/95 backdrop-blur-md rounded-2xl border border-indigo-100 shadow-2xl p-4 animate-in fade-in slide-in-from-bottom-4 duration-300"
         >
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm">
@@ -274,58 +244,7 @@ export function PwaManager() {
         </aside>
       )}
 
-      {/* 2. Bannière d'activation des notifications push */}
-      {showPushPrompt && (
-        <aside
-          role="region"
-          aria-label="Activation des notifications"
-          className="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:w-96 z-50 bg-indigo-900 text-white rounded-2xl shadow-2xl p-4 animate-in fade-in slide-in-from-bottom-4 duration-300"
-        >
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-indigo-200 shrink-0">
-              <BellRing className="h-5 w-5 text-indigo-300" />
-            </div>
-
-            <div className="flex-1 min-w-0 pr-6">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-200">
-                Alertes & Créneaux de Prière
-              </h4>
-              <p className="text-xs text-indigo-100 mt-0.5 leading-snug">
-                Recevez directement vos rappels de créneaux et notifications sur votre écran.
-              </p>
-
-              <div className="flex items-center gap-2 mt-3">
-                <Button
-                  size="sm"
-                  onClick={handleEnablePush}
-                  className="h-8 text-xs bg-white hover:bg-gray-100 text-indigo-900 font-semibold rounded-lg gap-1.5 shadow-xs"
-                >
-                  <BellRing className="h-3.5 w-3.5" />
-                  Activer
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={handleDismissPush}
-                  className="h-8 text-xs text-indigo-300 hover:text-white rounded-lg"
-                >
-                  Plus tard
-                </Button>
-              </div>
-            </div>
-
-            <button
-              onClick={handleDismissPush}
-              aria-label="Fermer l'alerte"
-              className="absolute top-3 right-3 text-indigo-300 hover:text-white p-1 rounded-md"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        </aside>
-      )}
-
-      {/* 3. Guide d'installation iOS Safari */}
+      {/* 2. Guide d'installation iOS Safari */}
       {showIosGuide && (
         <div
           role="dialog"

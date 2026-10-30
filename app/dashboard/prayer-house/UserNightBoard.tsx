@@ -59,7 +59,7 @@ export function UserNightBoard() {
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const days = Array.from({ length: 5 }).map((_, i) => addDays(weekStart, i));
   const hours = ["00:00", "01:00", "02:00", "03:00"];
-  console.log(assignment)
+
   return (
     <div className="space-y-6">
         

@@ -65,9 +65,6 @@ export async function getUserUnavailabilities() {
       where: { 
         // @ts-ignore
         userId: session.user.id,
-        // FILTRE AJOUTÉ : Uniquement celles qui commencent aujourd'hui ou plus tard
-        // (Ou celles qui finissent après aujourd'hui si vous voulez inclure les cours)
-        // Ici je suis votre demande "start from current date"
         endDate: {
             gte: today 
         }

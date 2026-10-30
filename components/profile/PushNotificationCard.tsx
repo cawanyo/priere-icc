@@ -1,16 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BellRing, CheckCircle2, AlertCircle, Smartphone, Send, Loader2 } from "lucide-react";
+import { BellRing, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { subscribeUserToPush } from "@/components/pwa/PwaManager";
-import { sendTestPushNotification } from "@/app/actions/push-subscription";
 
 export function PushNotificationCard() {
   const [permission, setPermission] = useState<"granted" | "denied" | "default" | "unsupported">("default");
   const [isActivating, setIsActivating] = useState(false);
-  const [isTesting, setIsTesting] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined" || !("Notification" in window)) {
@@ -40,56 +38,19 @@ export function PushNotificationCard() {
     }
   };
 
-  const handleTest = async () => {
-    setIsTesting(true);
-    try {
-      const res = await sendTestPushNotification();
-      if (res.success) {
-        toast.success("Notification de test envoyée ! Regardez votre écran.");
-      } else {
-        toast.error(res.error || "Erreur lors de l'envoi de la notification de test");
-      }
-    } catch {
-      toast.error("Erreur inattendue");
-    } finally {
-      setIsTesting(false);
-    }
-  };
-
   return (
     <div className="space-y-3">
       {permission === "granted" && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-emerald-50/80 border border-emerald-100">
-          <div className="flex items-start gap-2.5">
-            <CheckCircle2 className="h-4.5 w-4.5 text-emerald-600 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-xs font-semibold text-emerald-950">
-                Notifications push actives
-              </p>
-              <p className="text-[11px] text-emerald-700 mt-0.5">
-                Vous recevrez des alertes pour vos créneaux et annonces même hors ligne.
-              </p>
-            </div>
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-50/80 border border-emerald-100">
+          <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+          <div>
+            <p className="text-xs font-semibold text-emerald-950">
+              Notifications push actives
+            </p>
+            <p className="text-[11px] text-emerald-700 mt-0.5">
+              Vous recevrez des alertes pour vos créneaux et annonces en temps réel sur cet appareil.
+            </p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleTest}
-            disabled={isTesting}
-            className="bg-white hover:bg-emerald-100 text-emerald-800 border-emerald-200 shrink-0 font-semibold text-xs rounded-xl"
-          >
-            {isTesting ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
-                Envoi...
-              </>
-            ) : (
-              <>
-                <Send className="h-3.5 w-3.5 mr-1.5" />
-                Tester la notification
-              </>
-            )}
-          </Button>
         </div>
       )}
 

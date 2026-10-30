@@ -98,7 +98,6 @@ export async function getFamilyDetails(id: string) {
   export async function addMemberToFamily(familyId: string, userId: string) {
       await checkLeaderAccess();
       try {
-          const test = await prisma.user.findUnique({ where: { id: "cmiouuh4j0000l204uewb80vy" } });
           await prisma.user.update({
               where: { id: userId },
               data: { prayerFamilyId: familyId }

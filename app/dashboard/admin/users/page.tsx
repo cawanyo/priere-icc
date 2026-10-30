@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic"; // Toujours important pour que les données soient fraîches
 
-import { Suspense } from "react"; // <--- IMPORT IMPORTANT
+import { Suspense } from "react";
 import { getUsers, getAdminStats } from "@/app/actions/admin";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,8 @@ const formatRole = (role: string) => {
     switch (role) {
         case "PRAYER_LEADER": return "Conducteur";
         case "INTERCESSOR": return "Intercesseur";
-        case "REQUESTER": return "Utilisateur";
+        case "LEADER": return "Responsable";
+        case "ADMIN": return "Administrateur";
         default: return role;
     }
 };
@@ -81,8 +82,8 @@ export default async function AdminUsersPage({
           href="/dashboard/leader/team"
           className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-indigo-700 hover:bg-white transition-colors"
         >
-          <UserPlus className="h-4 w-4 text-pink-600" />
-          Demandes d&apos;adhésion & Équipe
+          <UsersIcon className="h-4 w-4 text-indigo-600" />
+          Équipe d&apos;intercession
         </Link>
       </div>
 
@@ -95,16 +96,15 @@ export default async function AdminUsersPage({
         </div>
 
         <Link href="/dashboard/leader/team">
-          <Button variant="outline" className="gap-2 bg-white text-pink-700 border-pink-200 hover:bg-pink-50 shadow-sm">
-            <UserPlus className="h-4 w-4 text-pink-600" />
-            Voir les demandes d&apos;adhésion
+          <Button variant="outline" className="gap-2 bg-white text-indigo-700 border-indigo-200 hover:bg-indigo-50 shadow-sm">
+            <UsersIcon className="h-4 w-4 text-indigo-600" />
+            Voir l&apos;équipe
           </Button>
         </Link>
       </div>
 
       <AdminStats stats={stats} />
 
-      {/* --- CORRECTION : SUSPENSE POUR LES FILTRES --- */}
       <Suspense fallback={<div className="h-20 bg-white rounded-lg border animate-pulse" />}>
         <UserFilters />
       </Suspense>
@@ -175,7 +175,6 @@ export default async function AdminUsersPage({
         </Table>
       </div>
 
-      {/* --- CORRECTION : SUSPENSE POUR LA PAGINATION --- */}
       {metadata && (
         <Suspense fallback={<div className="flex justify-end py-4"><Loader2 className="h-5 w-5 animate-spin text-gray-400"/></div>}>
             <PaginationControl 

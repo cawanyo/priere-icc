@@ -16,6 +16,7 @@ import { Card } from "@/components/ui/card";
 import { Trash2, Plus, Repeat, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { createRecurringSchedule, deleteRecurringSchedule, getRecurringSchedules } from "@/app/actions/planing";
+import { ConfirmDelete } from "@/components/DeleteConfirm";
 
 
 interface RecurringManagerProps {
@@ -83,13 +84,13 @@ export function RecurringManager({ isOpen, onClose, onRefresh }: RecurringManage
   };
 
   const handleDelete = async (id: string) => {
-    if(!confirm("Supprimer ce modèle ? Les événements futurs générés disparaîtront.")) return;
-    
     const res = await deleteRecurringSchedule(id);
     if(res.success) {
-        toast.success("Supprimé");
+        toast.success("Programme récurrent supprimé");
         loadSchedules();
         onRefresh();
+    } else {
+        toast.error("Erreur lors de la suppression");
     }
   };
 
@@ -134,7 +135,6 @@ export function RecurringManager({ isOpen, onClose, onRefresh }: RecurringManage
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Jour</FormLabel>
-                                        {/* CustomSelect fonctionne maintenant car il est dans un FormItem */}
                                         <CustomSelect 
                                             options={DAYS}
                                             value={field.value}
@@ -209,14 +209,11 @@ export function RecurringManager({ isOpen, onClose, onRefresh }: RecurringManage
                                         <span>{item.startTime} - {item.endTime}</span>
                                     </div>
                                 </div>
-                                <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    onClick={() => handleDelete(item.id)}
-                                    className="text-gray-400 hover:text-red-600"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
+                                <ConfirmDelete
+                                    title="Supprimer ce modèle récurrent ?"
+                                    description="Les événements futurs générés automatiquement à partir de ce modèle disparaîtront."
+                                    onConfirm={() => handleDelete(item.id)}
+                                />
                             </Card>
                         )
                     })}
