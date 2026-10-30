@@ -81,10 +81,17 @@ export async function updateUserRole(userId: string, newRole: Role) {
 
 export async function getAdminStats() {
   await checkAdmin();
+
+  // Migration automatique des utilisateurs REQUESTER vers PRAYER_LEADER
+  await prisma.user.updateMany({
+    where: { role: "REQUESTER" },
+    data: { role: "PRAYER_LEADER" }
+  }).catch(() => {});
+
   const totalUsers = await prisma.user.count();
   const intercessors = await prisma.user.count({ where: { role: "INTERCESSOR" } });
   const admins = await prisma.user.count({ where: { role: "ADMIN" } });
-  const prayerLeaders = await prisma.user.count({ where: { role: "PRAYER_LEADER" } });
+  const prayerLeaders = await prisma.user.count({ where: { role: { in: ["PRAYER_LEADER", "REQUESTER"] } } });
 
   return { totalUsers, intercessors, admins, prayerLeaders };
 }
@@ -99,23 +106,35 @@ export type UserFilters = {
 export async function getUsers(options: UserFilters = {}) {
   await checkAdmin();
   try {
+    // Migration automatique
+    await prisma.user.updateMany({
+      where: { role: "REQUESTER" },
+      data: { role: "PRAYER_LEADER" }
+    }).catch(() => {});
+
     const page = options.page || 1;
     const limit = options.limit || 10;
     const skip = (page - 1) * limit;
 
     const where: any = {};
 
-    // 1. Recherche (Nom ou Email)
+    // 1. Recherche (Nom, Email ou Téléphone)
     if (options.search) {
+      const query = options.search.trim();
       where.OR = [
-        { name: { contains: options.search, mode: 'insensitive' } },
-        { email: { contains: options.search, mode: 'insensitive' } },
+        { name: { contains: query, mode: 'insensitive' } },
+        { email: { contains: query, mode: 'insensitive' } },
+        { phone: { contains: query, mode: 'insensitive' } },
       ];
     }
 
     // 2. Filtre par Rôle
     if (options.role && options.role !== "ALL") {
-      where.role = options.role as Role;
+      if (options.role === "PRAYER_LEADER") {
+        where.role = { in: ["PRAYER_LEADER", "REQUESTER"] };
+      } else {
+        where.role = options.role as Role;
+      }
     }
 
     // Exécution en parallèle (Données + Compte total)

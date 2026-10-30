@@ -31,8 +31,14 @@ export async function getTeamMembers(availabilityCheck?: { start: Date; end: Dat
   try {
     await checkLeaderAccess();
 
+    // Mettre à jour automatiquement les anciens comptes ayant le rôle par défaut REQUESTER en PRAYER_LEADER
+    await prisma.user.updateMany({
+      where: { role: "REQUESTER" },
+      data: { role: "PRAYER_LEADER" }
+    }).catch(() => {});
+
     const whereClause: any = { 
-      role: { in: ["INTERCESSOR", "PRAYER_LEADER", "LEADER", "ADMIN"] } 
+      role: { in: ["INTERCESSOR", "PRAYER_LEADER", "LEADER", "ADMIN", "REQUESTER"] } 
     };
 
     // Si on cherche des dispos pour un créneau précis
@@ -40,8 +46,8 @@ export async function getTeamMembers(availabilityCheck?: { start: Date; end: Dat
       whereClause.unavailabilities = {
         none: {
           AND: [
-            { startTime: { lt: availabilityCheck.end } },
-            { endTime: { gt: availabilityCheck.start } }
+            { startDate: { lt: availabilityCheck.end } },
+            { endDate: { gt: availabilityCheck.start } }
           ]
         }
       };

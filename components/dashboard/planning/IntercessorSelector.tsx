@@ -70,17 +70,24 @@ export function IntercessorSelector({ selectedIds, onChange }: IntercessorSelect
                   <ScrollArea>
                     {members.map((member) => (
                         <CommandItem
-                        key={member.id}
-                        value={member.name}
-                        onSelect={() => toggleSelection(member.id)}
+                          key={member.id}
+                          value={`${member.name || ""} ${member.email || ""} ${member.phone || ""}`}
+                          onSelect={() => toggleSelection(member.id)}
                         >
-                        <Check
+                          <Check
                             className={cn(
-                            "mr-2 h-4 w-4",
-                            selectedIds.includes(member.id) ? "opacity-100" : "opacity-0"
+                              "mr-2 h-4 w-4",
+                              selectedIds.includes(member.id) ? "opacity-100" : "opacity-0"
                             )}
-                        />
-                        {member.name}
+                          />
+                          <div className="flex flex-col text-left">
+                            <span className="font-medium text-foreground">{member.name || "Membre"}</span>
+                            {(member.email || member.phone) && (
+                              <span className="text-xs text-muted-foreground">
+                                {[member.email, member.phone].filter(Boolean).join(" • ")}
+                              </span>
+                            )}
+                          </div>
                         </CommandItem>
                     ))} 
                 </ScrollArea>
@@ -94,7 +101,7 @@ export function IntercessorSelector({ selectedIds, onChange }: IntercessorSelect
       <div className="flex flex-wrap gap-2">
         {selectedMembers.map(member => (
             <Badge key={member.id} variant="secondary" className="pl-2 pr-1 py-1 flex items-center gap-1">
-                {member.name}
+                {member.name || member.email || member.phone || "Membre"}
                  
                 <div className=" inline" onClick={() => toggleSelection(member.id)}>
                  <X size={13} className="text-red-400 hover:cursor-pointer hover:text-red-500 ml-3" />

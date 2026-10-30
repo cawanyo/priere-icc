@@ -21,7 +21,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface User {
   id: string;
-  name: string;
+  name?: string | null;
+  email?: string | null;
+  phone?: string | null;
   image?: string | null;
 }
 
@@ -43,6 +45,9 @@ export function SearchableUserSelect({
 
   // On trouve l'utilisateur sélectionné pour l'affichage du bouton
   const selectedUser = users.find((u) => u.id === selectedUserId);
+  const displayName = selectedUser ? (selectedUser.name || selectedUser.email || selectedUser.phone || "Membre") : "";
+  const initial = displayName ? displayName[0].toUpperCase() : "U";
+
   // Fonction simplifiée qui prend directement l'ID
   const handleSelectUser = (userId: string) => {
     setSelectedUserId(userId);
@@ -64,10 +69,10 @@ export function SearchableUserSelect({
                  <Avatar className="h-5 w-5">
                     <AvatarImage src={selectedUser.image || ""} />
                     <AvatarFallback className="text-[9px] bg-indigo-100 text-indigo-700">
-                        {selectedUser.name[0]}
+                        {initial}
                     </AvatarFallback>
                  </Avatar>
-                 <span className="truncate">{selectedUser.name}</span>
+                 <span className="truncate">{displayName}</span>
             </div>
           ) : (
             <span className="text-gray-500">{placeholder}</span>
@@ -77,37 +82,43 @@ export function SearchableUserSelect({
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0" align="start">
         <Command>
-          <CommandInput placeholder="Taper un nom..." />
+          <CommandInput placeholder="Taper un nom, email ou tél..." />
           <CommandList>
             <CommandEmpty>Aucun membre trouvé.</CommandEmpty>
             <CommandGroup max-height="200px" className="overflow-y-auto">
-              {users.map((user) => (
-                <CommandItem
-                  key={user.id}                
-                  value={`${user.name}-${user.id}`} 
-                  onSelect={() => handleSelectUser(user.id)}
-                  
-                  className="cursor-pointer"
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      selectedUserId === user.id ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-6 w-6">
-                        <AvatarImage src={user.image || ""} />
-                        <AvatarFallback className="text-[10px]">{user.name[0]}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                        <span>{user.name}</span>
-                        {/* Optionnel : Afficher l'ID ou email en petit pour distinguer visuellement */}
-                        {/* <span className="text-[9px] text-gray-400">#{user.id.slice(-4)}</span> */}
+              {users.map((user) => {
+                const uName = user.name || user.email || user.phone || "Membre";
+                const uInit = uName[0]?.toUpperCase() || "U";
+                return (
+                  <CommandItem
+                    key={user.id}                
+                    value={`${user.name || ""} ${user.email || ""} ${user.phone || ""} ${user.id}`} 
+                    onSelect={() => handleSelectUser(user.id)}
+                    className="cursor-pointer"
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        selectedUserId === user.id ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-6 w-6">
+                          <AvatarImage src={user.image || ""} />
+                          <AvatarFallback className="text-[10px]">{uInit}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col text-left">
+                          <span className="text-sm font-medium">{uName}</span>
+                          {(user.email || user.phone) && (
+                            <span className="text-[11px] text-muted-foreground">
+                              {[user.email, user.phone].filter(Boolean).join(" • ")}
+                            </span>
+                          )}
+                      </div>
                     </div>
-                  </div>
-                </CommandItem>
-              ))}
+                  </CommandItem>
+                );
+              })}
             </CommandGroup>
           </CommandList>
         </Command>

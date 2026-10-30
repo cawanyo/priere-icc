@@ -74,18 +74,19 @@ export async function getFamilyDetails(id: string) {
         }
       });
       
-      // On récupère aussi les candidats potentiels (Conducteurs sans famille)
+      // Auto-migration des utilisateurs REQUESTER vers PRAYER_LEADER
+      await prisma.user.updateMany({
+        where: { role: "REQUESTER" },
+        data: { role: "PRAYER_LEADER" }
+      }).catch(() => {});
+
+      // On récupère aussi les candidats potentiels (membres sans famille)
       const candidates = await prisma.user.findMany({
           where: {
-              OR: [{
-                role: "PRAYER_LEADER", // Seuls les conducteurs
-                prayerFamilyId: null   // Qui n'ont pas encore de famille
-              }
-              , { role: "LEADER"}
-              ]
-              
+              prayerFamilyId: null,
+              role: { in: ["PRAYER_LEADER", "REQUESTER", "INTERCESSOR", "LEADER", "ADMIN"] }
           },
-          select: { id: true, name: true, image: true },
+          select: { id: true, name: true, image: true, email: true, phone: true },
           orderBy: { name: 'asc' }
       });
   

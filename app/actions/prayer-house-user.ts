@@ -10,11 +10,17 @@ import { revalidatePath } from "next/cache";
 export async function getUserPrayerHouseData(date: String) {
   const session = await getServerSession(authOptions);
   const dateObj = new Date(date.toString());
-  if (!session?.user?.email) throw new Error("Non connecté");
+  const sessionUser = session?.user as { id?: string; email?: string } | undefined;
+  if (!sessionUser?.id && !sessionUser?.email) throw new Error("Non connecté");
 
   // 1. Récupérer l'utilisateur et sa famille
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        ...(sessionUser.id ? [{ id: sessionUser.id }] : []),
+        ...(sessionUser.email ? [{ email: sessionUser.email }] : [])
+      ]
+    },
     include: { prayerFamily: true }
   });
 
@@ -54,9 +60,17 @@ export async function toggleSelfAssignment(data: {
     action: "JOIN" | "LEAVE"
 }) {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) throw new Error("Non connecté");
+    const sessionUser = session?.user as { id?: string; email?: string } | undefined;
+    if (!sessionUser?.id && !sessionUser?.email) throw new Error("Non connecté");
 
-    const user = await prisma.user.findUnique({ where: { email: session.user.email }});
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          ...(sessionUser.id ? [{ id: sessionUser.id }] : []),
+          ...(sessionUser.email ? [{ email: sessionUser.email }] : [])
+        ]
+      }
+    });
     if (!user) throw new Error("Utilisateur introuvable");
 
     try {

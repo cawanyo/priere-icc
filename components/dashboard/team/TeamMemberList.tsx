@@ -48,10 +48,10 @@ export function TeamMemberList({ members }: TeamMemberListProps) {
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {members.map((member) => {
-            const isLeader = member.role === "PRAYER_LEADER";
-            const RoleIcon = isLeader ? Mic2 : Crown;
-            const roleColor = isLeader ? "text-indigo-600 bg-indigo-50 border-indigo-100" : "text-pink-600 bg-pink-50 border-pink-100";
-            const roleLabel = isLeader ? "Conducteur" : "Intercesseur";
+            const isConducteur = member.role === "PRAYER_LEADER" || member.role === "REQUESTER";
+            const RoleIcon = isConducteur ? Mic2 : Crown;
+            const roleColor = isConducteur ? "text-indigo-600 bg-indigo-50 border-indigo-100" : "text-pink-600 bg-pink-50 border-pink-100";
+            const roleLabel = isConducteur ? "Conducteur" : member.role === "ADMIN" ? "Admin" : member.role === "LEADER" ? "Responsable" : "Intercesseur";
 
             return (
               <Card key={member.id} className="relative overflow-hidden border-gray-100 hover:shadow-md transition-all">

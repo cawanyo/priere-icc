@@ -40,8 +40,14 @@ export async function getLeaderStats() {
     }
   });
 
+  // Migration automatique des REQUESTER en PRAYER_LEADER
+  await prisma.user.updateMany({
+    where: { role: "REQUESTER" },
+    data: { role: "PRAYER_LEADER" }
+  }).catch(() => {});
+
   // 3. Stats Globales
-  const activeIntercessors = await prisma.user.count({ where: { role: "PRAYER_LEADER" } });
+  const activeIntercessors = await prisma.user.count({ where: { role: { in: ["PRAYER_LEADER", "REQUESTER"] } } });
   const totalFamilies = await prisma.prayerFamily.count();
 
   return {
@@ -54,14 +60,28 @@ export async function getLeaderStats() {
 // --- DASHBOARD USER ---
 export async function getUserDashboard() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) return null;
+  const sessionUser = session?.user as { id?: string; email?: string } | undefined;
+  if (!sessionUser?.id && !sessionUser?.email) return null;
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        ...(sessionUser.id ? [{ id: sessionUser.id }] : []),
+        ...(sessionUser.email ? [{ email: sessionUser.email }] : [])
+      ]
+    },
     include: { prayerFamily: true }
   });
 
   if (!user) return null;
+
+  if (user.role === "REQUESTER") {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { role: "PRAYER_LEADER" }
+    }).catch(() => {});
+    user.role = "PRAYER_LEADER";
+  }
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
