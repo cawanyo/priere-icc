@@ -7,8 +7,6 @@ import {
   Calendar1,
   CircleUserRound,
   ArrowRight,
-  HeartPulse,
-  CalendarCheck,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -19,40 +17,6 @@ export default async function MobileEspacePage() {
   const isMinistere = ["INTERCESSOR", "PRAYER_LEADER", "LEADER", "ADMIN"].includes(user.role);
 
   const items = [
-
-     // {
-    //   href: "/dashboard/mobile/checkin",
-    //   label: "Check-in",
-    //   icon: HeartPulse,
-    //   show: true,
-    //   active: pathname.startsWith("/dashboard/mobile/checkin"),
-    // },
-    // {
-    //   href: "/dashboard/mobile/rdv",
-    //   label: "RDV",
-    //   icon: CalendarCheck,
-    //   show: true,
-    //   active: pathname.startsWith("/dashboard/mobile/rdv"),
-    // },
-    {
-      title: "Check-in",
-      description: "Suivre mon etat de santé à la fois physique, emotionnelle et spirituelle.",
-      href: "/dashboard/mobile/checkin",
-      icon: HeartPulse,
-      color: "text-pink-600",
-      bg: "bg-pink-50",
-      show: isMinistere,
-    },
-
-    {
-      title: "RDV",
-      description: "Prendre rdv avec le pasteur ou un Leader.", 
-      href: "/dashboard/mobile/rdv",
-      icon: CalendarCheck,
-      color: "text-pink-600",
-      bg: "bg-pink-50",
-      show: true,
-    },
     {
       title: "Disponibilités",
       description: "Signaler mes absences au planning.",

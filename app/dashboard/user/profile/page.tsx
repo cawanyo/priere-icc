@@ -1,150 +1,101 @@
-'use client'
-import { UserCog } from "lucide-react";
-
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SecurityForm } from "@/components/profile/SecurityForm";
+import { redirect } from "next/navigation";
+import { getCurrentUserProfile } from "@/app/actions/profile";
 import { ProfileForm } from "@/components/profile/ProfileForm";
+import { SecurityForm } from "@/components/profile/SecurityForm";
 import { PushNotificationCard } from "@/components/profile/PushNotificationCard";
-import { IntercessorJourney } from "@/components/profile/IntercessorRoad";
-import { getUserWithRoleRequest } from "@/app/actions/role-request";
-import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import supabase from "@/lib/superbase";
-import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ShieldCheck, User, Lock, BellRing } from "lucide-react";
 
-export default function ProfilePage() {
+const ROLE_DISPLAY: Record<string, string> = {
+  PRAYER_LEADER: "Conducteur de prière",
+  INTERCESSOR: "Conducteur de prière",
+  LEADER: "Responsable",
+  ADMIN: "Administrateur",
+  REQUESTER: "Conducteur de prière",
+};
 
-  const { data: session, update } = useSession();
-
-  const [user, setUser] = useState<any>();
-  const loadData = async () => {
-    const userData = await getUserWithRoleRequest();
-    setUser(userData);
-  }
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  
-
-  useEffect(() => {
-    // Si pas connecté, on ne fait rien
-    if (!session?.user?.id) return;
-
-    const channelName = `user-${session.user.id}`;
-    const channel = supabase.channel(channelName);
-
-    channel
-      .on('broadcast', { event: 'role-update' }, async (payload: any) => {
-         await loadData();
-         if (payload.status === 'APPROVED') {
-             toast.success("Félicitations ! Votre demande a été acceptée.");
-         } else if (payload.status === 'REJECTED') {
-             toast.error("Votre demande a été refusée.");
-         }
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [session,update]);
-
-
-
-
-  if (!user) return null;
+export default async function ProfilePage() {
+  const user = await getCurrentUserProfile();
+  if (!user) redirect("/login");
 
   const hasPassword = !!user.password;
-  const isIntercessorOrLeader = user.role === "INTERCESSOR" || user.role === "LEADER" || user.role === "ADMIN";
+  const roleLabel = ROLE_DISPLAY[user.role] ?? user.role;
+  const initials = (user.name || "U").slice(0, 2).toUpperCase();
 
   return (
-    <div className="bg-gray-50/50 py-6 sm:py-12 px-4 sm:px-6">
-      <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
+    <div className="min-h-screen bg-[#f8fafc] py-6 md:py-8 px-4 sm:px-6">
+      <div className="max-w-3xl mx-auto space-y-6">
         
-        {/* En-tête */}
-        <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm">
-            <UserCog className="h-6 w-6" />
-          </div>
-          <div>
-            <h2 className="text-2xl md:text-3xl font-serif font-bold text-indigo-900">
-              Mon Espace Personnel
-            </h2>
-            <p className="text-muted-foreground">
-              Gérez vos informations et votre engagement.
-            </p>
+        {/* En-tête profil épuré */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Avatar className="h-14 w-14 border border-slate-200 shadow-xs">
+              <AvatarImage src={user.image || ""} />
+              <AvatarFallback className="bg-indigo-600 text-white font-bold text-base">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-lg font-bold text-slate-900 leading-tight">
+                  {user.name || "Mon Profil"}
+                </h1>
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-full">
+                  <ShieldCheck className="h-3 w-3" />
+                  {roleLabel}
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                {user.email || user.phone || "Compte utilisateur"}
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Contenu */}
-        <Tabs defaultValue="general" className="space-y-6">
-          
-          <TabsList className="grid w-full grid-cols-2 lg:w-[600px] lg:grid-cols-3">
-            <TabsTrigger value="general">Informations</TabsTrigger>
-            {hasPassword && <TabsTrigger value="security">Sécurité</TabsTrigger>}
-            {/* Onglet Ministère : visible pour tout le monde */}
-            <TabsTrigger value="ministry">Ministère</TabsTrigger>
-          </TabsList>
+        {/* 1. Informations Personnelles */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4">
+          <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+              <User className="h-4 w-4" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-slate-800">Informations personnelles</h2>
+              <p className="text-[11px] text-slate-400">Coordonnées associées à vos créneaux de prière.</p>
+            </div>
+          </div>
+          <ProfileForm user={user} />
+        </div>
 
-          {/* ONGLET GÉNÉRAL */}
-          <TabsContent value="general" className="animate-in fade-in-50 duration-500 space-y-6">
-            <Card className="border-none shadow-md">
-              <CardHeader>
-                <CardTitle>Profil Utilisateur</CardTitle>
-                <CardDescription>
-                  Vos coordonnées sont utilisées pour pré-remplir vos demandes de prière.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ProfileForm user={user} />
-              </CardContent>
-            </Card>
+        {/* 2. Notifications & Alertes */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4">
+          <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+            <div className="w-8 h-8 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-600">
+              <BellRing className="h-4 w-4" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-slate-800">Notifications & Alertes</h2>
+              <p className="text-[11px] text-slate-400">Rappels de vos créneaux et annonces importantes.</p>
+            </div>
+          </div>
+          <PushNotificationCard />
+        </div>
 
-            <PushNotificationCard />
-          </TabsContent>
+        {/* 3. Sécurité / Mot de passe (si compte avec mot de passe) */}
+        {hasPassword && (
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4">
+            <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+              <div className="w-8 h-8 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">
+                <Lock className="h-4 w-4" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-slate-800">Sécurité du compte</h2>
+                <p className="text-[11px] text-slate-400">Modifier votre mot de passe de connexion.</p>
+              </div>
+            </div>
+            <SecurityForm />
+          </div>
+        )}
 
-          {/* ONGLET SÉCURITÉ */}
-          {hasPassword && (
-            <TabsContent value="security" className="animate-in fade-in-50 duration-500">
-              <Card className="border-none shadow-md">
-                <CardHeader>
-                  <CardTitle>Mot de passe</CardTitle>
-                  <CardDescription>
-                    Mettez à jour votre mot de passe régulièrement.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <SecurityForm />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          )}
-
-          {/* ONGLET MINISTÈRE (NOUVEAU) */}
-          <TabsContent value="ministry" className="animate-in fade-in-50 duration-500">
-            <Card className="border-none shadow-md">
-                <CardHeader>
-                    <CardTitle>Engagement Spirituel</CardTitle>
-                    <CardDescription>
-                        {isIntercessorOrLeader 
-                            ? "Votre statut actuel au sein du ministère." 
-                            : "Vous souhaitez vous engager davantage ? Suivez votre processus ici."}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <IntercessorJourney 
-                        userRole={user.role} 
-                        requestStatus={user.roleRequest?.status || null} 
-                        requestedRole={user.roleRequest?.role}
-                    />
-                </CardContent>
-            </Card>
-          </TabsContent>
-
-        </Tabs>
       </div>
     </div>
   );

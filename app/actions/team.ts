@@ -6,8 +6,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "./notifications";
-import supabase from "@/lib/superbase";
-import { sendEmail } from "@/lib/mail";
 
 async function checkLeaderAccess() {
   const session = await getServerSession(authOptions);
@@ -27,109 +25,6 @@ async function checkLeaderAccess() {
   return user;
 }
 
-// --- GESTION DES CANDIDATURES ---
-
-export async function getRoleRequests(status: string = "ALL") {
-  try {
-    await checkLeaderAccess();
-    const whereClause: any = {};
-    if (status && status !== "ALL") {
-      whereClause.status = status;
-    }
-    const requests = await prisma.roleRequest.findMany({
-      where: whereClause,
-      include: {
-        user: {
-          select: { id: true, name: true, email: true, phone: true, image: true }
-        }
-      },
-      orderBy: { createdAt: "desc" }
-    });
-    return { success: true, data: requests };
-  } catch (error: any) {
-    return { success: false, error: error?.message || "Erreur chargement demandes" };
-  }
-}
-
-export async function updateRoleRequestStatus(requestId: string, newStatus: string) {
-  try {
-    await checkLeaderAccess();
-
-    // 1. Récupérer la demande pour connaître le rôle visé ET les infos utilisateur
-    const request = await prisma.roleRequest.findUnique({ 
-        where: { id: requestId },
-        include: { user: true }
-    });
-    
-    if (!request) throw new Error("Demande introuvable");
-
-    // 2. Mise à jour du statut
-    await prisma.roleRequest.update({
-      where: { id: requestId },
-      data: { status: newStatus },
-    });
-
-    const roleLabel = request.role === "PRAYER_LEADER" ? "Conducteur de prière" : "Intercesseur";
-
-    // 3. Gestion de la promotion et Notification
-    if (newStatus === "APPROVED") {
-      // Promotion de l'utilisateur
-      await prisma.user.update({
-        where: { id: request.userId },
-        data: { role: request.role }
-      });
-
-      await createNotification(
-        request.userId,
-        "Candidature acceptée 🎉",
-        `Félicitations ! Vous avez officiellement rejoint l'équipe en tant que ${roleLabel}.`,
-        "SUCCESS",
-        "/dashboard/user/profile"
-      );
-
-      if (request.user.email) {
-        await sendEmail(
-          request.user.email,
-          "Candidature acceptée 🎉",
-          `Félicitations ${request.user.name} ! Nous sommes ravis de vous informer que votre demande pour rejoindre l’équipe des ${roleLabel}s a été acceptée. Bienvenue dans notre ministère !`
-        );
-      }
-    } else if (newStatus === "REJECTED") {
-      await createNotification(
-        request.userId,
-        "Mise à jour candidature",
-        `Votre demande pour devenir ${roleLabel} n'a pas été retenue pour le moment.`,
-        "INFO",
-        "/dashboard/user/profile"
-      );
-      if (request.user.email) {
-        await sendEmail(
-          request.user.email,
-          "Mise à jour candidature",
-          `Bonjour ${request.user.name}, Votre demande a été rejetée. Rapprochez-vous d'un leader pour échanger.`
-        );
-      }
-    }
-
-    await supabase.channel(`user-${request.userId}`).send({
-      type: 'broadcast',
-      event: 'role-update',
-      payload: { status: newStatus, newRole: request.role }
-    });
-
-    await supabase.channel('admin-dashboard').send({
-      type: 'broadcast',
-      event: 'request-handled',
-      payload: { requestId, status: newStatus }
-    });
-
-    revalidatePath("/dashboard/leader/team");
-    return { success: true, message: "Statut mis à jour et notification envoyée." };
-  } catch (error: any) {
-    return { success: false, message: error?.message || "Erreur opération." };
-  }
-}
-
 // --- GESTION DES MEMBRES ---
 
 export async function getTeamMembers(availabilityCheck?: { start: Date; end: Date }) {
@@ -137,7 +32,7 @@ export async function getTeamMembers(availabilityCheck?: { start: Date; end: Dat
     await checkLeaderAccess();
 
     const whereClause: any = { 
-      role: { in: ["INTERCESSOR", "PRAYER_LEADER", "LEADER"] } 
+      role: { in: ["INTERCESSOR", "PRAYER_LEADER", "LEADER", "ADMIN"] } 
     };
 
     // Si on cherche des dispos pour un créneau précis
@@ -178,36 +73,21 @@ export async function removeTeamMember(userId: string) {
 
     await prisma.user.update({
       where: { id: userId },
-      data: { role: "REQUESTER" } // Retour case départ
+      data: { role: "PRAYER_LEADER" }
     });
-    
-    // Nettoyage de l'ancienne demande
-    await prisma.roleRequest.deleteMany({ where: { userId: userId } });
 
     revalidatePath("/dashboard/leader/team");
 
-    await supabase.channel(`user-${userId}`).send({
-      type: 'broadcast',
-      event: 'role-update',
-      payload: { status: '', newRole: '' }
-    });
-
-    await supabase.channel('admin-dashboard').send({
-      type: 'broadcast',
-      event: 'request-handled',
-      payload: { requestId: null, status: 'REMOVED' }
-    });
-
     await createNotification(
       userId,
-      "Retrait de l'équipe",
-      "Vous avez été retiré de l'équipe des intercesseurs/conducteurs de prière.",
-      "WARNING",
+      "Mise à jour de votre profil",
+      "Votre statut au sein de l'équipe a été mis à jour.",
+      "INFO",
       "/dashboard/user/profile"
     );
 
-    return { success: true, message: "Membre retiré." };
+    return { success: true, message: "Membre mis à jour." };
   } catch (error: any) {
-    return { success: false, message: error?.message || "Erreur lors du retrait." };
+    return { success: false, message: error?.message || "Erreur lors de la modification." };
   }
 }

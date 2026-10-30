@@ -8,8 +8,6 @@ import {
   CalendarRange,
   LayoutDashboard,
   User,
-  HeartPulse,
-  CalendarCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -45,20 +43,6 @@ export function MobileBottomNav({ userRole }: MobileBottomNavProps) {
       show: true,
       active: pathname.startsWith("/dashboard/mobile/planning"),
     },
-    // {
-    //   href: "/dashboard/mobile/checkin",
-    //   label: "Check-in",
-    //   icon: HeartPulse,
-    //   show: true,
-    //   active: pathname.startsWith("/dashboard/mobile/checkin"),
-    // },
-    // {
-    //   href: "/dashboard/mobile/rdv",
-    //   label: "RDV",
-    //   icon: CalendarCheck,
-    //   show: true,
-    //   active: pathname.startsWith("/dashboard/mobile/rdv"),
-    // },
     {
       href: "/dashboard/mobile/leader",
       label: "Leader",

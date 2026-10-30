@@ -14,6 +14,33 @@ import { passwordSchema, profileSchema } from "@/lib/validations/auth";
 
 // --- Actions ---
 
+export async function getCurrentUserProfile() {
+  const session = await getServerSession(authOptions);
+  // @ts-ignore
+  if (!session?.user?.id) return null;
+
+  return prisma.user.findUnique({
+    // @ts-ignore
+    where: { id: session.user.id },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      role: true,
+      password: true,
+      image: true,
+      createdAt: true,
+      prayerFamily: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
+}
+
 export async function updateProfile(data: z.infer<typeof profileSchema>) {
   const session = await getServerSession(authOptions);
   // @ts-ignore

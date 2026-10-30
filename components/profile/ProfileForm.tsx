@@ -1,31 +1,34 @@
-// components/dashboard/profile/ProfileForm.tsx
 "use client";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Loader2, Save, User, Mail, Shield } from "lucide-react";
-
+import { Loader2, Save, User, Mail, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-
 import { PhoneInputCustom } from "@/components/ui/phone-input";
-import { updateProfile,} from "@/app/actions/profile";
+import { updateProfile } from "@/app/actions/profile";
 import * as z from "zod";
 import { profileSchema } from "@/lib/validations/auth";
 import { IconInput } from "../ui/text-input";
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
+
+const ROLE_DISPLAY: Record<string, string> = {
+  PRAYER_LEADER: "Conducteur de prière",
+  INTERCESSOR: "Conducteur de prière",
+  LEADER: "Responsable",
+  ADMIN: "Administrateur",
+  REQUESTER: "Conducteur de prière",
+};
 
 interface ProfileFormProps {
   user: {
@@ -44,7 +47,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
     defaultValues: {
       name: user.name || "",
       phone: user.phone || "",
-      email: user.email || ""
+      email: user.email || "",
     },
   });
 
@@ -60,79 +63,96 @@ export function ProfileForm({ user }: ProfileFormProps) {
     }
   };
 
+  const roleLabel = ROLE_DISPLAY[user.role] ?? user.role;
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        
-        {/* Champs en lecture seule */}
-        <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                      <FormItem>
-                      <FormLabel>Nom complet</FormLabel>
-                      <FormControl>
-                          <IconInput startIcon={User} placeholder="Votre nom" {...field} className="h-11" />
-                      </FormControl>
-                      <FormMessage />
-                      </FormItem>
-                  )}
-            />
-            </div>
-            <div className="space-y-2">
-                <FormLabel className="text-muted-foreground">Rôle</FormLabel>
-                <div className="flex items-center h-11 w-full rounded-md border border-input bg-muted/50 px-3 text-sm text-muted-foreground">
-                    <Shield className="mr-2 h-4 w-4 opacity-50" />
-                    {user.role}
-                </div>
-            </div>
-        </div>
-
-        <div className="border-t my-4" />
-
-        {/* Champs modifiables */}
-        <div className="grid md:grid-cols-2 gap-4">
-            <FormField
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Nom complet */}
+          <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
-                <FormItem>
-                <FormLabel>Nom complet</FormLabel>
+              <FormItem>
+                <FormLabel className="text-xs font-semibold text-slate-700">Nom complet</FormLabel>
                 <FormControl>
-                    <IconInput startIcon={User} placeholder="Votre nom" {...field} className="h-11" />
+                  <IconInput
+                    startIcon={User}
+                    placeholder="Votre nom"
+                    {...field}
+                    className="h-10 text-xs rounded-xl border-slate-200"
+                  />
                 </FormControl>
-                <FormMessage />
-                </FormItem>
+                <FormMessage className="text-xs" />
+              </FormItem>
             )}
-            />
+          />
 
-            <FormField
+          {/* Email */}
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs font-semibold text-slate-700">Adresse email</FormLabel>
+                <FormControl>
+                  <IconInput
+                    startIcon={Mail}
+                    type="email"
+                    placeholder="exemple@email.com"
+                    {...field}
+                    className="h-10 text-xs rounded-xl border-slate-200"
+                  />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+
+          {/* Téléphone */}
+          <FormField
             control={form.control}
             name="phone"
             render={({ field }) => (
-                <FormItem>
-                <FormLabel>Téléphone</FormLabel>
+              <FormItem>
+                <FormLabel className="text-xs font-semibold text-slate-700">Numéro de téléphone</FormLabel>
                 <FormControl>
-                    <PhoneInputCustom 
-                        placeholder="Votre numéro" 
-                        value={field.value} 
-                        onChange={field.onChange}
-                        className="h-11"
-                    />
+                  <PhoneInputCustom
+                    placeholder="Votre numéro"
+                    value={field.value}
+                    onChange={field.onChange}
+                    className="h-10 text-xs rounded-xl"
+                  />
                 </FormControl>
-                <FormMessage />
-                </FormItem>
+                <FormMessage className="text-xs" />
+              </FormItem>
             )}
-            />
+          />
+
+          {/* Rôle actuel (Lecture seule) */}
+          <div>
+            <label className="text-xs font-semibold text-slate-700 block mb-2">Rôle sur la plateforme</label>
+            <div className="flex items-center gap-2 h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 font-medium">
+              <ShieldCheck className="h-4 w-4 text-indigo-600 shrink-0" />
+              <span>{roleLabel}</span>
+            </div>
+          </div>
         </div>
 
-        <div className="flex justify-end">
-            <Button type="submit" disabled={isLoading}>
-            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+        <div className="flex justify-end pt-2">
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-xs"
+          >
+            {isLoading ? (
+              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Save className="mr-1.5 h-3.5 w-3.5" />
+            )}
             Enregistrer les modifications
-            </Button>
+          </Button>
         </div>
       </form>
     </Form>

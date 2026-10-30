@@ -107,11 +107,11 @@ export async function updateNightSlot(data: {
 
       await createNotification(
         data.userId,
-        "Programme",
-        `Vous êtes de service  le ${ format(new Date(data.date.toString()),  "dd:MM:yyyy")} à ${data.startTime}`,
+        "Maison de Prière",
+        `Vous êtes de service le ${format(new Date(data.date.toString()), "dd/MM/yyyy")} à ${data.startTime}`,
         "INFO",
-        `/dashboard/`
-        );
+        "/dashboard/desktop/prayer-house"
+      );
       if (user && user.phone) {
         await sendSMS({
          to: user.phone, 

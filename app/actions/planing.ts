@@ -122,11 +122,11 @@ export async function savePlanningEvent(data: any) {
 
       await Promise.all(newIntercessors.map(async (user) => {
         await createNotification(
-        user.id,
-        "Programme",
-        `Vous êtes de service  le ${ format(new Date(date),  "dd:MM:yyyy")} à ${startTime}`,
-        "INFO",
-        `/dashboard/`
+          user.id,
+          "Planning de Prière",
+          `Vous êtes de service le ${format(new Date(date), "dd/MM/yyyy")} à ${startTime}`,
+          "INFO",
+          "/dashboard/desktop/planning"
         );
         if (user.phone) {
           await sendSMS({
