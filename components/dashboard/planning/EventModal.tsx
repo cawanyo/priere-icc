@@ -144,9 +144,12 @@ export function EventModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg p-0 overflow-hidden rounded-2xl sm:rounded-3xl border-slate-200/90 shadow-2xl">
-        {/* Entête épuré et sobre */}
-        <div className="p-5 sm:p-6 pb-4 bg-slate-50/80 border-b border-slate-100 flex items-start gap-3.5">
+      <DialogContent
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        className="w-[95vw] sm:max-w-lg h-[80vh] max-h-[80vh] flex flex-col p-0 overflow-hidden rounded-2xl sm:rounded-3xl border-slate-200/90 shadow-2xl"
+      >
+        {/* Entête épuré et sobre fixe */}
+        <div className="shrink-0 p-4 sm:p-5 pb-3.5 bg-slate-50/80 border-b border-slate-100 flex items-start gap-3.5">
           <div className="h-10 w-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0 shadow-xs">
             <Clock className="h-5 w-5" />
           </div>
@@ -160,8 +163,8 @@ export function EventModal({
           </div>
         </div>
 
-        {/* Corps du formulaire bien structuré */}
-        <div className="p-5 sm:p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+        {/* Corps du formulaire scrollable à l'intérieur */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
           {/* Titre */}
           <div className="space-y-1.5">
             <Label htmlFor="slot-title" className="text-xs font-semibold text-slate-700">
@@ -173,6 +176,7 @@ export function EventModal({
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               className="text-sm rounded-xl bg-white"
+              autoFocus={false}
             />
           </div>
 
@@ -254,8 +258,8 @@ export function EventModal({
           </div>
         </div>
 
-        {/* Pied de dialogue sobre */}
-        <div className="p-4 sm:px-6 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between gap-2">
+        {/* Pied de dialogue sobre fixe */}
+        <div className="shrink-0 p-3.5 sm:px-6 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between gap-2">
           <div>
             {event && (
               <AlertDialog>
