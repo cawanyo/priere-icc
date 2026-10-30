@@ -15,7 +15,7 @@ export async function checkIntercessorAccess() {
   // @ts-ignore
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
   
-  if (!user || (user.role !== "INTERCESSOR" && user.role !== "LEADER" && user.role !== "ADMIN")) {
+  if (!user) {
     throw new Error("Accès refusé.");
   }
   return user;
@@ -29,7 +29,7 @@ export async function checkIntercessorOrPrayerLeaderAccess() {
   // @ts-ignore
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
   
-  if (!user || (user.role !== "INTERCESSOR" && user.role!== "PRAYER_LEADER" && user.role !== "LEADER" && user.role !== "ADMIN")) {
+  if (!user) {
     throw new Error("Accès refusé.");
   }
   return user;
@@ -121,6 +121,8 @@ export async function selfAssignToEventSlot(slotData: any) {
     );
 
     revalidatePath("/dashboard/user/intercessor/events");
+    revalidatePath("/dashboard/user/intercessor/planning");
+    revalidatePath("/dashboard/leader/planning");
     return { success: true, message: "Vous êtes inscrit sur ce créneau." };
   } catch (error) {
     return { success: false, message: "Erreur lors de l'inscription." };
@@ -154,6 +156,8 @@ export async function selfRemoveFromEventSlot(planningId: string) {
     }
 
     revalidatePath("/dashboard/user/intercessor/events");
+    revalidatePath("/dashboard/user/intercessor/planning");
+    revalidatePath("/dashboard/leader/planning");
     return { success: true, message: "Vous vous êtes retiré du créneau." };
   } catch (error) {
     return { success: false, message: "Erreur lors du retrait." };
