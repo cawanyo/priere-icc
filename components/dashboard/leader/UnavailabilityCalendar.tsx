@@ -71,8 +71,6 @@ export function UnavailabilityCalendar({ familyId }: Props) {
             ))}
 
             {days.map((day) => {
-                // --- CORRECTION ICI ---
-                // On filtre les indisponibilités qui "couvrent" ce jour
                 const absents = unavailabilities.filter((u) => isAbsent(day, u));
                 
                 // Pour savoir si c'est aujourd'hui (juste pour le style)

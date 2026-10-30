@@ -49,7 +49,6 @@ export const sendEmail = async (to: string, subject: string, html: string) => {
       }),
     });
   
-    console.log(res)
     if (!res.ok) {
       const error = await res.text();
       throw new Error(error);

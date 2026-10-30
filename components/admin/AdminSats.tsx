@@ -1,22 +1,21 @@
-// components/admin/AdminStats.tsx
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Shield, Radio, HeartHandshake } from "lucide-react";
+import { Users, Shield, Radio, Flame } from "lucide-react";
 
 interface AdminStatsProps {
   stats: {
     totalUsers: number;
     intercessors: number;
     admins: number;
-    requesters: number;
+    prayerLeaders: number;
   };
 }
 
 export function AdminStats({ stats }: AdminStatsProps) {
   const cards = [
     { title: "Total Utilisateurs", value: stats.totalUsers, icon: Users, color: "text-blue-600" },
+    { title: "Conducteurs de Prière", value: stats.prayerLeaders, icon: Flame, color: "text-indigo-600" },
     { title: "Intercesseurs", value: stats.intercessors, icon: Radio, color: "text-purple-600" },
     { title: "Admins", value: stats.admins, icon: Shield, color: "text-red-600" },
-    { title: "Demandeurs", value: stats.requesters, icon: HeartHandshake, color: "text-green-600" },
   ];
 
   return (

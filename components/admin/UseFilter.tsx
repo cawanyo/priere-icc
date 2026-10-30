@@ -94,11 +94,10 @@ export function UserFilters() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">Tous les rôles</SelectItem>
-            <SelectItem value="REQUESTER">Utilisateur (Requester)</SelectItem>
-            <SelectItem value="PRAYER_LEADER">Conducteur</SelectItem>
+            <SelectItem value="PRAYER_LEADER">Conducteur de Prière</SelectItem>
             <SelectItem value="INTERCESSOR">Intercesseur</SelectItem>
-            <SelectItem value="LEADER">Leader</SelectItem>
-            <SelectItem value="ADMIN">Admin</SelectItem>
+            <SelectItem value="LEADER">Responsable</SelectItem>
+            <SelectItem value="ADMIN">Administrateur</SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -105,11 +105,10 @@ export function UserActions({ userId, currentRole, userName }: UserActionsProps)
                 <SelectValue placeholder="Sélectionner un rôle" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="REQUESTER">Requester (Utilisateur)</SelectItem>
-                <SelectItem value="PRAYER_LEADER">Conducteur de Prière</SelectItem> {/* AJOUT ICI */}
+                <SelectItem value="PRAYER_LEADER">Conducteur de Prière</SelectItem>
                 <SelectItem value="INTERCESSOR">Intercesseur</SelectItem>
-                <SelectItem value="LEADER">Leader</SelectItem>
-                <SelectItem value="ADMIN">Admin</SelectItem>
+                <SelectItem value="LEADER">Responsable</SelectItem>
+                <SelectItem value="ADMIN">Administrateur</SelectItem>
               </SelectContent>
             </Select>
           </div>

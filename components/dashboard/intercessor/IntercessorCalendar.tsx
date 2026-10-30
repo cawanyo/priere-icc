@@ -71,7 +71,6 @@ export function IntercessorCalendar() {
                     </div>
                 )}
 
-                {/* BOUTON FILTRE AJOUTÉ ICI */}
                 <Button 
                     variant={showMyPlanningOnly ? "default" : "outline"}
                     className={showMyPlanningOnly ? "bg-pink-600 hover:bg-pink-700 text-white" : "text-gray-600"}

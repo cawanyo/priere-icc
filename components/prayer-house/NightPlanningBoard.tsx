@@ -70,9 +70,7 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
   // --- CHARGEMENT ---
   const loadData = async () => {
     setLoading(true);
-    console.log(currentDate, "date")
     const planRes = await getNightPlanning(currentDate);
-    console.log(planRes)
     if (planRes.success) setAssignment(planRes.assignment);
     setLoading(false);
   };
@@ -418,7 +416,6 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
                             <div className="grid grid-cols-2 gap-2 p-3 bg-white">
                                 {displayHours.map(hour => {
                                     const schedule = getSchedule(day, hour);
-                                    // CORRECTION : Est-ce que la case est vraiment prise ?
                                     const isFilled = schedule && schedule.user;
                                     
 
@@ -500,7 +497,6 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
                                     </td>
                                     {days.map(day => {
                                         const schedule = getSchedule(day, hour);
-                                        // CORRECTION : Est-ce que la case est vraiment prise ?
                                         const isFilled = schedule && schedule.user;
 
                                         return (
