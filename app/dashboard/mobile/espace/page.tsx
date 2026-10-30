@@ -3,7 +3,6 @@ import { checkUser } from "@/app/actions/user";
 import Link from "next/link";
 import {
   Church,
-  Sparkles,
   Calendar1,
   CircleUserRound,
   ArrowRight,

@@ -6,7 +6,7 @@ import {
   Home, Church, CalendarRange,
   LayoutDashboard, User,
   Settings, ChevronRight,
-  Sparkles, ShieldCheck, Users,
+  ShieldCheck, Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -60,7 +60,7 @@ export function DesktopSidebar({ userRole, userName, userImage }: DesktopSidebar
       <div className="px-5 py-5 border-b border-gray-100">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center">
-            <Sparkles className="h-4 w-4 text-white" />
+            <Church className="h-4 w-4 text-white" />
           </div>
           <div>
             <p className="text-sm font-bold text-gray-900">Prayer ICC</p>

@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   CalendarRange, ClipboardList,
   Moon, Clock, ChevronRight,
-  Church, Sparkles, ArrowRight,
+  Church, ArrowRight,
 } from "lucide-react";
 import { NotificationBell } from "@/components/layout/notifications";
 import { checkUser } from "../actions/user";
@@ -112,7 +112,7 @@ export default async function DashboardPage() {
 
           <div className="flex items-center gap-3">
             <div className="hidden lg:flex items-center gap-2.5 bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-2 text-xs text-slate-600">
-              <Sparkles className="h-4 w-4 text-amber-500 shrink-0" />
+              <Church className="h-4 w-4 text-slate-400 shrink-0" />
               <span className="italic">« La prière fervente du juste a une grande efficacité. »</span>
               <span className="font-semibold text-slate-500 not-italic">— Jacques 5:16</span>
             </div>

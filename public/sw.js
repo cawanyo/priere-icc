@@ -173,7 +173,6 @@ self.addEventListener("push", (event) => {
     body,
     icon,
     badge,
-    vibrate: [100, 50, 100],
     tag,
     renotify: true,
     data: {
@@ -181,7 +180,15 @@ self.addEventListener("push", (event) => {
     },
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil(
+    self.registration.showNotification(title, options).catch((err) => {
+      console.warn("[SW] Erreur showNotification standard, tentative fallback:", err);
+      return self.registration.showNotification(title, {
+        body,
+        data: { url },
+      });
+    })
+  );
 });
 
 self.addEventListener("notificationclick", (event) => {

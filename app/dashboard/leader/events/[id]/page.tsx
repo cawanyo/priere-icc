@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ChevronLeft, Calendar } from "lucide-react";
+import { ChevronLeft, Calendar, Edit } from "lucide-react";
 import { getEventDetails } from "@/app/actions/event";
 import { EventCalendar } from "@/components/dashboard/event/EventCalendar";
 import { format } from "date-fns";
@@ -41,6 +41,13 @@ export default async function EventPlanningPage({ params }: { params: Promise<{ 
             Du {format(new Date(specialEvent.startDate), "d MMMM", { locale: fr })} au {format(new Date(specialEvent.endDate), "d MMMM yyyy", { locale: fr })}
           </p>
         </div>
+
+        <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-semibold self-start sm:self-auto gap-1.5 cursor-pointer">
+          <Link href={`/dashboard/leader/events/${id}/edit`}>
+            <Edit className="h-3.5 w-3.5" />
+            Modifier l'événement
+          </Link>
+        </Button>
       </div>
 
       <EventCalendar specialEvent={specialEvent} />

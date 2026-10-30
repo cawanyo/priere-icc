@@ -14,7 +14,6 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import Link from "next/link";
-import { EventFormModal } from "./EventFormModal";
 import { SpecialEventWithTemplate } from "@/lib/types";
 import { convertKeepDate, cn } from "@/lib/utils";
 
@@ -74,20 +73,8 @@ function formatEventDates(startDate: Date | string, endDate: Date | string): str
 
 export function EventList({ events }: { events: SpecialEventWithTemplate[] }) {
   const [activeTab, setActiveTab] = useState<"active" | "past">("active");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [idToDelete, setIdToDelete] = useState<string>("");
-
-  const openCreate = () => {
-    setEditingEvent(null);
-    setIsModalOpen(true);
-  };
-
-  const openEdit = (event: any) => {
-    setEditingEvent(event);
-    setIsModalOpen(true);
-  };
 
   const handleDelete = async (id: string) => {
     setIsLoading(true);
@@ -183,10 +170,12 @@ export function EventList({ events }: { events: SpecialEventWithTemplate[] }) {
 
         {/* Bouton création */}
         <Button
-          onClick={openCreate}
+          asChild
           className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs text-xs font-semibold self-start sm:self-auto"
         >
-          <Plus className="mr-1.5 h-4 w-4" /> Créer un événement
+          <Link href="/dashboard/leader/events/new">
+            <Plus className="mr-1.5 h-4 w-4" /> Créer un événement
+          </Link>
         </Button>
       </div>
 
@@ -242,8 +231,10 @@ export function EventList({ events }: { events: SpecialEventWithTemplate[] }) {
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-40 rounded-xl">
-                          <DropdownMenuItem onClick={() => openEdit(evt)} className="text-xs cursor-pointer">
-                            <Edit className="mr-2 h-3.5 w-3.5" /> Modifier
+                          <DropdownMenuItem asChild className="text-xs cursor-pointer">
+                            <Link href={`/dashboard/leader/events/${evt.id}/edit`}>
+                              <Edit className="mr-2 h-3.5 w-3.5" /> Modifier
+                            </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => setIdToDelete(evt.id)}
@@ -308,21 +299,16 @@ export function EventList({ events }: { events: SpecialEventWithTemplate[] }) {
           </p>
           {activeTab === "active" && (
             <Button
-              onClick={openCreate}
+              asChild
               className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-xs"
             >
-              <Plus className="mr-1.5 h-4 w-4" /> Créer un événement
+              <Link href="/dashboard/leader/events/new">
+                <Plus className="mr-1.5 h-4 w-4" /> Créer un événement
+              </Link>
             </Button>
           )}
         </div>
       )}
-
-      {/* MODAL CRÉATION / ÉDITION */}
-      <EventFormModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        eventToEdit={editingEvent}
-      />
 
       {/* CONFIRMATION DE SUPPRESSION */}
       <AlertDialog open={idToDelete !== ""} onOpenChange={(open) => !open && setIdToDelete("")}>

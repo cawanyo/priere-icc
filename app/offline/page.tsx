@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { WifiOff, RotateCw, Home, Sparkles } from "lucide-react";
+import { WifiOff, RotateCw, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function OfflinePage() {
@@ -34,7 +34,7 @@ export default function OfflinePage() {
         {/* Carte d'information */}
         <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100/80 text-left space-y-1.5">
           <div className="flex items-center gap-2 text-xs font-bold text-indigo-900">
-            <Sparkles className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+            <WifiOff className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
             Mode Hors Ligne Activé
           </div>
           <p className="text-xs text-gray-600 leading-normal">

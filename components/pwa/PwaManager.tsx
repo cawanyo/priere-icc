@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Download, X, Share, PlusSquare, Sparkles, Check } from "lucide-react";
+import { Download, X, Share, PlusSquare, Bell, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { urlBase64ToUint8Array } from "@/lib/utils";
@@ -43,20 +43,20 @@ export async function subscribeUserToPush(): Promise<{ success: boolean; message
 
     // Vérifier si l'abonnement existant utilise bien la clé VAPID actuelle
     if (subscription) {
-      let isKeyMatching = false;
+      let isKeyMatching = true; // Par défaut, on conserve l'abonnement existant pour éviter les désinscriptions accidentelles sur mobile
       try {
         const rawKey = subscription.options?.applicationServerKey;
         if (rawKey) {
           const subKeyArray = new Uint8Array(rawKey);
-          if (subKeyArray.length === convertedKey.length) {
+          if (subKeyArray.length > 0 && subKeyArray.length === convertedKey.length) {
             isKeyMatching = subKeyArray.every((val, idx) => val === convertedKey[idx]);
           }
         }
       } catch {
-        isKeyMatching = false;
+        isKeyMatching = true;
       }
 
-      // Si la clé VAPID a changé ou est obsolète, renouveler l'abonnement
+      // Si la clé VAPID a explicitement changé, renouveler l'abonnement
       if (!isKeyMatching) {
         await subscription.unsubscribe().catch(() => {});
         subscription = null;
@@ -236,7 +236,7 @@ export function PwaManager() {
         >
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm">
-              <Sparkles className="h-5 w-5" />
+              <Bell className="h-5 w-5" />
             </div>
 
             <div className="flex-1 min-w-0 pr-6">
