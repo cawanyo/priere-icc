@@ -22,32 +22,15 @@ export default async function EventPlanningPage({ params }: { params: Promise<{ 
   }
 
   return (
-    <div className="flex-1 space-y-6 px-4 sm:px-6 md:px-8 py-5 md:py-6 pb-28 md:pb-12 bg-[#f8fafc] min-h-screen">
+    <div className="flex-1 space-y-4 px-4 sm:px-6 md:px-8 py-5 md:py-6 pb-28 md:pb-12 bg-[#f8fafc] min-h-screen">
       <div>
         <Link 
           href="/dashboard/leader/events" 
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-indigo-600 transition-colors py-1 px-2 -ml-2 rounded-lg"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors py-1 px-2 -ml-2 rounded-lg"
         >
           <ChevronLeft className="h-4 w-4" />
           <span>Gestion des événements</span>
         </Link>
-      </div>
-
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-slate-900">{specialEvent.title}</h1>
-          <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
-            <Calendar className="h-3.5 w-3.5 text-indigo-600" />
-            Du {format(new Date(specialEvent.startDate), "d MMMM", { locale: fr })} au {format(new Date(specialEvent.endDate), "d MMMM yyyy", { locale: fr })}
-          </p>
-        </div>
-
-        <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-semibold self-start sm:self-auto gap-1.5 cursor-pointer">
-          <Link href={`/dashboard/leader/events/${id}/edit`}>
-            <Edit className="h-3.5 w-3.5" />
-            Modifier l'événement
-          </Link>
-        </Button>
       </div>
 
       <EventCalendar specialEvent={specialEvent} />
