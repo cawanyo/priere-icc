@@ -107,11 +107,11 @@ export async function getUserDashboard() {
 
   const servicesThisMonth = dayServicesThisMonth + nightServicesThisMonth;
 
-  // D. Prochains événements (les 2 prochains)
+  // D. Prochains événements (en cours et à venir)
   const upcomingEvents = await prisma.specialEvent.findMany({
-    where: { startDate: { gte: startOfDay(now) } },
+    where: { endDate: { gte: startOfDay(now) } },
     orderBy: { startDate: 'asc' },
-    take: 2
+    take: 3
   });
 
   // E. Maison de garde cette semaine
