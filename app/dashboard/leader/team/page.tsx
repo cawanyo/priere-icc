@@ -53,7 +53,7 @@ export default function TeamManagementPage() {
   const leadersCount = useMemo(() => allMembers.filter((m) => m.role === "LEADER" || m.role === "ADMIN").length, [allMembers]);
 
   return (
-    <div className="flex-1 space-y-6 p-4 sm:p-8 pt-5 sm:pt-6 bg-[#f8fafc] min-h-screen">
+    <div className="flex-1 space-y-6 px-4 sm:px-6 md:px-8 py-5 md:py-6 pb-28 md:pb-12 bg-[#f8fafc] min-h-screen">
       {/* En-tête */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3.5">

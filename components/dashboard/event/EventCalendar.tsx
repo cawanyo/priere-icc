@@ -69,17 +69,15 @@ export function EventCalendar({specialEvent }: EventCalendarProps) {
       </div>
 
       {/* Grille Semaine */}
-      <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
-      <Button variant="outline" size="icon" onClick={prevWeek} className="md:hidden"><ChevronLeft className="h-4 w-4 "/></Button>
-
-
-        {days.map((day) => <CalendarDay key={day.toISOString()} specialEvent={specialEvent} handleEventClick={handleEventClick} day={day} /> )}
-
-
-        <div className=" w-full flex justify-end">
-            <Button variant="outline" size="icon" onClick={nextWeek} className="md:hidden self-center"><ChevronRight className="h-4 w-4"/></Button>
-        </div>
-
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-3">
+        {days.map((day) => (
+          <CalendarDay 
+            key={day.toISOString()} 
+            specialEvent={specialEvent} 
+            handleEventClick={handleEventClick} 
+            day={day} 
+          />
+        ))}
       </div>
 
       <EventModal 

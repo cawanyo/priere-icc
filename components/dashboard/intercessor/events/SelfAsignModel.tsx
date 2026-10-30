@@ -50,6 +50,8 @@ export function SelfAssignModal({ event, isOpen, onClose, isAssigned }: SelfAssi
     }
   };
 
+  const assignedUsers = event.users || event.intercessors || [];
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -73,12 +75,12 @@ export function SelfAssignModal({ event, isOpen, onClose, isAssigned }: SelfAssi
             {/* LISTE DES INTERCESSEURS DÉJÀ PRÉSENTS */}
             <div>
                 <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <Users className="h-3.5 w-3.5" /> Déjà positionnés ({event.intercessors?.length || 0})
+                    <Users className="h-3.5 w-3.5" /> Déjà positionnés ({assignedUsers.length})
                 </h5>
                 
-                {event.intercessors && event.intercessors.length > 0 ? (
+                {assignedUsers.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
-                        {event.intercessors.map((intercessor: any) => (
+                        {assignedUsers.map((intercessor: any) => (
                             <div key={intercessor.id} className="flex items-center gap-2 bg-white border rounded-full pl-1 pr-3 py-1 shadow-sm">
                                 <Avatar className="h-6 w-6">
                                     <AvatarImage src={intercessor.image} />

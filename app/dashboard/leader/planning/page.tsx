@@ -1,26 +1,27 @@
-// app/dashboard/leader/planning/page.tsx
 import { PlanningCalendar } from "@/components/dashboard/planning/PlanningCalendar";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { checkLeaderAccess } from "@/app/actions/leader";
+import { CalendarRange } from "lucide-react";
 
 export default async function PlanningPage() {
-  const user = checkLeaderAccess()
-  // @ts-ignore
-  if (!user) {
+  try {
+    await checkLeaderAccess();
+  } catch {
     redirect("/dashboard");
   }
 
   return (
-    <div className="flex-1 space-y-8 p-8 pt-6 bg-gray-50/30 min-h-screen">
-      <div className="flex items-center justify-between">
+    <div className="flex-1 px-4 sm:px-6 md:px-8 py-5 md:py-6 pb-28 md:pb-12 space-y-6 bg-[#f8fafc] min-h-screen">
+      <div className="flex items-center gap-3.5">
+        <div className="h-11 w-11 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+          <CalendarRange className="h-5 w-5" />
+        </div>
         <div>
-          <h2 className="text-3xl font-serif font-bold tracking-tight text-indigo-900">
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
             Planning de Prière
-          </h2>
-          <p className="text-muted-foreground">
-            Organisez la couverture spirituelle de la semaine.
+          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Coordination et assignation des créneaux d&apos;intercession.
           </p>
         </div>
       </div>

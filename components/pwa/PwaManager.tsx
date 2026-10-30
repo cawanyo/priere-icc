@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Download, X, Share, PlusSquare, Sparkles, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -39,6 +40,29 @@ export async function subscribeUserToPush(): Promise<{ success: boolean; message
     const convertedKey = urlBase64ToUint8Array(getVapidPublicKey());
 
     let subscription = await registration.pushManager.getSubscription();
+
+    // Vérifier si l'abonnement existant utilise bien la clé VAPID actuelle
+    if (subscription) {
+      let isKeyMatching = false;
+      try {
+        const rawKey = subscription.options?.applicationServerKey;
+        if (rawKey) {
+          const subKeyArray = new Uint8Array(rawKey);
+          if (subKeyArray.length === convertedKey.length) {
+            isKeyMatching = subKeyArray.every((val, idx) => val === convertedKey[idx]);
+          }
+        }
+      } catch {
+        isKeyMatching = false;
+      }
+
+      // Si la clé VAPID a changé ou est obsolète, renouveler l'abonnement
+      if (!isKeyMatching) {
+        await subscription.unsubscribe().catch(() => {});
+        subscription = null;
+      }
+    }
+
     if (!subscription) {
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
@@ -70,6 +94,7 @@ export async function subscribeUserToPush(): Promise<{ success: boolean; message
 }
 
 export function PwaManager() {
+  const { data: session, status } = useSession();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [isIos] = useState(() => {
@@ -86,6 +111,15 @@ export function PwaManager() {
   });
   const [showIosGuide, setShowIosGuide] = useState(false);
   const [isBannerVisible, setIsBannerVisible] = useState(false);
+
+  // Synchronisation automatique de l'abonnement Push dès que l'utilisateur est authentifié
+  useEffect(() => {
+    if (status !== "authenticated" || !session?.user) return;
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (Notification.permission === "granted") {
+      subscribeUserToPush().catch(() => {});
+    }
+  }, [status, session]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

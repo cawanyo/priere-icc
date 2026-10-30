@@ -61,8 +61,14 @@ export function MobileBottomNav({ userRole }: MobileBottomNavProps) {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-lg z-50"
-      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+      className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-lg z-50 transition-none"
+      style={{
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        transform: "translateZ(0)",
+        WebkitTransform: "translateZ(0)",
+        backfaceVisibility: "hidden",
+        WebkitBackfaceVisibility: "hidden",
+      }}
     >
       <div className="flex justify-around items-center h-16 px-1">
         {navItems.map((item) => {

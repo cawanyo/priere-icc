@@ -1,12 +1,9 @@
 import { getFamilyDetails } from "@/app/actions/prayer-house";
 import { getFamilyUnavailabilities } from "@/app/actions/prayer-house-planning";
 import { AvailabilityList } from "@/components/dashboard/availability/AvailabilityList";
-import { UnavailabilityCalendar } from "@/components/dashboard/leader/UnavailabilityCalendar";
 import { FamilyMemberManager } from "@/components/prayer-house/FamilyMemberManager";
 import { NightPlanningBoard } from "@/components/prayer-house/NightPlanningBoard";
-
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ShieldCheck } from "lucide-react";
+import { ChevronLeft, ShieldCheck, Moon } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -20,60 +17,69 @@ export default async function FamilyDetailsPage({ params }: { params: Promise<{ 
   }
 
   return (
-    <div className="flex-1 p-4 md:p-8 pt-6 space-y-6 bg-gray-50/30 min-h-screen">
-      
-      {/* En-tête avec Navigation et Titre */}
-      <div className="flex flex-col gap-4 mb-2">
-        <Link href="/dashboard/leader/prayer-house" className="text-sm text-gray-500 hover:text-indigo-600 flex items-center w-fit transition-colors">
-            <ChevronLeft className="h-4 w-4 mr-1" /> Retour aux maisons
+    <div className="flex-1 px-4 sm:px-6 md:px-8 py-5 md:py-6 pb-28 md:pb-12 space-y-6 bg-[#f8fafc] min-h-screen">
+      {/* Navigation retour */}
+      <div>
+        <Link 
+          href="/dashboard/leader/prayer-house" 
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-indigo-600 transition-colors py-1 px-2 -ml-2 rounded-lg"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          <span>Toutes les maisons de prière</span>
         </Link>
-        
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
-            <div>
-                <h2 className="text-2xl md:text-3xl font-serif font-bold tracking-tight text-indigo-900 flex items-center gap-3">
-                    <span className="w-4 h-8 rounded-full shadow-sm" style={{ backgroundColor: family.color }}></span>
-                    {family.name}
-                </h2>
-                <p className="text-muted-foreground mt-1 text-sm md:text-base">
-                    {family.description || "Espace de gestion de la famille et du planning."}
-                </p>
-            </div>
-            
-            <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border shadow-sm text-sm text-gray-600">
-                <ShieldCheck className="h-4 w-4 text-green-600" />
-                <span>{family.users.length} Sentinelles actives</span>
-            </div>
+      </div>
+
+      {/* En-tête de la Famille */}
+      <div className="bg-white p-5 md:p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div 
+            className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0"
+            style={{ backgroundColor: family.color || "#4f46e5" }}
+          >
+            {family.name[0]}
+          </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+              {family.name}
+            </h1>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {family.description || "Sentinelles de garde nocturne (00h00 - 04h00)"}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 bg-slate-50 px-3.5 py-1.5 rounded-full border border-slate-100 text-xs font-semibold text-slate-700 self-start md:self-auto">
+          <ShieldCheck className="h-4 w-4 text-emerald-600" />
+          <span>{family.users.length} sentinelle{family.users.length > 1 ? "s" : ""}</span>
         </div>
       </div>
 
-      {/* --- LAYOUT PRINCIPAL --- */}
+      {/* Layout Principal : Membres & Planning */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        {/* COLONNE GAUCHE : Membres (1/3 sur grand écran) */}
-        <div className="lg:col-span-4 order-2 lg:order-1">
-            <FamilyMemberManager 
-                familyId={family.id} 
-                members={family.users} 
-                candidates={candidates || []} 
-            />
-
-            <AvailabilityList items={res.success ? res.data || [] : []} leaderMode />
+        {/* Colonne Gauche : Gestion des Sentinelles & Indisponibilités */}
+        <div className="lg:col-span-4 space-y-5 order-2 lg:order-1">
+          <FamilyMemberManager 
+            familyId={family.id} 
+            members={family.users} 
+            candidates={candidates || []} 
+          />
+          <AvailabilityList items={res.success ? res.data || [] : []} leaderMode />
         </div>
 
-        {/* COLONNE DROITE : Calendrier (2/3 sur grand écran) */}
+        {/* Colonne Droite : Planning Global */}
         <div className="lg:col-span-8 order-1 lg:order-2">
-             <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
-                <div className="p-4 border-b bg-gray-50/50 flex items-center gap-2">
-                    <span className="text-lg">🌙</span>
-                    <h3 className="font-bold text-gray-800">Planning Global des Nuits</h3>
-                </div>
-                {/* Le calendrier s'adapte à la largeur du conteneur (2/3 de l'écran) */}
-                <div className="p-1">
-                    <NightPlanningBoard unavailabilities={res.data}/>
-                </div>
-             </div>
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+            <div className="p-4 border-b border-slate-100 bg-slate-50/60 flex items-center gap-2">
+              <Moon className="h-4 w-4 text-indigo-600" />
+              <h2 className="font-bold text-xs uppercase tracking-wider text-slate-700">
+                Planning des Nuits
+              </h2>
+            </div>
+            <div className="p-2 sm:p-4">
+              <NightPlanningBoard unavailabilities={res.data} />
+            </div>
+          </div>
         </div>
-
       </div>
     </div>
   );

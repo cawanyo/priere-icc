@@ -199,9 +199,15 @@
   * {
     border-color: var(--color-border);
   }
+  html {
+    overscroll-behavior-y: none;
+    -webkit-text-size-adjust: 100%;
+  }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
