@@ -1,0 +1,43 @@
+name: Rappels Automatiques Prière ICC
+
+on:
+  schedule:
+    # Exécution automatique toutes les heures (00:00, 01:00, ... 17:00, 18:00, etc.)
+    - cron: '0 * * * *'
+  # Déclenchement manuel possible depuis l'onglet Actions sur GitHub
+  workflow_dispatch:
+
+jobs:
+  send-reminders:
+    name: Envoi des rappels (Veille 18h & 1h avant)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Appeler l'API de rappels de l'application
+        run: |
+          APP_URL="${{ secrets.APP_URL }}"
+          if [ -z "$APP_URL" ]; then
+            APP_URL="https://priere-icc.vercel.app"
+          fi
+          
+          ENDPOINT="${APP_URL%/}/api/cron/reminders"
+          echo "Déclenchement du cron de rappels sur : $ENDPOINT"
+          
+          CRON_SECRET="${{ secrets.CRON_SECRET }}"
+          if [ -n "$CRON_SECRET" ]; then
+            RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -H "Authorization: Bearer $CRON_SECRET" "$ENDPOINT")
+          else
+            RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" "$ENDPOINT")
+          fi
+          
+          BODY=$(echo "$RESPONSE" | sed -e '$d')
+          STATUS=$(echo "$RESPONSE" | tail -n1 | cut -d':' -f2)
+          
+          echo "Statut HTTP : $STATUS"
+          echo "Résultat : $BODY"
+          
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 300 ]; then
+            echo "Rappels traités avec succès."
+          else
+            echo "Erreur lors de l'appel du cron (HTTP $STATUS)"
+            exit 1
+          fi
