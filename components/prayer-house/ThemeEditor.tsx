@@ -77,9 +77,9 @@ export function ThemeEditor({
                 Modifier
               </span>
             </div>
-            <p className="text-xs sm:text-sm font-semibold text-indigo-950 mt-1 leading-snug break-words whitespace-pre-wrap">
+            <p className="text-xs sm:text-sm font-semibold text-indigo-950 mt-1 leading-relaxed break-words whitespace-pre-wrap">
               {initialValue ? (
-                `« ${initialValue} »`
+                initialValue
               ) : (
                 <span className="text-indigo-400 font-normal italic">
                   Cliquez pour définir le thème d&apos;intercession de la semaine...
@@ -101,7 +101,7 @@ export function ThemeEditor({
           title="Modifier le thème du jour"
         >
           <MessageSquareQuote className="h-3 w-3 shrink-0 text-indigo-500 mt-0.5" />
-          <span className="break-words whitespace-normal leading-snug flex-1">
+          <span className="break-words whitespace-pre-wrap leading-snug flex-1">
             {initialValue ? initialValue : "Ajouter thème"}
           </span>
           <Pencil className="h-2.5 w-2.5 opacity-0 group-hover:opacity-100 shrink-0 text-slate-400 mt-0.5" />
