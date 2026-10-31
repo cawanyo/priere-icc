@@ -96,7 +96,10 @@ export function RecurringManager({ isOpen, onClose, onRefresh }: RecurringManage
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        className="sm:max-w-2xl max-h-[80vh] overflow-y-auto"
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-indigo-900">
             <Repeat className="h-5 w-5" /> Programmes Récurrents
@@ -122,7 +125,12 @@ export function RecurringManager({ isOpen, onClose, onRefresh }: RecurringManage
                                     <FormItem>
                                         <FormLabel>Titre</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Ex: Intercession Matinale" {...field} className="bg-white" />
+                                            <Input
+                                                placeholder="Ex: Intercession Matinale"
+                                                {...field}
+                                                className="bg-white"
+                                                autoFocus={false}
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

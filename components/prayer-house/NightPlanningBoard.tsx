@@ -246,63 +246,62 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
   };
 
   return (
-    <div className="space-y-6 bg-white p-4 md:p-6 rounded-xl border shadow-sm">
+    <div className="space-y-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         
         {/* HEADER */}
-        <div className="flex flex-col gap-4 border-b pb-6">
-            <div className="flex flex-col  md:flex-row justify-between items-center gap-4">
+        <div className="flex flex-col gap-3.5 border-b border-slate-100 pb-4">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-3">
                 {/* Nav Date */}
-                <div className="w-full flex flex-wrap items-center justify-between  md:w-auto gap-4 bg-gray-50 p-2 rounded-lg">
-                    <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addWeeks(currentDate, -1))}>
-                        <ChevronLeft className="h-5 w-5" />
+                <div className="w-full flex items-center justify-between md:w-auto gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-100">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg cursor-pointer" onClick={() => setCurrentDate(addWeeks(currentDate, -1))}>
+                        <ChevronLeft className="h-4 w-4 text-slate-600" />
                     </Button>
-                    <div className="text-center">
-                        <h3 className="font-bold text-xs md:text-lg capitalize text-indigo-900">
+                    <div className="text-center min-w-[140px] px-2">
+                        <h3 className="font-bold text-xs sm:text-sm capitalize text-slate-900 leading-none">
                             {format(currentDate, "MMMM yyyy", { locale: fr })}
                         </h3>
-                        <p className="text-xs text-gray-500 font-medium">
-                            {format(weekStart, "dd MMM")} - {format(addDays(weekStart, 4), "dd MMM")}
+                        <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+                            {format(weekStart, "d MMM", { locale: fr })} — {format(addDays(weekStart, 4), "d MMM", { locale: fr })}
                         </p>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addWeeks(currentDate, 1))}>
-                        <ChevronRight className="h-5 w-5" />
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg cursor-pointer" onClick={() => setCurrentDate(addWeeks(currentDate, 1))}>
+                        <ChevronRight className="h-4 w-4 text-slate-600" />
                     </Button>
                 </div>
 
                 {/* Choix Famille */}
-                <div className="w-full md:w-72 flex">
+                <div className="w-full md:w-72 flex items-center gap-2">
                     {loading ? (
-                        <div className="h-10 bg-gray-100 animate-pulse rounded" />
+                        <div className="h-9 w-full bg-slate-100 animate-pulse rounded-xl" />
                     ) : (
                         <Select value={assignment?.familyId || ""} onValueChange={handleAssignFamily}>
-                            <SelectTrigger className={`h-12 md:h-10 text-xs w-full md:text-sm ${assignment ? "border-indigo-500 bg-indigo-50 text-indigo-700 font-medium" : ""}`}>
-                                <SelectValue placeholder="Choisir la famille..." />
+                            <SelectTrigger className={`h-9 text-xs w-full rounded-xl ${assignment ? "border-indigo-300 bg-indigo-50/70 text-indigo-900 font-medium" : "border-slate-200"}`}>
+                                <SelectValue placeholder="Choisir la maison..." />
                             </SelectTrigger>
                             <SelectContent>
                                 {allFamilies.map(f => (
                                     <SelectItem key={f.id} value={f.id}>
                                         <div className="flex items-center gap-2">
-                                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: f.color }} />
-                                            {f.name}
+                                            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: f.color }} />
+                                            <span>{f.name}</span>
                                         </div>
                                     </SelectItem>
                                 ))}
-                                
                             </SelectContent>
                         </Select>
                     )}
-                    <ConfirmDelete
-                        onConfirm={handleClearAssignment}
-                        title="Désassigner la famille de cette semaine"
-                        description="Cette action va supprimer tous les créneaux assignés et remettre la semaine à blanc. Continuer ?"  
-                    />
+                    {assignment && (
+                      <ConfirmDelete
+                          onConfirm={handleClearAssignment}
+                          title="Désassigner la famille"
+                          description="Cette action va retirer l'assignation de cette semaine et remettre le planning à blanc. Continuer ?"  
+                      />
+                    )}
                 </div>
             </div>
 
-
-
             {assignment && (
-                <div className="mb-6 px-1">
+                <div className="pt-1">
                     <ThemeEditor
                         type="week"
                         initialValue={assignment.weekTheme}
@@ -314,24 +313,24 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
 
             {/* BARRE OUTILS (Si assigné) */}
             {assignment && (
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-slate-50/80 p-2.5 rounded-xl border border-slate-100">
                     
                     {/* Progress Bar */}
-                    <div className="flex items-center gap-4 w-full md:w-auto">
-                        <div className="flex flex-col gap-1 w-full md:w-48">
-                            <div className="flex justify-between text-xs font-semibold uppercase text-gray-500">
+                    <div className="flex items-center gap-3 w-full md:w-auto">
+                        <div className="flex flex-col gap-1 w-full md:w-40">
+                            <div className="flex justify-between text-[11px] font-semibold text-slate-500">
                                 <span>Couverture</span>
-                                <span className={fillRate === 100 ? "text-green-600" : "text-gray-600"}>{fillRate}%</span>
+                                <span className={fillRate === 100 ? "text-emerald-600 font-bold" : "text-slate-700 font-bold"}>{fillRate}%</span>
                             </div>
-                            <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                            <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
                                 <div 
                                     className={`h-full transition-all duration-500 ${getProgressColor(fillRate)}`} 
                                     style={{ width: `${fillRate}%` }} 
                                 />
                             </div>
                         </div>
-                        <div className="text-xs text-gray-400 border-l pl-4 hidden sm:block">
-                            <strong>{filledSlots}</strong> / {totalSlots}
+                        <div className="text-[11px] text-slate-400 border-l border-slate-200 pl-3 hidden sm:block">
+                            <strong>{filledSlots}</strong> / {totalSlots} créneaux
                         </div>
                     </div>
 
@@ -339,17 +338,17 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
                         {/* Ajouter Heure */}
                         <Dialog open={isAddHourOpen} onOpenChange={setIsAddHourOpen}>
                             <DialogTrigger asChild>
-                                <Button variant="outline" size="sm" className="flex-1 md:flex-none text-indigo-600 border-indigo-200 bg-white hover:bg-indigo-50">
-                                    <Plus className="mr-2 h-4 w-4" /> <span className="md:hidden">Heure</span><span className="hidden md:inline">Ajouter créneau</span>
+                                <Button variant="outline" size="sm" className="h-8 text-xs font-semibold rounded-xl text-slate-700 border-slate-200 hover:bg-slate-100 cursor-pointer">
+                                    <Plus className="mr-1 h-3.5 w-3.5" /> Ajouter heure
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-[300px]">
-                                <DialogHeader><DialogTitle>Ajouter une ligne</DialogTitle></DialogHeader>
-                                <div className="py-4 space-y-4">
-                                    <div className="grid gap-2">
-                                        <label className="text-sm font-medium">Heure</label>
+                            <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[320px] rounded-2xl">
+                                <DialogHeader><DialogTitle className="text-sm font-bold">Ajouter une ligne horaire</DialogTitle></DialogHeader>
+                                <div className="py-3 space-y-3">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-medium text-slate-600">Heure de début</label>
                                         <Select value={newHour} onValueChange={setNewHour}>
-                                            <SelectTrigger><SelectValue /></SelectTrigger>
+                                            <SelectTrigger className="h-9 text-xs rounded-xl"><SelectValue /></SelectTrigger>
                                             <SelectContent>
                                                 {["20:00","21:00","22:00","23:00","04:00","05:00","06:00"].map(h => (
                                                     <SelectItem key={h} value={h}>{h}</SelectItem>
@@ -357,7 +356,7 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
                                             </SelectContent>
                                         </Select>
                                     </div>
-                                    <Button onClick={handleAddRow} className="w-full bg-indigo-900">Ajouter</Button>
+                                    <Button onClick={handleAddRow} className="w-full bg-indigo-900 hover:bg-indigo-800 text-white rounded-xl h-9 text-xs font-semibold cursor-pointer">Ajouter</Button>
                                 </div>
                             </DialogContent>
                         </Dialog>
@@ -413,41 +412,40 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
                                     />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-2 p-3 bg-white">
+                            <div className="grid grid-cols-2 gap-2 p-2.5 bg-white">
                                 {displayHours.map(hour => {
                                     const schedule = getSchedule(day, hour);
                                     const isFilled = schedule && schedule.user;
-                                    
 
                                     return (
                                         <div 
                                             key={hour}
                                             onClick={() => onSelectSlot(day, hour)}
                                             className={`
-                                                relative p-3 rounded-lg border cursor-pointer transition-all flex flex-col items-center justify-center min-h-[80px]
+                                                relative p-2 rounded-xl border cursor-pointer transition-all flex flex-col items-center justify-center min-h-[56px]
                                                 ${isFilled 
-                                                    ? "bg-indigo-50 border-indigo-200" 
-                                                    : "bg-white border-dashed border-gray-200 active:bg-gray-50"
+                                                    ? "bg-indigo-50/70 border-indigo-200" 
+                                                    : "bg-white border-dashed border-slate-200 active:bg-slate-50"
                                                 }
                                             `}
                                         >
-                                            <span className="absolute top-2 left-2 text-[10px] font-bold text-gray-400">{hour}</span>
+                                            <span className="absolute top-1.5 left-2 text-[10px] font-bold text-slate-400">{hour}</span>
                                             {isFilled ? (
-                                                <div className="flex flex-col items-center mt-2">
-                                                    <Avatar className="h-8 w-8 ring-2 ring-white shadow-sm mb-1">
+                                                <div className="flex flex-col items-center mt-1">
+                                                    <Avatar className="h-6 w-6 ring-1 ring-white shadow-xs mb-0.5">
                                                         <AvatarImage src={schedule.user?.image} />
-                                                        <AvatarFallback className="bg-indigo-600 text-white text-xs">
+                                                        <AvatarFallback className="bg-indigo-600 text-white text-[9px] font-bold">
                                                             {schedule.user?.name?.slice(0,1)}
                                                         </AvatarFallback>
                                                     </Avatar>
-                                                    <span className="text-[10px] font-medium text-indigo-900 truncate max-w-[80px]">
+                                                    <span className="text-[10px] font-medium text-slate-900 truncate max-w-[80px]">
                                                         {schedule.user?.name?.split(" ")[0]}
                                                     </span>
                                                 </div>
                                             ) : (
-                                                <div className="flex flex-col items-center text-gray-300 mt-2">
-                                                    <Moon className="h-5 w-5 mb-1" />
-                                                    <span className="text-[10px]">Libre</span>
+                                                <div className="flex flex-col items-center text-slate-300 mt-1">
+                                                    <Moon className="h-3.5 w-3.5 mb-0.5" />
+                                                    <span className="text-[9px] font-medium">Libre</span>
                                                 </div>
                                             )}
                                         </div>
@@ -459,21 +457,21 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
                 </div>
 
                 {/* VUE DESKTOP */}
-                <div className="hidden md:block overflow-x-auto rounded-lg border">
+                <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-200/80">
                     <table className="w-full border-collapse">
                         <thead>
-                            <tr className="bg-gray-50/50">
-                                <th className="p-4 w-24 border-b border-r text-gray-400 font-normal text-xs">Heure</th>
+                            <tr className="bg-slate-50/80">
+                                <th className="p-2.5 w-20 border-b border-r border-slate-200/80 text-slate-400 font-semibold text-xs">Heure</th>
                                 {days.map(day => (
-                                    <th key={day.toISOString()} className="p-4 border-b text-center min-w-[120px]">
-                                        <span className="block text-xs uppercase text-gray-500 font-semibold mb-1">
+                                    <th key={day.toISOString()} className="p-2.5 border-b border-r last:border-r-0 border-slate-200/80 text-center min-w-[110px]">
+                                        <span className="block text-[11px] uppercase text-slate-400 font-bold mb-0.5">
                                             {format(day, "EEEE", { locale: fr })}
                                         </span>
-                                        <span className="block text-xl font-bold text-indigo-950">
-                                            {format(day, "d")}
+                                        <span className="block text-base font-bold text-slate-900 leading-tight">
+                                            {format(day, "d MMM", { locale: fr })}
                                         </span>
-                                        <div className="mt-1">
-                                        <ThemeEditor 
+                                        <div className="mt-1 flex justify-center">
+                                            <ThemeEditor 
                                                 type="day"
                                                 initialValue={getDayTheme(day)}
                                                 onSave={async (val) => {await updateDayTheme(assignment.id, day.toDateString(), val); loadData()}}
@@ -485,49 +483,50 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
                         </thead>
                         <tbody>
                             {displayHours.map(hour => (
-                                <tr key={hour} className="group hover:bg-gray-50/30">
-                                    <td className="p-4 text-center font-mono text-sm text-gray-500 border-r border-b group-last:border-b-0 bg-gray-50/30 relative">
-                                        {hour}
-                                       
-                                        <ConfirmDelete
-                                            onConfirm={() => handleRemoveRow(hour)}
-                                            title="Supprimer cette ligne horaire"
-                                            description={`Êtes-vous sûr de vouloir supprimer tous les créneaux de ${hour} ? Cette action est irréversible.`}
-                                        />
+                                <tr key={hour} className="group hover:bg-slate-50/30">
+                                    <td className="p-2 text-center font-mono text-xs font-semibold text-slate-500 border-r border-b border-slate-200/80 group-last:border-b-0 bg-slate-50/40 relative">
+                                        <div className="flex items-center justify-center gap-1">
+                                            <span>{hour}</span>
+                                            <ConfirmDelete
+                                                onConfirm={() => handleRemoveRow(hour)}
+                                                title="Supprimer cette ligne horaire"
+                                                description={`Êtes-vous sûr de vouloir supprimer tous les créneaux de ${hour} ? Cette action est irréversible.`}
+                                            />
+                                        </div>
                                     </td>
                                     {days.map(day => {
                                         const schedule = getSchedule(day, hour);
                                         const isFilled = schedule && schedule.user;
 
                                         return (
-                                            <td key={day.toISOString()} className="p-2 border-b border-r last:border-r-0 group-last:border-b-0">
+                                            <td key={day.toISOString()} className="p-1.5 border-b border-r last:border-r-0 border-slate-200/80 group-last:border-b-0">
                                                 <div 
                                                     onClick={() => onSelectSlot(day, hour)}
                                                     className={`
-                                                        h-20 rounded-xl flex items-center justify-center cursor-pointer transition-all border-2
+                                                        h-14 rounded-xl flex items-center justify-center cursor-pointer transition-all border
                                                         ${isFilled 
-                                                            ? "bg-indigo-50 border-indigo-100 hover:border-indigo-300 hover:shadow-md" 
-                                                            : "bg-white border-transparent hover:border-gray-200 hover:bg-white"
+                                                            ? "bg-indigo-50/70 border-indigo-200 hover:border-indigo-300 hover:shadow-xs" 
+                                                            : "bg-white border-transparent hover:border-slate-200"
                                                         }
-                                                        ${(!isFilled && schedule) ? "border-dashed border-gray-300" : ""}
+                                                        ${(!isFilled && schedule) ? "border-dashed border-slate-200" : ""}
                                                     `}
                                                 >
                                                     {isFilled ? (
-                                                        <div className="flex flex-col items-center gap-1.5 animate-in zoom-in-95 duration-200">
-                                                            <Avatar className="h-9 w-9 ring-2 ring-white shadow-sm">
+                                                        <div className="flex items-center gap-1.5 px-2">
+                                                            <Avatar className="h-6 w-6 ring-1 ring-white shadow-2xs shrink-0">
                                                                 <AvatarImage src={schedule.user?.image} />
-                                                                <AvatarFallback className="bg-indigo-600 text-white text-xs">
+                                                                <AvatarFallback className="bg-indigo-600 text-white text-[9px] font-bold">
                                                                     {schedule.user?.name?.slice(0,1)}
                                                                 </AvatarFallback>
                                                             </Avatar>
-                                                            <span className="text-xs font-semibold text-indigo-900 truncate max-w-[100px]">
+                                                            <span className="text-xs font-medium text-slate-800 truncate max-w-[85px]">
                                                                 {schedule.user?.name}
                                                             </span>
                                                         </div>
                                                     ) : (
-                                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center text-gray-300">
-                                                            <Moon className="h-5 w-5 mb-1" />
-                                                            <span className="text-[10px] font-medium uppercase tracking-wide">Libre</span>
+                                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-slate-300">
+                                                            <Moon className="h-3.5 w-3.5" />
+                                                            <span className="text-[10px] font-medium">Libre</span>
                                                         </div>
                                                     )}
                                                 </div>

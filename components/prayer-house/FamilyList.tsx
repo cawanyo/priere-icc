@@ -50,20 +50,22 @@ export function FamilyList({ initialFamilies }: { initialFamilies: any[] }) {
                         <Plus className="mr-2 h-4 w-4" /> Nouvelle Famille
                     </Button>
                 </DialogTrigger>
-                <DialogContent>
-                    <DialogHeader><DialogTitle>Créer une Famille</DialogTitle></DialogHeader>
-                    <div className="space-y-4 py-4">
+                <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-md rounded-2xl">
+                    <DialogHeader><DialogTitle className="text-base font-bold text-slate-900">Créer une Maison de Prière</DialogTitle></DialogHeader>
+                    <div className="space-y-4 py-3">
                         <div className="grid gap-2">
-                            <Label>Nom de la famille</Label>
+                            <Label className="text-xs font-semibold text-slate-700">Nom de la maison</Label>
                             <Input 
-                                placeholder="Ex: Famille Éphraïm" 
+                                placeholder="Ex: Maison Éphraïm" 
                                 value={newFamilyName}
                                 onChange={(e) => setNewFamilyName(e.target.value)}
+                                autoFocus={false}
+                                className="h-10 text-xs rounded-xl"
                             />
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button onClick={handleCreate} disabled={loading}>
+                        <Button onClick={handleCreate} disabled={loading} className="bg-indigo-900 hover:bg-indigo-800 text-white rounded-xl h-9 text-xs font-semibold">
                             {loading ? "Création..." : "Créer"}
                         </Button>
                     </DialogFooter>

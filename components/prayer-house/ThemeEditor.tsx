@@ -2,118 +2,175 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Pencil, MessageSquareQuote } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Pencil, MessageSquareQuote, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { Textarea } from "../ui/textarea";
+import { cn } from "@/lib/utils";
 
 interface ThemeEditorProps {
   initialValue?: string | null;
   onSave: (val: string) => Promise<any>;
   placeholder?: string;
-  type?: "week" | "day"; // Pour le style
+  type?: "week" | "day";
 }
 
-export function ThemeEditor({ initialValue, onSave, placeholder, type = "day" }: ThemeEditorProps) {
+export function ThemeEditor({
+  initialValue,
+  onSave,
+  placeholder,
+  type = "day",
+}: ThemeEditorProps) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(initialValue || "");
   const [loading, setLoading] = useState(false);
 
-
+  useEffect(() => {
+    setValue(initialValue || "");
+  }, [initialValue]);
 
   const handleSave = async () => {
     setLoading(true);
-    await onSave(value);
-    setLoading(false);
-    setOpen(false);
-    toast.success("Thème mis à jour");
+    try {
+      await onSave(value.trim());
+      setOpen(false);
+      toast.success(
+        type === "week"
+          ? "Thème de la semaine enregistré"
+          : "Thème du jour enregistré"
+      );
+    } catch {
+      toast.error("Erreur lors de l'enregistrement du thème");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => {
-    setValue(initialValue || "");
-  }
-    , [initialValue]);
-  // Style différent selon si c'est Semaine ou Jour
-  if (type === "week") {
-    return (
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="ghost" className="h-auto w-full  p-2 text-left hover:bg-indigo-50 group border border-dashed border-transparent hover:border-indigo-200">
-          <div className="flex flex-col items-start text-sm md:text-lg w-full">
-            <span className="font-bold text-indigo-400 uppercase tracking-wider mb-1 flex-1 whitespace-normal wrap-break-word text-left">
-                Thème de la semaine
-            </span>
-            
-            {/* Ajout de w-full ici pour occuper la largeur */}
-            <div className="flex items-center gap-2 text-indigo-900 font-serif font-medium w-full">
-                
-                <MessageSquareQuote className="h-4 w-4 text-indigo-400 shrink-0" />
-                
-                {/* Le span enveloppe le texte pour gérer le retour à la ligne */}
-                <span className="flex-1 whitespace-pre-wrap wrap-break-word text-left">
-                    {initialValue || <span className="text-gray-400 italic text-sm">Ajouter un thème...</span>}
-                </span>
-                
-                {/* shrink-0 ici aussi */}
-                <Pencil className="h-3 w-3 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-            </div>
-        </div>
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-screen  sm:w-80 ">
-            <h4 className="font-medium mb-2 text-sm">Modifier le thème de la semaine</h4>
-            <Textarea
-                value={value} 
-                onChange={(e) => setValue(e.target.value)} 
-                placeholder={placeholder}
-                className="mb-2"
-            />
-            <Button size="sm" onClick={handleSave} disabled={loading} className="w-full bg-indigo-900">
-                Enregistrer
-            </Button>
-        </PopoverContent>
-      </Popover>
-    );
-  }
+  const isWeek = type === "week";
 
-  // Style "Day" (plus compact pour l'en-tête du tableau)
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="ghost" className="h-auto w-full  p-2 text-left hover:bg-indigo-50 group border border-dashed border-transparent hover:border-indigo-200">
-          <div className="flex flex-col items-start text-[10px] w-full">
-            <span className="font-bold text-indigo-400 uppercase tracking-wider mb-1 flex-1 whitespace-normal wrap-break-word text-left">
-                Thème du jour
-            </span>
-            
-            {/* Ajout de w-full ici pour occuper la largeur */}
-            <div className="flex items-center gap-2 text-indigo-900 font-serif  font-medium w-full">
-                
-                  <MessageSquareQuote className="h-4 w-4 text-indigo-400 shrink-0" />
-                  
-                  {/* Le span enveloppe le texte pour gérer le retour à la ligne */}
-                  <span className="flex-1 whitespace-pre-wrap wrap-break-word text-left">
-                      {initialValue || <span className="text-gray-400 italic ">Ajouter un thème...</span>}
-                  </span>
-                  
-                  {/* shrink-0 ici aussi */}
-                  <Pencil className="h-3 w-3 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-              </div>
+    <>
+      {/* Bouton déclencheur propre et sobre */}
+      {isWeek ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="w-full text-left bg-indigo-50/60 hover:bg-indigo-50 border border-indigo-100/80 rounded-2xl p-3.5 sm:p-4 transition-all group flex items-start gap-3 cursor-pointer shadow-2xs hover:shadow-xs"
+        >
+          <div className="w-8 h-8 rounded-xl bg-indigo-100/80 flex items-center justify-center text-indigo-600 shrink-0 mt-0.5">
+            <MessageSquareQuote className="h-4 w-4" />
           </div>
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-full md:w-60 p-2">
-            <Textarea 
-                value={value} 
-                onChange={(e) => setValue(e.target.value)} 
-                placeholder="Thème du jour..."
-                className="h-8 text-xs mb-2"
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">
+                Thème de la semaine
+              </span>
+              <span className="text-xs text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 font-semibold">
+                <Pencil className="h-3 w-3" />
+                Modifier
+              </span>
+            </div>
+            <p className="text-sm font-semibold text-indigo-950 mt-0.5 leading-snug break-words">
+              {initialValue ? (
+                `« ${initialValue} »`
+              ) : (
+                <span className="text-indigo-400 font-normal italic">
+                  Cliquez pour définir le thème d&apos;intercession de la semaine...
+                </span>
+              )}
+            </p>
+          </div>
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className={cn(
+            "inline-flex items-center gap-1 text-[11px] py-1 px-2 rounded-lg transition-all cursor-pointer truncate max-w-full group",
+            initialValue
+              ? "bg-indigo-50 text-indigo-800 hover:bg-indigo-100 border border-indigo-200/60 font-medium"
+              : "text-slate-400 hover:text-slate-700 hover:bg-slate-100/70 border border-dashed border-slate-200"
+          )}
+          title="Modifier le thème du jour"
+        >
+          <MessageSquareQuote className="h-3 w-3 shrink-0 text-indigo-500" />
+          <span className="truncate">
+            {initialValue ? initialValue : "Ajouter thème"}
+          </span>
+          <Pencil className="h-2.5 w-2.5 opacity-0 group-hover:opacity-100 shrink-0 text-slate-400" />
+        </button>
+      )}
+
+      {/* Modale de modification stylée, spacieuse et propre */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          className="sm:max-w-lg p-0 overflow-hidden rounded-2xl sm:rounded-3xl border-slate-200 shadow-2xl"
+        >
+          {/* Entête élégant */}
+          <div className="p-5 pb-4 bg-slate-50/80 border-b border-slate-100 flex items-start gap-3.5">
+            <div className="h-10 w-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0 shadow-xs">
+              <MessageSquareQuote className="h-5 w-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <DialogTitle className="text-base font-bold text-slate-900">
+                {isWeek ? "Thème de prière de la semaine" : "Thème de prière du jour"}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-slate-500 mt-0.5">
+                Définissez l&apos;orientation et le sujet d&apos;intercession pour guider les sentinelles.
+              </DialogDescription>
+            </div>
+          </div>
+
+          {/* Corps de formulaire spacieux */}
+          <div className="p-5 space-y-3">
+            <Textarea
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              placeholder={
+                placeholder ||
+                (isWeek
+                  ? "Ex: La Puissance du Sang de Jésus, Proclamation du Règne de Dieu..."
+                  : "Ex: Intercession pour les familles, Guérison et Restauration...")
+              }
+              rows={4}
+              autoFocus={false}
+              className="w-full text-sm rounded-xl border-slate-200 bg-white placeholder:text-slate-400 focus-visible:ring-indigo-500 resize-none"
             />
-            <Button size="sm" onClick={handleSave} disabled={loading} className="w-full h-7 text-xs bg-indigo-600">
-                OK
+            <p className="text-[11px] text-slate-400">
+              Ce thème sera visible par toutes les sentinelles sur leur tableau de garde nocturne.
+            </p>
+          </div>
+
+          {/* Pied de dialogue sobre */}
+          <div className="p-3.5 sm:px-5 bg-slate-50/70 border-t border-slate-100 flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setOpen(false)}
+              className="h-9 px-4 text-xs font-semibold rounded-xl text-slate-600 hover:text-slate-800 cursor-pointer"
+            >
+              Annuler
             </Button>
-        </PopoverContent>
-    </Popover>
+            <Button
+              type="button"
+              onClick={handleSave}
+              disabled={loading}
+              className="h-9 px-4 text-xs font-semibold rounded-xl bg-indigo-900 hover:bg-indigo-800 text-white shadow-xs cursor-pointer"
+            >
+              {loading && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+              Enregistrer le thème
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
