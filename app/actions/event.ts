@@ -15,6 +15,8 @@ import {
   type SpecialEventTemplateInput,
 } from "@/lib/event-utils";
 import { sendWebPushToAll } from "@/lib/web-push";
+import { broadcastRealtime } from "@/lib/realtime-server";
+import { REALTIME_CHANNELS, REALTIME_EVENTS } from "@/lib/realtime-channels";
 
 async function checkLeader() {
   const session = await getServerSession(authOptions);
@@ -134,6 +136,11 @@ export async function createSpecialEvent(data: SpecialEventInput) {
   } catch (e) {
     console.warn("[Event] Échec push broadcast:", e);
   }
+
+  await broadcastRealtime(REALTIME_CHANNELS.SPECIAL_EVENTS, REALTIME_EVENTS.UPDATE, {
+    type: "event-created",
+    eventId: event.id,
+  });
 
   revalidatePath("/dashboard/leader/events");
   revalidatePath("/dashboard/user/intercessor/events");
@@ -347,8 +354,15 @@ export async function updateSpecialEvent(data: SpecialEventInput) {
     }
   });
 
+  await broadcastRealtime(REALTIME_CHANNELS.SPECIAL_EVENTS, REALTIME_EVENTS.UPDATE, {
+    type: "event-updated",
+    eventId: id,
+  });
+
   revalidatePath("/dashboard/leader/events");
   revalidatePath(`/dashboard/leader/events/${id}`);
+  revalidatePath("/dashboard/user/intercessor/events");
+  revalidatePath(`/dashboard/user/intercessor/events/${id}`);
   return { success: true, message: "Événement et planning mis à jour" };
 }
 
@@ -356,7 +370,14 @@ export async function deleteSpecialEvent(id: string) {
   await checkLeader();
   try {
     await prisma.specialEvent.delete({ where: { id } });
+
+    await broadcastRealtime(REALTIME_CHANNELS.SPECIAL_EVENTS, REALTIME_EVENTS.UPDATE, {
+      type: "event-deleted",
+      eventId: id,
+    });
+
     revalidatePath("/dashboard/leader/events");
+    revalidatePath("/dashboard/user/intercessor/events");
     return { success: true, message: "Événement supprimé" };
   } catch {
     return { success: false, message: "Erreur lors de la suppression" };

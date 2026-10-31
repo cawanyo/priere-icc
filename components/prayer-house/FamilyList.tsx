@@ -10,12 +10,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ConfirmDelete } from "../DeleteConfirm";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+import { REALTIME_CHANNELS } from "@/lib/realtime-channels";
 
 export function FamilyList({ initialFamilies }: { initialFamilies: any[] }) {
+  const router = useRouter();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newFamilyName, setNewFamilyName] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Synchronisation temps réel automatique
+  useRealtimeSync({
+    channel: REALTIME_CHANNELS.PRAYER_HOUSE,
+    onUpdate: () => {
+      router.refresh();
+    },
+  });
 
   const handleCreate = async () => {
     if (!newFamilyName) return;

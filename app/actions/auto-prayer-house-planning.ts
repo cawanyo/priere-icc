@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { sendSMS } from "@/lib/sms";
 import { startOfWeek, endOfWeek, eachDayOfInterval, format, isWithinInterval, startOfDay, endOfDay, addDays } from "date-fns";
 import { revalidatePath } from "next/cache";
+import { broadcastRealtime } from "@/lib/realtime-server";
+import { REALTIME_CHANNELS, REALTIME_EVENTS } from "@/lib/realtime-channels";
 import { en } from "zod/v4/locales";
 
 const NIGHT_SLOTS = ["00:00", "01:00", "02:00", "03:00"];
@@ -137,6 +139,11 @@ export async function autoFillPlanning(assignmentId: string, date: Date) {
       });
     }
 
+    await broadcastRealtime(REALTIME_CHANNELS.PRAYER_HOUSE, REALTIME_EVENTS.SLOT_UPDATED, {
+      assignmentId,
+      type: "auto-fill",
+    });
+
     revalidatePath("/dashboard/leader/prayer-house");
     return { success: true, count: newSchedules.length };
 
@@ -157,6 +164,11 @@ export async function clearPlanningSlots(assignmentId: string) {
       where: {
         assignmentId: assignmentId // Assurez-vous que c'est bien le nom de votre champ de relation
       }
+    });
+
+    await broadcastRealtime(REALTIME_CHANNELS.PRAYER_HOUSE, REALTIME_EVENTS.SLOT_UPDATED, {
+      assignmentId,
+      type: "clear-slots",
     });
 
     revalidatePath("/dashboard/leader/prayer-house");

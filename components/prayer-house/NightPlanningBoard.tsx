@@ -38,6 +38,8 @@ import { convertKeepDate } from "@/lib/utils";
 import { SearchableUserSelect } from "../SearchUserSelect";
 import { ConfirmDelete } from "../DeleteConfirm";
 import supabase from "@/lib/superbase";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+import { REALTIME_CHANNELS } from "@/lib/realtime-channels";
 import {  getBlackList, updateBlackList } from "@/app/actions/blacklist";
 import { getLeaders } from "@/app/actions/leader";
 import { AutoFillButton } from "../dashboard/leader/AutofillButton";
@@ -95,23 +97,15 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
 
 
 
-  useEffect(() => {
-    const channel = supabase.channel('prayer-room-updates');
-
-    channel
-      .on(
-        'broadcast', 
-        { event: 'change' },
-        (payload) => {
-           loadData();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [currentDate]);
+  // Synchronisation temps réel (Pusher WebSocket + Supabase Realtime)
+  useRealtimeSync({
+    channel: REALTIME_CHANNELS.PRAYER_HOUSE,
+    onUpdate: loadData,
+  });
+  useRealtimeSync({
+    channel: "prayer-room-updates",
+    onUpdate: loadData,
+  });
 
 
 
@@ -145,6 +139,20 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
   // --- LOGIQUE JOURS ---
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const days = Array.from({ length: 5 }).map((_, i) => addDays(weekStart, i));
+  const [selectedMobileDay, setSelectedMobileDay] = useState<Date>(() => {
+    const now = new Date();
+    const ws = startOfWeek(new Date(), { weekStartsOn: 1 });
+    const initialDays = Array.from({ length: 5 }).map((_, i) => addDays(ws, i));
+    return initialDays.find((d) => isSameDay(d, now)) || initialDays[0];
+  });
+
+  useEffect(() => {
+    const ws = startOfWeek(currentDate, { weekStartsOn: 1 });
+    const newDays = Array.from({ length: 5 }).map((_, i) => addDays(ws, i));
+    const now = new Date();
+    const match = newDays.find((d) => isSameDay(d, now));
+    setSelectedMobileDay(match || newDays[0]);
+  }, [currentDate]);
 
   // --- STATS ---
   // On ne compte que les slots qui ont un User
@@ -393,67 +401,142 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
             </div>
         ) : (
             <>
-                {/* VUE MOBILE */}
-                <div className="md:hidden space-y-4">
-                    {days.map(day => (
-                        <div key={day.toISOString()} className="border rounded-xl overflow-hidden shadow-sm">
-                            <div className="bg-gray-50 p-3 border-b flex flex-wrap items-center justify-between">
+                {/* VUE MOBILE : Ligne d'options 5 jours + Détail du jour sélectionné */}
+                <div className="md:hidden space-y-3">
+                    {/* Ligne des 5 jours de la semaine */}
+                    <div className="grid grid-cols-5 gap-1.5">
+                        {days.map(day => {
+                            const isSelected = isSameDay(day, selectedMobileDay);
+                            const filledCount = displayHours.filter(h => {
+                                const s = getSchedule(day, h);
+                                return s && s.user;
+                            }).length;
+
+                            return (
+                                <button
+                                    key={day.toISOString()}
+                                    type="button"
+                                    onClick={() => setSelectedMobileDay(day)}
+                                    className={`
+                                        flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all cursor-pointer text-center relative
+                                        ${isSelected
+                                            ? "bg-indigo-900 text-white border-indigo-900 shadow-sm"
+                                            : "bg-white hover:bg-slate-50 border-slate-200/80 text-slate-700 shadow-2xs"
+                                        }
+                                    `}
+                                >
+                                    <span className={`text-[10px] uppercase font-bold tracking-wider ${isSelected ? "text-indigo-200" : "text-slate-400"}`}>
+                                        {format(day, "EEE", { locale: fr })}
+                                    </span>
+                                    <span className="text-base font-bold leading-tight mt-0.5">
+                                        {format(day, "d")}
+                                    </span>
+                                    <span className={`text-[9px] mt-0.5 font-medium px-1.5 py-0.2 rounded-full ${
+                                        isSelected
+                                            ? "bg-white/20 text-white"
+                                            : filledCount === displayHours.length && displayHours.length > 0
+                                            ? "bg-emerald-50 text-emerald-700 font-semibold"
+                                            : filledCount > 0
+                                            ? "bg-slate-100 text-slate-600"
+                                            : "text-slate-400"
+                                    }`}>
+                                        {filledCount}/{displayHours.length}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Détail du jour sélectionné avec Thème et Créneaux */}
+                    <div className="bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-xs space-y-3">
+                        <div className="flex flex-col gap-2 pb-2.5 border-b border-slate-100">
+                            <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <Calendar className="h-4 w-4 text-indigo-500" />
-                                    <span className="font-bold text-gray-800 capitalize">
-                                        {format(day, "EEEE d", { locale: fr })}
+                                    <Calendar className="h-4 w-4 text-indigo-600" />
+                                    <span className="font-bold text-sm text-slate-900 capitalize">
+                                        {format(selectedMobileDay, "EEEE d MMMM", { locale: fr })}
                                     </span>
                                 </div>
-                                <div className="pl-6">
-                                    <ThemeEditor 
-                                        type="day"
-                                        initialValue={getDayTheme(day)}
-                                        onSave={async (val) => {await updateDayTheme(assignment.id, day.toDateString(), val); loadData()}}
-                                    />
+                                <div className="flex items-center gap-1">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7 rounded-lg cursor-pointer"
+                                        onClick={() => {
+                                            const idx = days.findIndex(d => isSameDay(d, selectedMobileDay));
+                                            if (idx > 0) setSelectedMobileDay(days[idx - 1]);
+                                        }}
+                                        disabled={isSameDay(selectedMobileDay, days[0])}
+                                    >
+                                        <ChevronLeft className="h-3.5 w-3.5" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7 rounded-lg cursor-pointer"
+                                        onClick={() => {
+                                            const idx = days.findIndex(d => isSameDay(d, selectedMobileDay));
+                                            if (idx < days.length - 1) setSelectedMobileDay(days[idx + 1]);
+                                        }}
+                                        disabled={isSameDay(selectedMobileDay, days[days.length - 1])}
+                                    >
+                                        <ChevronRight className="h-3.5 w-3.5" />
+                                    </Button>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-2 p-2 bg-white">
-                                {displayHours.map(hour => {
-                                    const schedule = getSchedule(day, hour);
-                                    const isFilled = schedule && schedule.user;
 
-                                    return (
-                                        <div 
-                                            key={hour}
-                                            onClick={() => onSelectSlot(day, hour)}
-                                            className={`
-                                                relative p-1.5 rounded-lg border cursor-pointer transition-all flex flex-col items-center justify-center min-h-[42px]
-                                                ${isFilled 
-                                                    ? "bg-indigo-50/70 border-indigo-200" 
-                                                    : "bg-white border-dashed border-slate-200 active:bg-slate-50"
-                                                }
-                                            `}
-                                        >
-                                            <span className="absolute top-1 left-1.5 text-[9px] font-bold text-slate-400">{hour}</span>
-                                            {isFilled ? (
-                                                <div className="flex flex-col items-center mt-0.5">
-                                                    <Avatar className="h-5 w-5 ring-1 ring-white shadow-2xs mb-0.5">
-                                                        <AvatarImage src={schedule.user?.image} />
-                                                        <AvatarFallback className="bg-indigo-600 text-white text-[8px] font-bold">
-                                                            {schedule.user?.name?.slice(0,1)}
-                                                        </AvatarFallback>
-                                                    </Avatar>
-                                                    <span className="text-[10px] font-medium text-slate-900 truncate max-w-[75px]">
-                                                        {schedule.user?.name?.split(" ")[0]}
-                                                    </span>
-                                                </div>
-                                            ) : (
-                                                <div className="flex flex-col items-center text-slate-300 mt-0.5">
-                                                    <Moon className="h-3 w-3 mb-0.5" />
-                                                    <span className="text-[8px] font-medium">Libre</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
+                            {/* Éditeur de thème du jour */}
+                            <div>
+                                <ThemeEditor 
+                                    type="day"
+                                    initialValue={getDayTheme(selectedMobileDay)}
+                                    onSave={async (val) => {await updateDayTheme(assignment.id, selectedMobileDay.toDateString(), val); loadData()}}
+                                />
                             </div>
                         </div>
-                    ))}
+
+                        {/* Créneaux du jour */}
+                        <div className="grid grid-cols-2 gap-2">
+                            {displayHours.map(hour => {
+                                const schedule = getSchedule(selectedMobileDay, hour);
+                                const isFilled = schedule && schedule.user;
+
+                                return (
+                                    <div 
+                                        key={hour}
+                                        onClick={() => onSelectSlot(selectedMobileDay, hour)}
+                                        className={`
+                                            relative p-2 rounded-xl border cursor-pointer transition-all flex flex-col items-center justify-center min-h-[46px]
+                                            ${isFilled 
+                                                ? "bg-indigo-50/70 border-indigo-200" 
+                                                : "bg-white border-dashed border-slate-200 active:bg-slate-50"
+                                            }
+                                        `}
+                                    >
+                                        <span className="absolute top-1 left-1.5 text-[9px] font-bold text-slate-400">{hour}</span>
+                                        {isFilled ? (
+                                            <div className="flex flex-col items-center mt-0.5">
+                                                <Avatar className="h-5 w-5 ring-1 ring-white shadow-2xs mb-0.5">
+                                                    <AvatarImage src={schedule.user?.image} />
+                                                    <AvatarFallback className="bg-indigo-600 text-white text-[8px] font-bold">
+                                                        {schedule.user?.name?.slice(0,1)}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <span className="text-[10px] font-medium text-slate-900 truncate max-w-[85px]">
+                                                    {schedule.user?.name?.split(" ")[0]}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col items-center text-slate-300 mt-0.5">
+                                                <Moon className="h-3 w-3 mb-0.5" />
+                                                <span className="text-[8px] font-medium">Libre</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
                 </div>
 
                 {/* VUE DESKTOP */}

@@ -12,6 +12,9 @@ import { ConfirmDelete } from "../DeleteConfirm";
 import { SearchableUserSelect } from "../SearchUserSelect";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+import { REALTIME_CHANNELS } from "@/lib/realtime-channels";
 
 interface MemberManagerProps {
   familyId: string;
@@ -20,10 +23,19 @@ interface MemberManagerProps {
 }
 
 export function FamilyMemberManager({ familyId, members, candidates }: MemberManagerProps) {
+  const router = useRouter();
   const [isAdding, setIsAdding] = useState(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Synchronisation temps réel automatique
+  useRealtimeSync({
+    channel: REALTIME_CHANNELS.PRAYER_HOUSE,
+    onUpdate: () => {
+      router.refresh();
+    },
+  });
 
   const filteredMembers = members.filter((member) => {
     const query = searchQuery.toLowerCase().trim();
@@ -43,12 +55,16 @@ export function FamilyMemberManager({ familyId, members, candidates }: MemberMan
       toast.success("Membre ajouté à la famille");
       setSelectedCandidateId("");
       setIsDialogOpen(false);
+      router.refresh();
     }
   };
 
   const handleRemove = async (userId: string) => {
     const res = await removeMemberFromFamily(userId, familyId);
-    if (res.success) toast.success("Membre retiré");
+    if (res.success) {
+      toast.success("Membre retiré");
+      router.refresh();
+    }
   };
 
   return (

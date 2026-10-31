@@ -5,8 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 import { checkLeaderAccess } from "./leader";
-import { pusherServer } from "@/lib/pusher";
-import supabase from "@/lib/superbase";
+import { broadcastRealtime } from "@/lib/realtime-server";
+import { REALTIME_CHANNELS, REALTIME_EVENTS } from "@/lib/realtime-channels";
 
 // Vérification sécu
 
@@ -43,6 +43,10 @@ export async function createPrayerFamily(data: { name: string, description?: str
         color: data.color || "#4f46e5"
       }
     });
+    await broadcastRealtime(REALTIME_CHANNELS.PRAYER_HOUSE, REALTIME_EVENTS.CHANGE, {
+      type: "family-created",
+      name: data.name,
+    });
     revalidatePath("/dashboard/leader/prayer-house");
     return { success: true };
   } catch (error) {
@@ -54,6 +58,10 @@ export async function deletePrayerFamily(id: string) {
     await checkLeaderAccess();
     try {
         await prisma.prayerFamily.delete({ where: { id } });
+        await broadcastRealtime(REALTIME_CHANNELS.PRAYER_HOUSE, REALTIME_EVENTS.CHANGE, {
+          type: "family-deleted",
+          id,
+        });
         revalidatePath("/dashboard/leader/prayer-house");
         return { success: true };
     } catch (error) {
@@ -103,19 +111,16 @@ export async function getFamilyDetails(id: string) {
               where: { id: userId },
               data: { prayerFamilyId: familyId }
           });
-          
 
-          await supabase.channel('prayer-room-updates').send({
-            type: 'broadcast',
-            event: 'change',
-            payload: { message: 'Mise à jour du planning' },
+          await broadcastRealtime(REALTIME_CHANNELS.PRAYER_HOUSE, REALTIME_EVENTS.MEMBER_UPDATED, {
+            type: "member-added",
+            familyId,
+            userId,
           });
-
 
           revalidatePath(`/dashboard/leader/prayer-house/${familyId}`);
           return { success: true };
       } catch (error) {
-        
           return { success: false, error: "Erreur ajout membre" };
       }
   }
@@ -128,13 +133,11 @@ export async function getFamilyDetails(id: string) {
               data: { prayerFamilyId: null } // On le détache de la famille
           });
 
-          await supabase.channel('prayer-room-updates').send({
-            type: 'broadcast',
-            event: 'change',
-            payload: { message: 'Mise à jour du planning' },
+          await broadcastRealtime(REALTIME_CHANNELS.PRAYER_HOUSE, REALTIME_EVENTS.MEMBER_UPDATED, {
+            type: "member-removed",
+            familyId,
+            userId,
           });
-
-
 
           revalidatePath(`/dashboard/leader/prayer-house/${familyId}`);
           return { success: true };

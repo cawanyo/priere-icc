@@ -6,6 +6,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { revalidatePath } from "next/cache";
 import { sendWebPushToUser } from "@/lib/web-push";
+import { broadcastRealtime } from "@/lib/realtime-server";
+import { REALTIME_CHANNELS, REALTIME_EVENTS } from "@/lib/realtime-channels";
 
 // Récupérer les notifications de l'utilisateur connecté
 export async function getUserNotifications() {
@@ -92,6 +94,12 @@ export async function createNotification(userId: string, title: string, message:
     } catch (pushErr) {
       console.warn("[Notification] Échec envoi push non bloquant:", pushErr);
     }
+
+    // Diffusion temps réel pour mettre à jour instantanément la cloche in-app
+    await broadcastRealtime(REALTIME_CHANNELS.NOTIFICATIONS, REALTIME_EVENTS.UPDATE, {
+      userId,
+      notificationId: notif.id,
+    });
 
     return { success: true, data: notif };
   } catch (error) {

@@ -16,6 +16,9 @@ import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useRealtime } from "@/hooks/useRealRime";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+import { REALTIME_CHANNELS } from "@/lib/realtime-channels";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 function resolveNotificationLink(notif: { title?: string; message?: string; link?: string }): string {
@@ -40,8 +43,17 @@ function resolveNotificationLink(notif: { title?: string; message?: string; link
 
 export function NotificationBell() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
   const [pushStatus, setPushStatus] = useState<"granted" | "default" | "denied" | "unsupported">("granted");
+
+  // Synchronisation instantanée dès qu'une notification est créée
+  useRealtimeSync({
+    channel: REALTIME_CHANNELS.NOTIFICATIONS,
+    onUpdate: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
 
   useEffect(() => {
     if (typeof window !== "undefined" && "Notification" in window) {

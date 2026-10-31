@@ -30,6 +30,8 @@ import { RecurringManager } from "./RecurringManager";
 import { getPlanningEvents } from "@/app/actions/planing";
 import { PlaningWithIntercessor } from "@/lib/types";
 import { cn, convertKeepDate } from "@/lib/utils";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+import { REALTIME_CHANNELS } from "@/lib/realtime-channels";
 
 export function PlanningCalendar() {
   const [currentWeekDate, setCurrentWeekDate] = useState(() => new Date());
@@ -74,6 +76,12 @@ export function PlanningCalendar() {
   useEffect(() => {
     loadEvents();
   }, [loadEvents]);
+
+  // Synchronisation temps réel automatique
+  useRealtimeSync({
+    channel: REALTIME_CHANNELS.PRAYER_PLANNING,
+    onUpdate: loadEvents,
+  });
 
   const prevWeek = () => {
     const prev = addWeeks(currentWeekDate, -1);
