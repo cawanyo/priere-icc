@@ -4,11 +4,12 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { addDays, getDay, format, isSameDay } from "date-fns";
+import { addDays, getDay, format, isSameDay, startOfDay, endOfDay, startOfWeek, endOfWeek } from "date-fns";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "./notifications";
 import { broadcastRealtime } from "@/lib/realtime-server";
 import { REALTIME_CHANNELS, REALTIME_EVENTS } from "@/lib/realtime-channels";
+import { generateRecurringPlannings } from "@/lib/recurring";
 export async function checkIntercessorAccess() {
   const session = await getServerSession(authOptions);
   const sessionUser = session?.user as { id?: string; email?: string } | undefined;
@@ -35,14 +36,21 @@ export async function checkIntercessorOrPrayerLeaderAccess() {
 
 export async function getIntercessorPlanning(startDate: String, endDate: String) {
   try {
-    const startDateObj = new Date(startDate.toString());
-    const endDateObj = new Date(endDate.toString());  
+    const rawStart = new Date(startDate.toString());
+    const rawEnd = new Date(endDate.toString());  
     const user = await checkIntercessorAccess();
 
-    // 1. Récupérer les événements "Réels" (Planning)
+    // 1. Générer automatiquement les créneaux récurrents pour la semaine demandée
+    await generateRecurringPlannings(rawStart, rawEnd);
+
+    // 2. Marge de sécurité d'un jour pour englober tous les créneaux sans biais de fuseau horaire
+    const queryStart = startOfDay(addDays(rawStart, -1));
+    const queryEnd = endOfDay(addDays(rawEnd, 1));
+
+    // 3. Récupérer les événements réels (Planning)
     const realPlannings = await prisma.planning.findMany({
       where: {
-        date: { gte: startDateObj, lte: endDateObj },
+        date: { gte: queryStart, lte: queryEnd },
         specialEventId: null
       },
       include: {
@@ -50,9 +58,9 @@ export async function getIntercessorPlanning(startDate: String, endDate: String)
       }
     });
 
-    // 4. Fusionner et trier
+    // 4. Trier par heure de début
     const allEvents = realPlannings.sort((a, b) => 
-      new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+      (a.startTime || "00:00").localeCompare(b.startTime || "00:00")
     );
 
     return { success: true, data: allEvents, currentUserId: user.id };

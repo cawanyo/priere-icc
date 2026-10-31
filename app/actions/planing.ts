@@ -5,13 +5,14 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { revalidatePath } from "next/cache";
-import { addDays, startOfWeek, endOfWeek, setHours, setMinutes, getDay, format } from "date-fns";
+import { addDays, startOfWeek, endOfWeek, setHours, setMinutes, getDay, format, startOfDay, endOfDay, addWeeks } from "date-fns";
 import { sendSMS } from "@/lib/sms";
 import { fr } from "date-fns/locale";
 import { PlaningWithIntercessor } from "@/lib/types";
 import { createNotification } from "./notifications";
 import { broadcastRealtime } from "@/lib/realtime-server";
 import { REALTIME_CHANNELS, REALTIME_EVENTS } from "@/lib/realtime-channels";
+import { generateRecurringPlannings } from "@/lib/recurring";
 // Vérification accès Leader
 async function checkLeader() {
   const session = await getServerSession(authOptions);
@@ -30,22 +31,28 @@ export async function getPlanningEvents(startDate: String, endDate: String) {
 
   const start = new Date(startDate.toString());
   const end = new Date(endDate.toString()); 
-  // 1. Récupérer les événements "Réels" (Planning) dans la plage
-  const realPlannings:PlaningWithIntercessor[] = await prisma.planning.findMany({
+
+  // 1. Générer automatiquement les créneaux récurrents pour la semaine demandée
+  await generateRecurringPlannings(start, end);
+
+  // 2. Marge de sécurité d'un jour pour englober tous les créneaux sans biais de fuseau horaire
+  const queryStart = startOfDay(addDays(start, -1));
+  const queryEnd = endOfDay(addDays(end, 1));
+
+  // 3. Récupérer les événements réels (Planning) dans la plage
+  const realPlannings: PlaningWithIntercessor[] = await prisma.planning.findMany({
     where: {
-      date: { gte: start, lte: end },
+      date: { gte: queryStart, lte: queryEnd },
       specialEventId: null
     },
     include: {
       users: true 
     }
-    
   });
 
-
-  // Fusionner et trier
+  // 4. Trier par heure de début
   const allEvents = realPlannings.sort((a, b) => 
-    new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+    (a.startTime || "00:00").localeCompare(b.startTime || "00:00")
   );
 
   return { success: true, data: allEvents };
@@ -60,9 +67,7 @@ export async function createRecurringSchedule(data: any) {
   await checkLeader();
   
   // data: { title, description, dayOfWeek, startTime (HH:mm), endTime (HH:mm) }
-  
-
-  await prisma.recurringSchedule.create({
+  const schedule = await prisma.recurringSchedule.create({
     data: {
       title: data.title,
       description: data.description,
@@ -71,12 +76,20 @@ export async function createRecurringSchedule(data: any) {
       endTime: data.endTime,
     }
   });
+
+  // Générer immédiatement les créneaux pour la semaine en cours et les 12 prochaines semaines
+  const now = new Date();
+  const start = startOfWeek(addWeeks(now, -1), { weekStartsOn: 1 });
+  const end = endOfWeek(addWeeks(now, 12), { weekStartsOn: 1 });
+  await generateRecurringPlannings(start, end);
   
   await broadcastRealtime(REALTIME_CHANNELS.PRAYER_PLANNING, REALTIME_EVENTS.UPDATE, {
     type: "recurring-created",
+    scheduleId: schedule.id,
   });
 
   revalidatePath("/dashboard/leader/planning");
+  revalidatePath("/dashboard/user/intercessor/planning");
   return { success: true };
 }
 
@@ -243,12 +256,24 @@ export async function getRecurringSchedules() {
     try {
       await prisma.recurringSchedule.delete({ where: { id } });
 
+      // Supprimer les futurs créneaux liés à ce modèle qui n'ont aucun intercesseur inscrit
+      const todayStr = format(new Date(), "yyyy-MM-dd");
+      const todayDate = new Date(`${todayStr}T00:00:00.000Z`);
+      await prisma.planning.deleteMany({
+        where: {
+          recurringId: id,
+          date: { gte: todayDate },
+          users: { none: {} },
+        },
+      });
+
       await broadcastRealtime(REALTIME_CHANNELS.PRAYER_PLANNING, REALTIME_EVENTS.UPDATE, {
         type: "recurring-deleted",
         id,
       });
 
       revalidatePath("/dashboard/leader/planning");
+      revalidatePath("/dashboard/user/intercessor/planning");
       return { success: true, message: "Programme récurrent supprimé" };
     } catch (error) {
       return { success: false, message: "Erreur suppression" };

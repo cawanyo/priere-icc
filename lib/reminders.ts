@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/app/actions/notifications";
+import { generateRecurringPlannings } from "@/lib/recurring";
+import { addDays } from "date-fns";
 
 export interface ReminderDetail {
   userId: string;
@@ -118,6 +120,13 @@ export async function sendScheduledReminders(options?: {
     oneHourRemindersSent: 0,
     details: [],
   };
+
+  // S'assurer que les créneaux récurrents des prochains jours sont bien générés en base
+  try {
+    await generateRecurringPlannings(paris.todayStart, addDays(paris.tomorrowEnd, 7));
+  } catch (recErr) {
+    console.warn("[Reminders] Génération récurrences non bloquante:", recErr);
+  }
 
   // -------------------------------------------------------------
   // 1. RAPPEL LA VEILLE À 18H (Actif dès 18h00 heure de Paris)
