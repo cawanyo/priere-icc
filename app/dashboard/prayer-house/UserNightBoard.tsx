@@ -148,15 +148,15 @@ export function UserNightBoard() {
 
       {/* 2. Sujet de la semaine sobre et compact */}
       {data?.assignment?.weekTheme && (
-        <div className="bg-indigo-50/70 border border-indigo-100 p-3 sm:p-3.5 rounded-2xl flex gap-3 items-center shadow-2xs">
-          <div className="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+        <div className="bg-indigo-50/70 border border-indigo-100 p-3 sm:p-3.5 rounded-2xl flex gap-3 items-start shadow-2xs">
+          <div className="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600 shrink-0 mt-0.5">
             <MessageSquareQuote className="h-4 w-4" />
           </div>
           <div className="flex-1 min-w-0">
             <span className="block text-[10px] font-bold text-indigo-500 uppercase tracking-wider">
               Thème de la semaine
             </span>
-            <p className="text-xs sm:text-sm text-indigo-950 font-semibold truncate leading-tight">
+            <p className="text-xs sm:text-sm text-indigo-950 font-semibold leading-relaxed break-words whitespace-pre-wrap mt-0.5">
               « {data.assignment.weekTheme} »
             </p>
           </div>
@@ -204,14 +204,14 @@ export function UserNightBoard() {
                       {format(day, "d MMM", { locale: fr })}
                     </span>
                     {dayTheme && (
-                      <p className="text-[10px] text-indigo-700 italic truncate mt-1 pt-1 border-t border-slate-200/50">
+                      <p className="text-[10px] text-indigo-700 italic break-words whitespace-normal leading-tight mt-1 pt-1 border-t border-slate-200/50">
                         « {dayTheme} »
                       </p>
                     )}
                   </div>
 
-                  {/* Créneaux horaires */}
-                  <div className="space-y-1.5">
+                  {/* Créneaux horaires compacts */}
+                  <div className="space-y-1">
                     {hours.map((hour) => {
                       const schedule = assignment.schedules?.find(
                         (s: any) =>
@@ -231,7 +231,7 @@ export function UserNightBoard() {
                           disabled={isToggling || (!isMe && isTaken)}
                           onClick={() => handleToggle(day, hour, isMe)}
                           className={cn(
-                            "w-full px-2.5 py-1.5 rounded-xl border text-left transition-all flex items-center justify-between gap-1.5 cursor-pointer text-xs",
+                            "w-full px-2 py-1 rounded-lg border text-left transition-all flex items-center justify-between gap-1 cursor-pointer text-xs min-h-[30px]",
                             isMe
                               ? "bg-emerald-50 border-emerald-200 text-emerald-900 font-semibold ring-1 ring-emerald-300/60"
                               : isTaken
@@ -239,7 +239,7 @@ export function UserNightBoard() {
                               : "bg-white hover:bg-indigo-50/70 border-slate-200/80 hover:border-indigo-200 text-slate-600"
                           )}
                         >
-                          <span className="font-semibold text-[11px] text-slate-500 shrink-0">
+                          <span className="font-semibold text-[10px] text-slate-500 shrink-0">
                             {hour}
                           </span>
 
@@ -247,18 +247,18 @@ export function UserNightBoard() {
                             {isToggling ? (
                               <Loader2 className="h-3 w-3 animate-spin text-slate-400 ml-auto" />
                             ) : isMe ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] text-emerald-700 font-bold">
+                              <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-bold">
                                 <CheckCircle2 className="h-3 w-3" /> Moi
                               </span>
                             ) : isTaken ? (
-                              <div className="flex items-center justify-end gap-1.5 truncate">
-                                <Avatar className="h-4 w-4 shrink-0 ring-1 ring-white">
+                              <div className="flex items-center justify-end gap-1 truncate">
+                                <Avatar className="h-3.5 w-3.5 shrink-0 ring-1 ring-white">
                                   <AvatarImage src={schedule.user?.image} />
-                                  <AvatarFallback className="text-[8px] bg-indigo-100 text-indigo-700 font-bold">
+                                  <AvatarFallback className="text-[7px] bg-indigo-100 text-indigo-700 font-bold">
                                     {schedule.user?.name?.[0] || "M"}
                                   </AvatarFallback>
                                 </Avatar>
-                                <span className="text-[11px] truncate font-medium text-slate-700">
+                                <span className="text-[10px] truncate font-medium text-slate-700">
                                   {schedule.user?.name?.split(" ")[0]}
                                 </span>
                               </div>
