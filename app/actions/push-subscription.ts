@@ -24,19 +24,33 @@ export async function savePushSubscription(
   }
 
   let userId = (session.user as { id?: string }).id;
-  if (!userId && session.user.email) {
+  let userExists = false;
+
+  if (userId) {
+    const check = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+    if (check) userExists = true;
+  }
+
+  if (!userExists && session.user.email) {
     const u = await prisma.user.findFirst({
       where: { email: session.user.email },
       select: { id: true },
     });
-    if (u) userId = u.id;
+    if (u) {
+      userId = u.id;
+      userExists = true;
+    }
   }
-  if (!userId) {
-    return { success: false, error: "ID utilisateur manquant" };
+
+  if (!userExists || !userId) {
+    return { success: false, error: "Utilisateur introuvable en base de données" };
   }
 
   try {
-    await prisma.pushSubscription.upsert({
+    const record = await prisma.pushSubscription.upsert({
       where: { endpoint: subscription.endpoint },
       update: {
         userId,
@@ -53,7 +67,8 @@ export async function savePushSubscription(
       },
     });
 
-    return { success: true, message: "Abonnement push enregistré" };
+    console.log(`[Push] Abonnement Web Push enregistré dans la table PushSubscription (id: ${record.id}, user: ${userId})`);
+    return { success: true, message: "Abonnement push enregistré", subscriptionId: record.id };
   } catch (error) {
     console.error("[Push] Erreur enregistrement abonnement:", error);
     return { success: false, error: "Erreur lors de l'enregistrement de l'appareil" };
@@ -73,7 +88,7 @@ export async function deletePushSubscription(endpoint: string) {
 }
 
 // Envoyer une notification de test à l'utilisateur connecté
-export async function sendTestPushNotification() {
+export async function sendTestPushNotification(customBody?: string, customTitle?: string) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     return { success: false, error: "Non connecté" };
@@ -91,9 +106,12 @@ export async function sendTestPushNotification() {
     return { success: false, error: "ID manquant" };
   }
 
+  const title = customTitle || "Ministère de la Prière ICC";
+  const body = customBody || "Notifications acceptées";
+
   await sendWebPushToUser(userId, {
-    title: "Test de Notification Push 🎉",
-    body: "Votre appareil est bien configuré pour recevoir les notifications de Prière ICC !",
+    title,
+    body,
     url: "/dashboard",
   });
 

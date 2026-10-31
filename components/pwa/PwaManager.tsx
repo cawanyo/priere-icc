@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Download, X, Share, PlusSquare, Bell, Check } from "lucide-react";
+import { Download, X, Share, PlusSquare, Bell, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { urlBase64ToUint8Array } from "@/lib/utils";
-import { savePushSubscription } from "@/app/actions/push-subscription";
+import { savePushSubscription, sendTestPushNotification } from "@/app/actions/push-subscription";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -24,8 +24,17 @@ function getVapidPublicKey(): string {
   return DEFAULT_VAPID_PUBLIC_KEY;
 }
 
-// Fonction d'abonnement exportée pour être réutilisée partout (ex: cloche de notif, profil)
-export async function subscribeUserToPush(): Promise<{ success: boolean; message?: string }> {
+// Options d'abonnement aux notifications push
+export interface SubscribeOptions {
+  silent?: boolean;
+  sendWelcomeNotification?: boolean;
+  welcomeMessage?: string;
+}
+
+// Fonction d'abonnement exportée pour être réutilisée partout (ex: cloche de notif, profil, bannière)
+export async function subscribeUserToPush(
+  options?: SubscribeOptions
+): Promise<{ success: boolean; message?: string }> {
   if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator)) {
     return { success: false, message: "Les notifications ne sont pas supportées sur cet appareil." };
   }
@@ -91,6 +100,35 @@ export async function subscribeUserToPush(): Promise<{ success: boolean; message
       navigator.userAgent
     );
 
+    if (!res.success) {
+      console.error("[PWA] Échec sauvegarde table PushSubscription:", res.error);
+      return res;
+    }
+
+    // Déclencher la notification directe immédiate ("Notifications acceptées")
+    if (options?.sendWelcomeNotification !== false && !options?.silent) {
+      const welcomeMsg = options?.welcomeMessage || "Notifications acceptées";
+
+      // 1. Notification locale instantanée sur l'écran
+      try {
+        await registration.showNotification("Ministère de la Prière ICC", {
+          body: welcomeMsg,
+          icon: "/icons/icon-192x192.png",
+          badge: "/icons/icon-96x96.png",
+          data: { url: "/dashboard" },
+        });
+      } catch (localErr) {
+        console.warn("[PWA] Repli affichage local:", localErr);
+      }
+
+      // 2. Notification Push réelle depuis le serveur (test du flux push complet)
+      try {
+        await sendTestPushNotification(welcomeMsg, "Ministère de la Prière ICC");
+      } catch (srvErr) {
+        console.warn("[PWA] Envoi test push serveur non bloquant:", srvErr);
+      }
+    }
+
     return res;
   } catch (error) {
     console.error("[PWA] Erreur abonnement push:", error);
@@ -117,23 +155,61 @@ export function PwaManager() {
   const [showIosGuide, setShowIosGuide] = useState(false);
   const [isBannerVisible, setIsBannerVisible] = useState(false);
   const [showPushBanner, setShowPushBanner] = useState(false);
+  const [pushPermissionStatus, setPushPermissionStatus] = useState<string>("default");
+  const [isActivatingPush, setIsActivatingPush] = useState(false);
 
-  // Synchronisation automatique de l'abonnement Push ou proposition d'activation
+  // Vérification systématique à chaque entrée dans l'application
   useEffect(() => {
     if (status !== "authenticated" || !session?.user) return;
-    if (typeof window === "undefined" || !("Notification" in window)) return;
-    
-    if (Notification.permission === "granted") {
-      subscribeUserToPush().catch(() => {});
-    } else if (Notification.permission === "default") {
-      const dismissedUntil = localStorage.getItem("push_prompt_dismissed_until");
-      const isDismissed = dismissedUntil && new Date().getTime() < parseInt(dismissedUntil, 10);
-      if (!isDismissed) {
-        const timer = setTimeout(() => setShowPushBanner(true), 2500);
-        return () => clearTimeout(timer);
+    if (typeof window === "undefined") return;
+
+    const checkAndPromptNotifications = () => {
+      // 1. Appareil ne supportant pas les notifications (ex: Safari iOS hors écran d'accueil)
+      if (!("Notification" in window)) {
+        if (isIos && !isStandalone) {
+          const dismissedInSession = sessionStorage.getItem("push_prompt_dismissed_session");
+          if (!dismissedInSession) {
+            setPushPermissionStatus("ios_not_installed");
+            setShowPushBanner(true);
+          }
+        }
+        return;
       }
-    }
-  }, [status, session]);
+
+      const currentPermission = Notification.permission;
+      setPushPermissionStatus(currentPermission);
+
+      // 2. Si déjà autorisé -> synchronisation silencieuse et pas de bannière
+      if (currentPermission === "granted") {
+        setShowPushBanner(false);
+        subscribeUserToPush({ silent: true }).catch(() => {});
+        return;
+      }
+
+      // 3. Si non autorisé ("default" ou "denied") -> vérifier si non écarté pour cette session
+      const dismissedInSession = sessionStorage.getItem("push_prompt_dismissed_session");
+      if (!dismissedInSession) {
+        setShowPushBanner(true);
+      }
+    };
+
+    // Vérification initiale à l'entrée dans l'application
+    const timer = setTimeout(checkAndPromptNotifications, 800);
+
+    // Vérification lorsque l'utilisateur revient sur l'application (déverrouillage ou changement d'onglet)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        checkAndPromptNotifications();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [status, session, isIos, isStandalone]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -239,10 +315,39 @@ export function PwaManager() {
     localStorage.setItem("pwa_dismissed_until", inSevenDays.toString());
   };
 
+  const handleActivatePush = async () => {
+    setIsActivatingPush(true);
+    try {
+      const res = await subscribeUserToPush({
+        sendWelcomeNotification: true,
+        welcomeMessage: "Notifications acceptées",
+      });
+      if (res.success) {
+        setPushPermissionStatus("granted");
+        setShowPushBanner(false);
+        toast.success("Notifications acceptées ! Vous venez de recevoir une notification de test.");
+      } else {
+        if ("Notification" in window) {
+          setPushPermissionStatus(Notification.permission);
+        }
+        toast.error(res.message || "Impossible d'activer les notifications");
+      }
+    } catch {
+      toast.error("Erreur lors de l'activation des notifications");
+    } finally {
+      setIsActivatingPush(false);
+    }
+  };
+
+  const handleDismissPush = () => {
+    setShowPushBanner(false);
+    sessionStorage.setItem("push_prompt_dismissed_session", "true");
+  };
+
   return (
     <>
       {/* 1. Bannière d'installation PWA */}
-      {isBannerVisible && (isInstallable || isIos) && !isStandalone && (
+      {isBannerVisible && !showPushBanner && (isInstallable || isIos) && !isStandalone && (
         <aside
           role="region"
           aria-label="Installation de l'application"
@@ -250,7 +355,7 @@ export function PwaManager() {
         >
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm">
-              <Bell className="h-5 w-5" />
+              <Download className="h-5 w-5" />
             </div>
 
             <div className="flex-1 min-w-0 pr-6">
@@ -292,12 +397,12 @@ export function PwaManager() {
         </aside>
       )}
 
-      {/* 2. Bannière d'activation des notifications push sur mobile */}
-      {showPushBanner && !isBannerVisible && (
+      {/* 2. Bannière d'activation des notifications push systématique à l'entrée */}
+      {showPushBanner && (
         <aside
           role="region"
           aria-label="Activation des notifications"
-          className="fixed bottom-20 left-4 right-4 md:bottom-6 md:left-auto md:right-6 md:w-96 z-50 bg-white/95 backdrop-blur-md rounded-2xl border border-indigo-100 shadow-2xl p-4 animate-in fade-in slide-in-from-bottom-4 duration-300"
+          className="fixed bottom-20 left-4 right-4 md:bottom-6 md:left-auto md:right-6 md:w-96 z-50 bg-white/95 backdrop-blur-md rounded-2xl border border-indigo-100 shadow-2xl p-4 animate-in fade-in slide-in-from-bottom-4 duration-300 ring-1 ring-black/5"
         >
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm">
@@ -305,51 +410,95 @@ export function PwaManager() {
             </div>
 
             <div className="flex-1 min-w-0 pr-6">
-              <h4 className="text-xs font-bold text-indigo-950 uppercase tracking-wider">
-                Notifications sur mobile
-              </h4>
-              <p className="text-xs text-gray-600 mt-0.5 leading-snug">
-                Recevez directement vos rappels de créneaux et annonces de prière.
-              </p>
+              {pushPermissionStatus === "denied" ? (
+                <>
+                  <h4 className="text-xs font-bold text-indigo-950 uppercase tracking-wider">
+                    Notifications désactivées
+                  </h4>
+                  <p className="text-xs text-gray-600 mt-1 leading-snug">
+                    Les notifications sont bloquées dans votre navigateur. Pour recevoir vos rappels de créneaux (veille à 18h et 1h avant), autorisez-les dans les réglages de votre appareil.
+                  </p>
+                  <div className="flex items-center gap-2 mt-3">
+                    <Button
+                      size="sm"
+                      onClick={handleDismissPush}
+                      className="h-8 text-xs bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg px-3 cursor-pointer"
+                    >
+                      J&apos;ai compris
+                    </Button>
+                  </div>
+                </>
+              ) : pushPermissionStatus === "ios_not_installed" ? (
+                <>
+                  <h4 className="text-xs font-bold text-indigo-950 uppercase tracking-wider">
+                    Notifications sur iPhone
+                  </h4>
+                  <p className="text-xs text-gray-600 mt-1 leading-snug">
+                    Sur iPhone, ajoutez d&apos;abord Prière ICC à votre écran d&apos;accueil pour activer les alertes et rappels de créneaux.
+                  </p>
+                  <div className="flex items-center gap-2 mt-3">
+                    <Button
+                      size="sm"
+                      onClick={() => setShowIosGuide(true)}
+                      className="h-8 text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg gap-1.5 shadow-xs cursor-pointer"
+                    >
+                      <Share className="h-3.5 w-3.5" />
+                      Comment faire
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleDismissPush}
+                      className="h-8 text-xs text-gray-500 hover:text-gray-800 rounded-lg cursor-pointer"
+                    >
+                      Plus tard
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h4 className="text-xs font-bold text-indigo-950 uppercase tracking-wider">
+                    Activez vos notifications
+                  </h4>
+                  <p className="text-xs text-gray-600 mt-1 leading-snug">
+                    Recevez vos rappels de créneaux (veille à 18h et 1h avant) et restez informé(e) des temps forts de prière.
+                  </p>
 
-              <div className="flex items-center gap-2 mt-3">
-                <Button
-                  size="sm"
-                  onClick={async () => {
-                    const res = await subscribeUserToPush();
-                    if (res.success) {
-                      setShowPushBanner(false);
-                      toast.success("Notifications push activées avec succès !");
-                    } else {
-                      toast.error(res.message || "Impossible d'activer les notifications");
-                    }
-                  }}
-                  className="h-8 text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg gap-1.5 shadow-xs cursor-pointer"
-                >
-                  <Bell className="h-3.5 w-3.5" />
-                  Activer
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    setShowPushBanner(false);
-                    const inSevenDays = new Date().getTime() + 7 * 24 * 60 * 60 * 1000;
-                    localStorage.setItem("push_prompt_dismissed_until", inSevenDays.toString());
-                  }}
-                  className="h-8 text-xs text-gray-500 hover:text-gray-800 rounded-lg cursor-pointer"
-                >
-                  Plus tard
-                </Button>
-              </div>
+                  <div className="flex items-center gap-2 mt-3">
+                    <Button
+                      size="sm"
+                      onClick={handleActivatePush}
+                      disabled={isActivatingPush}
+                      className="h-8 text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg gap-1.5 shadow-xs cursor-pointer"
+                    >
+                      {isActivatingPush ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          Activation...
+                        </>
+                      ) : (
+                        <>
+                          <Bell className="h-3.5 w-3.5" />
+                          Activer
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleDismissPush}
+                      disabled={isActivatingPush}
+                      className="h-8 text-xs text-gray-500 hover:text-gray-800 rounded-lg cursor-pointer"
+                    >
+                      Plus tard
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
 
             <button
-              onClick={() => {
-                setShowPushBanner(false);
-                const inSevenDays = new Date().getTime() + 7 * 24 * 60 * 60 * 1000;
-                localStorage.setItem("push_prompt_dismissed_until", inSevenDays.toString());
-              }}
+              onClick={handleDismissPush}
               aria-label="Fermer la bannière"
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 p-1 rounded-md cursor-pointer"
             >

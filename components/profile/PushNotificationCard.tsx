@@ -22,14 +22,17 @@ export function PushNotificationCard() {
 
     // Synchronisation automatique et transparente si la permission est déjà accordée
     if (current === "granted") {
-      subscribeUserToPush().catch(() => {});
+      subscribeUserToPush({ silent: true }).catch(() => {});
     }
   }, []);
 
   const handleActivate = async () => {
     setIsActivating(true);
     try {
-      const res = await subscribeUserToPush();
+      const res = await subscribeUserToPush({
+        sendWelcomeNotification: true,
+        welcomeMessage: "Notifications acceptées",
+      });
       if (res.success) {
         setPermission("granted");
         toast.success("Notifications push activées avec succès !");
@@ -50,8 +53,8 @@ export function PushNotificationCard() {
     setIsTesting(true);
     try {
       // S'assurer d'abord que le token est bien à jour
-      await subscribeUserToPush().catch(() => {});
-      const res = await sendTestPushNotification();
+      await subscribeUserToPush({ silent: true }).catch(() => {});
+      const res = await sendTestPushNotification("Notifications acceptées", "Ministère de la Prière ICC");
       if (res.success) {
         toast.success("Notification envoyée ! Regardez l'écran de votre appareil.");
       } else {
