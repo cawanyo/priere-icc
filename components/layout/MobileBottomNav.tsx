@@ -17,21 +17,19 @@ interface MobileBottomNavProps {
 
 export function MobileBottomNav({ userRole }: MobileBottomNavProps) {
   const pathname = usePathname();
-
-  const isMinistere = ["INTERCESSOR", "PRAYER_LEADER", "LEADER", "ADMIN"].includes(userRole);
   const isLeader = ["LEADER", "ADMIN"].includes(userRole);
 
   const navItems = [
     {
       href: "/dashboard",
-      label: "Dashboard",
+      label: "Accueil",
       icon: Home,
       show: true,
       active: pathname === "/dashboard",
     },
     {
       href: "/dashboard/mobile/prayer-house",
-      label: "Maison de prière",
+      label: "Maison",
       icon: Church,
       show: true,
       active: pathname.startsWith("/dashboard/mobile/prayer-house"),
@@ -43,13 +41,17 @@ export function MobileBottomNav({ userRole }: MobileBottomNavProps) {
       show: true,
       active: pathname.startsWith("/dashboard/mobile/planning"),
     },
-    {
-      href: "/dashboard/mobile/leader",
-      label: "Leader",
-      icon: LayoutDashboard,
-      show: isLeader,
-      active: pathname.startsWith("/dashboard/mobile/leader"),
-    },
+    ...(isLeader
+      ? [
+          {
+            href: "/dashboard/mobile/leader",
+            label: "Leader",
+            icon: LayoutDashboard,
+            show: true,
+            active: pathname.startsWith("/dashboard/mobile/leader"),
+          },
+        ]
+      : []),
     {
       href: "/dashboard/mobile/espace",
       label: "Toi",
@@ -57,48 +59,55 @@ export function MobileBottomNav({ userRole }: MobileBottomNavProps) {
       show: true,
       active: pathname.startsWith("/dashboard/mobile/espace"),
     },
-  ].filter((item) => item.show);
+  ];
 
   return (
-    <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-lg z-50 transition-none"
+    <div
+      className="md:hidden fixed bottom-2.5 inset-x-3.5 z-50 pointer-events-none flex justify-center"
       style={{
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
-        transform: "translateZ(0)",
-        WebkitTransform: "translateZ(0)",
-        backfaceVisibility: "hidden",
-        WebkitBackfaceVisibility: "hidden",
       }}
     >
-      <div className="flex justify-around items-center h-16 px-1">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex flex-col items-center justify-center gap-0.5 px-1 py-1.5 rounded-xl transition-all duration-200 flex-1 min-w-0",
-                item.active
-                  ? "text-indigo-600"
-                  : "text-gray-500 hover:text-indigo-500"
-              )}
-            >
-              <div
+      <nav className="pointer-events-auto w-full max-w-md bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-[0_12px_32px_-4px_rgba(15,23,42,0.12)] rounded-2xl px-1.5 py-1.5 transition-all">
+        <div className="flex items-center justify-around gap-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = item.active;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
                 className={cn(
-                  "p-1.5 rounded-xl transition-all",
-                  item.active ? "bg-indigo-50" : ""
+                  "relative flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all duration-200 flex-1 min-w-0 active:scale-95",
+                  isActive
+                    ? "text-indigo-600 font-bold"
+                    : "text-slate-400 hover:text-slate-600 font-medium"
                 )}
               >
-                <Icon className="h-5 w-5 shrink-0" />
-              </div>
-              <span className="text-[9px] font-medium truncate w-full text-center leading-none">
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
+                <div
+                  className={cn(
+                    "flex items-center justify-center h-8 w-11 rounded-xl transition-all duration-200",
+                    isActive
+                      ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30 scale-105"
+                      : "text-slate-500 hover:bg-slate-100/80"
+                  )}
+                >
+                  <Icon className="h-4.5 w-4.5 shrink-0" />
+                </div>
+                <span
+                  className={cn(
+                    "text-[10px] tracking-tight truncate w-full text-center leading-none mt-1 transition-colors",
+                    isActive ? "text-indigo-600 font-bold" : "text-slate-500"
+                  )}
+                >
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+    </div>
   );
 }

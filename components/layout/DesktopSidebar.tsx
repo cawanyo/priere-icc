@@ -185,9 +185,29 @@ export function DesktopSidebar({ userRole, userName, userImage }: DesktopSidebar
         )}
       </nav>
 
-      {/* Footer */}
-      <div className="px-4 py-4 border-t border-gray-100">
-        <p className="text-[10px] text-gray-300 text-center">Prayer ICC · {new Date().getFullYear()}</p>
+      {/* Footer avec profil cliquable vers Mon Espace */}
+      <div className="p-3 border-t border-slate-100">
+        <Link
+          href="/dashboard/desktop/espace"
+          className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors group cursor-pointer"
+          title="Voir Mon Espace"
+        >
+          <Avatar className="h-9 w-9 border border-slate-200 shadow-2xs group-hover:ring-2 group-hover:ring-indigo-300 transition-all shrink-0">
+            <AvatarImage src={userImage || ""} />
+            <AvatarFallback className="bg-indigo-600 text-white font-bold text-xs">
+              {userName.slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">
+              {userName}
+            </p>
+            <p className="text-[10px] text-slate-400 truncate">
+              Mon Espace
+            </p>
+          </div>
+          <ChevronRight className="h-3.5 w-3.5 text-slate-300 group-hover:text-indigo-500 shrink-0" />
+        </Link>
       </div>
     </aside>
   );

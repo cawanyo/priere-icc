@@ -89,12 +89,14 @@ export default async function DashboardPage() {
         {/* Top bar */}
         <div className="bg-white border-b border-slate-200/80 px-8 py-5 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Avatar className="h-12 w-12 border border-slate-200 shadow-xs">
-              <AvatarImage src={userImage || ""} />
-              <AvatarFallback className="bg-indigo-600 text-white font-bold text-sm">
-                {userName.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <Link href="/dashboard/desktop/espace" className="block transition-transform hover:scale-105 cursor-pointer" title="Mon Espace">
+              <Avatar className="h-12 w-12 border border-slate-200 shadow-xs">
+                <AvatarImage src={userImage || ""} />
+                <AvatarFallback className="bg-indigo-600 text-white font-bold text-sm">
+                  {userName.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold text-slate-900">
@@ -354,7 +356,7 @@ export default async function DashboardPage() {
         <div className="bg-white border-b border-slate-200/80 px-5 pt-5 pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="relative">
+              <Link href="/dashboard/mobile/espace" className="relative block transition-transform active:scale-95 cursor-pointer" title="Toi">
                 <Avatar className="h-11 w-11 border border-slate-200 shadow-xs">
                   <AvatarImage src={userImage || ""} />
                   <AvatarFallback className="bg-indigo-600 text-white font-bold text-sm">
@@ -362,7 +364,7 @@ export default async function DashboardPage() {
                   </AvatarFallback>
                 </Avatar>
                 <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white block" />
-              </div>
+              </Link>
               <div>
                 <div className="flex items-center gap-1.5">
                   <h1 className="text-base font-bold text-slate-900 leading-tight">

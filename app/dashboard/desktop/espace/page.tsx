@@ -3,12 +3,9 @@ import { checkUser } from "@/app/actions/user";
 import Link from "next/link";
 import {
   CalendarClock,
-  CalendarRange,
-  Church,
   CircleUserRound,
   ChevronRight,
   ShieldCheck,
-  LayoutDashboard,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SignOutButton } from "@/components/profile/SignOutButton";
@@ -25,55 +22,26 @@ export default async function DesktopEspacePage() {
   const user = await checkUser();
   if (!user) redirect("/login");
 
-  const isLeader = ["LEADER", "ADMIN"].includes(user.role);
   const roleLabel = ROLE_DISPLAY[user.role] ?? user.role;
   const initials = (user.name || "U").slice(0, 2).toUpperCase();
 
   const items = [
     {
-      title: "Mes Disponibilités",
-      description: "Signaler mes absences ou congés pour le planning.",
+      title: "Mes indisponibilités",
+      description: "Signaler mes absences ou congés pour le planning de prière.",
       href: "/dashboard/user/intercessor/availability",
       icon: CalendarClock,
       iconColor: "text-violet-600",
       bg: "bg-violet-50",
     },
     {
-      title: "Mon Planning",
-      description: "Consulter mes créneaux de service de la semaine.",
-      href: "/dashboard/user/intercessor/planning",
-      icon: CalendarRange,
+      title: "Compte et référence",
+      description: "Gérer mes coordonnées personnelles, téléphone et mot de passe.",
+      href: "/dashboard/user/profile",
+      icon: CircleUserRound,
       iconColor: "text-indigo-600",
       bg: "bg-indigo-50",
     },
-    {
-      title: "Mon Profil & Coordonnées",
-      description: "Gérer mes informations personnelles, téléphone et mot de passe.",
-      href: "/dashboard/user/profile",
-      icon: CircleUserRound,
-      iconColor: "text-blue-600",
-      bg: "bg-blue-50",
-    },
-    {
-      title: "Maison de Prière",
-      description: "Accéder aux créneaux des sentinelles de nuit (00h — 04h).",
-      href: "/dashboard/desktop/prayer-house",
-      icon: Church,
-      iconColor: "text-pink-600",
-      bg: "bg-pink-50",
-    },
-    ...(isLeader
-      ? [
-          {
-            title: "Espace Leader",
-            description: "Gestion d'équipe, planification et événements spéciaux.",
-            href: "/dashboard/leader",
-            icon: LayoutDashboard,
-            iconColor: "text-amber-600",
-            bg: "bg-amber-50",
-          },
-        ]
-      : []),
   ];
 
   return (
@@ -106,38 +74,33 @@ export default async function DesktopEspacePage() {
         </div>
       </div>
 
-      <div className="px-8 py-8 max-w-4xl space-y-6">
-        <div>
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3">
-            Services & Paramètres
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {items.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="group bg-white rounded-2xl border border-slate-200/80 p-5 flex items-center gap-4 hover:border-slate-300 shadow-2xs hover:shadow-xs transition-all hover:-translate-y-0.5"
+      <div className="px-8 py-8 max-w-3xl space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {items.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="group bg-white rounded-2xl border border-slate-200/80 p-5 flex items-center gap-4 hover:border-slate-300 shadow-2xs hover:shadow-xs transition-all hover:-translate-y-0.5"
+              >
+                <div
+                  className={`w-12 h-12 ${item.bg} rounded-xl flex items-center justify-center shrink-0 border border-slate-100`}
                 >
-                  <div
-                    className={`w-12 h-12 ${item.bg} rounded-xl flex items-center justify-center shrink-0 border border-slate-100`}
-                  >
-                    <Icon className={`h-6 w-6 ${item.iconColor}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-slate-900 group-hover:text-indigo-700 transition-colors text-sm">
-                      {item.title}
-                    </p>
-                    <p className="text-xs text-slate-500 mt-0.5 leading-relaxed line-clamp-2">
-                      {item.description}
-                    </p>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-500 shrink-0 transition-colors" />
-                </Link>
-              );
-            })}
-          </div>
+                  <Icon className={`h-6 w-6 ${item.iconColor}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-slate-900 group-hover:text-indigo-700 transition-colors text-sm">
+                    {item.title}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5 leading-relaxed line-clamp-2">
+                    {item.description}
+                  </p>
+                </div>
+                <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-500 shrink-0 transition-colors" />
+              </Link>
+            );
+          })}
         </div>
       </div>
     </div>
