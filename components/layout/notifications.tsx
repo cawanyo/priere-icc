@@ -65,7 +65,10 @@ export function NotificationBell() {
 
   const handleEnablePush = async () => {
     try {
-      const res = await subscribeUserToPush();
+      const res = await subscribeUserToPush({
+        sendWelcomeNotification: true,
+        welcomeMessage: "Notifications acceptées",
+      });
       if (res.success) {
         setPushStatus("granted");
         toast.success("Notifications push activées !");

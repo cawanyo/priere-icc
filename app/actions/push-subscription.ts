@@ -73,7 +73,7 @@ export async function deletePushSubscription(endpoint: string) {
 }
 
 // Envoyer une notification de test à l'utilisateur connecté
-export async function sendTestPushNotification() {
+export async function sendTestPushNotification(customBody?: string, customTitle?: string) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     return { success: false, error: "Non connecté" };
@@ -91,9 +91,12 @@ export async function sendTestPushNotification() {
     return { success: false, error: "ID manquant" };
   }
 
+  const title = customTitle || "Ministère de la Prière ICC";
+  const body = customBody || "Notifications acceptées";
+
   await sendWebPushToUser(userId, {
-    title: "Test de Notification Push 🎉",
-    body: "Votre appareil est bien configuré pour recevoir les notifications de Prière ICC !",
+    title,
+    body,
     url: "/dashboard",
   });
 
