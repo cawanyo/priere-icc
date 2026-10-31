@@ -1,5 +1,5 @@
 // Service Worker pour l'application PWA Prière ICC
-const CACHE_NAME = "priere-icc-v2";
+const CACHE_NAME = "priere-icc-v3";
 const OFFLINE_URL = "/offline";
 
 // Fichiers essentiels à mettre en cache lors de l'installation
@@ -145,61 +145,44 @@ self.addEventListener("fetch", (event) => {
 
 // Notifications Push natives (sur l'écran verrouillé et le centre de notifications)
 self.addEventListener("push", (event) => {
-  const showPush = async () => {
-    let title = "Ministère de la Prière ICC";
-    let body = "Vous avez une nouvelle notification.";
-    let url = "/dashboard";
-    let tag = `icc-${Date.now()}`;
+  let title = "Ministère de la Prière ICC";
+  let body = "Vous avez une nouvelle notification.";
+  let url = "/dashboard";
 
-    if (event.data) {
-      try {
-        const data = event.data.json();
+  if (event.data) {
+    try {
+      const data = event.data.json();
+      if (data && typeof data === "object") {
         if (data.title) title = data.title;
         if (data.body) body = data.body;
         if (data.url) url = data.url;
-        if (data.tag) tag = `${data.tag}-${Date.now()}`;
-      } catch {
-        try {
-          const text = event.data.text();
-          if (text) body = text;
-        } catch {}
       }
+    } catch {
+      try {
+        const text = event.data.text();
+        if (text) body = text;
+      } catch {}
     }
+  }
 
-    // Résolution absolue de l'icône
-    let iconUrl;
-    try {
-      iconUrl = new URL("/icons/icon-192x192.png", self.location.origin).href;
-    } catch {}
-
-    // 1. Tenter un affichage propre avec icône et données
-    try {
-      const options = {
-        body,
-        data: { url },
-        tag,
-      };
-      if (iconUrl) {
-        options.icon = iconUrl;
-      }
-      await self.registration.showNotification(title, options);
-      return;
-    } catch (err) {
-      console.warn("[SW] Notification avec options a échoué, repli minimaliste:", err);
-    }
-
-    // 2. Repli ultra-minimaliste garanti 100% compatible iOS Safari / WebKit
-    try {
-      await self.registration.showNotification(title, {
-        body,
-        data: { url },
-      });
-    } catch (finalErr) {
-      console.error("[SW] Échec complet showNotification:", finalErr);
-    }
+  const options = {
+    body: body,
+    icon: "/icons/icon-192x192.png",
+    badge: "/icons/icon-96x96.png",
+    data: { url: url },
   };
 
-  event.waitUntil(showPush());
+  // WebKit / iOS Safari exige que showNotification soit exécuté directement dans event.waitUntil
+  // sans délai ou wrapper asynchrone non nécessaire
+  event.waitUntil(
+    self.registration.showNotification(title, options).catch((err) => {
+      console.warn("[SW] Repli notification minimaliste:", err);
+      return self.registration.showNotification(title, {
+        body: body,
+        data: { url: url },
+      });
+    })
+  );
 });
 
 self.addEventListener("notificationclick", (event) => {

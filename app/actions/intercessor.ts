@@ -11,12 +11,18 @@ import { broadcastRealtime } from "@/lib/realtime-server";
 import { REALTIME_CHANNELS, REALTIME_EVENTS } from "@/lib/realtime-channels";
 export async function checkIntercessorAccess() {
   const session = await getServerSession(authOptions);
-  // @ts-ignore
-  if (!session || !session.user?.id) throw new Error("Non connecté");
-  
-  // @ts-ignore
-  const user = await prisma.user.findUnique({ where: { id: session.user.id } });
-  
+  const sessionUser = session?.user as { id?: string; email?: string } | undefined;
+  if (!sessionUser?.id && !sessionUser?.email) throw new Error("Non connecté");
+
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        ...(sessionUser.id ? [{ id: sessionUser.id }] : []),
+        ...(sessionUser.email ? [{ email: sessionUser.email }] : [])
+      ]
+    }
+  });
+
   if (!user) {
     throw new Error("Accès refusé.");
   }
@@ -24,17 +30,7 @@ export async function checkIntercessorAccess() {
 }
 
 export async function checkIntercessorOrPrayerLeaderAccess() {
-  const session = await getServerSession(authOptions);
-  // @ts-ignore
-  if (!session || !session.user?.id) throw new Error("Non connecté");
-  
-  // @ts-ignore
-  const user = await prisma.user.findUnique({ where: { id: session.user.id } });
-  
-  if (!user) {
-    throw new Error("Accès refusé.");
-  }
-  return user;
+  return checkIntercessorAccess();
 }
 
 export async function getIntercessorPlanning(startDate: String, endDate: String) {
@@ -114,27 +110,35 @@ export async function selfAssignToEventSlot(slotData: any) {
         }
       });
 
-    await createNotification(
-      user.id,
-      "Créneau confirmé 🕊️",
-      `Vous êtes inscrit(e) sur le créneau "${title || "Intercession"}" de ${startTime} à ${endTime}.`,
-      "SUCCESS",
-      specialEventId ? `/dashboard/user/intercessor/events/${specialEventId}` : "/dashboard/desktop/planning"
-    );
+    try {
+      await createNotification(
+        user.id,
+        "Créneau confirmé 🕊️",
+        `Vous êtes inscrit(e) sur le créneau "${title || "Intercession"}" de ${startTime} à ${endTime}.`,
+        "SUCCESS",
+        specialEventId ? `/dashboard/user/intercessor/events/${specialEventId}` : "/dashboard/desktop/planning"
+      );
+    } catch (pushErr) {
+      console.warn("[Intercessor] Notification push non bloquante:", pushErr);
+    }
 
-    if (specialEventId) {
-      await broadcastRealtime(REALTIME_CHANNELS.SPECIAL_EVENTS, REALTIME_EVENTS.UPDATE, {
-        type: "slot-assigned",
-        specialEventId,
-        slotId: id,
-        userId: user.id,
-      });
-    } else {
-      await broadcastRealtime(REALTIME_CHANNELS.PRAYER_PLANNING, REALTIME_EVENTS.UPDATE, {
-        type: "slot-assigned",
-        slotId: id,
-        userId: user.id,
-      });
+    try {
+      if (specialEventId) {
+        await broadcastRealtime(REALTIME_CHANNELS.SPECIAL_EVENTS, REALTIME_EVENTS.UPDATE, {
+          type: "slot-assigned",
+          specialEventId,
+          slotId: id,
+          userId: user.id,
+        });
+      } else {
+        await broadcastRealtime(REALTIME_CHANNELS.PRAYER_PLANNING, REALTIME_EVENTS.UPDATE, {
+          type: "slot-assigned",
+          slotId: id,
+          userId: user.id,
+        });
+      }
+    } catch (rtErr) {
+      console.warn("[Intercessor] Realtime broadcast non bloquant:", rtErr);
     }
 
     revalidatePath("/dashboard/user/intercessor/events");
@@ -147,51 +151,85 @@ export async function selfAssignToEventSlot(slotData: any) {
 }
 
 // Se désinscrire d'un créneau
-export async function selfRemoveFromEventSlot(planningId: string) {
-  const user = await checkIntercessorOrPrayerLeaderAccess();
-
+export async function selfRemoveFromEventSlot(planningId: string, targetUserId?: string) {
   try {
-    const slot = await prisma.planning.findUnique({ where: { id: planningId } });
+    const user = await checkIntercessorOrPrayerLeaderAccess();
+
+    const slot = await prisma.planning.findUnique({
+      where: { id: planningId },
+      include: { users: true }
+    });
+
+    if (!slot) {
+      return { success: false, message: "Créneau introuvable." };
+    }
+
+    // Déterminer l'utilisateur à déconnecter
+    let disconnectId = user.id;
+
+    if (targetUserId && (user.role === "ADMIN" || user.role === "LEADER")) {
+      disconnectId = targetUserId;
+    } else {
+      // Trouver l'utilisateur sur le créneau par son id OU son email
+      const matched = slot.users.find(
+        (u) => u.id === user.id || (user.email && u.email?.toLowerCase() === user.email.toLowerCase())
+      );
+      if (matched) {
+        disconnectId = matched.id;
+      }
+    }
 
     await prisma.planning.update({
       where: { id: planningId },
       data: {
         users: {
-          disconnect: { id: user.id }
+          disconnect: { id: disconnectId }
         }
       }
     });
 
-    if (slot) {
+    try {
       await createNotification(
-        user.id,
-        "Désinscription confirmée",
+        disconnectId,
+        "Désinscription confirmée 🕊️",
         `Votre retrait du créneau "${slot.title || "Intercession"}" (${slot.startTime} - ${slot.endTime}) a été pris en compte.`,
         "INFO",
         slot.specialEventId ? `/dashboard/user/intercessor/events/${slot.specialEventId}` : "/dashboard/desktop/planning"
       );
+    } catch (pushErr) {
+      console.warn("[Intercessor] Notification push non bloquante:", pushErr);
     }
 
-    if (slot?.specialEventId) {
-      await broadcastRealtime(REALTIME_CHANNELS.SPECIAL_EVENTS, REALTIME_EVENTS.UPDATE, {
-        type: "slot-removed",
-        specialEventId: slot.specialEventId,
-        slotId: planningId,
-        userId: user.id,
-      });
-    } else {
-      await broadcastRealtime(REALTIME_CHANNELS.PRAYER_PLANNING, REALTIME_EVENTS.UPDATE, {
-        type: "slot-removed",
-        slotId: planningId,
-        userId: user.id,
-      });
+    try {
+      if (slot.specialEventId) {
+        await broadcastRealtime(REALTIME_CHANNELS.SPECIAL_EVENTS, REALTIME_EVENTS.UPDATE, {
+          type: "slot-removed",
+          specialEventId: slot.specialEventId,
+          slotId: planningId,
+          userId: disconnectId,
+        });
+      } else {
+        await broadcastRealtime(REALTIME_CHANNELS.PRAYER_PLANNING, REALTIME_EVENTS.UPDATE, {
+          type: "slot-removed",
+          slotId: planningId,
+          userId: disconnectId,
+        });
+      }
+    } catch (rtErr) {
+      console.warn("[Intercessor] Realtime broadcast non bloquant:", rtErr);
     }
 
     revalidatePath("/dashboard/user/intercessor/events");
     revalidatePath("/dashboard/user/intercessor/planning");
+    revalidatePath("/dashboard/desktop/planning");
+    revalidatePath("/dashboard/mobile/planning");
     revalidatePath("/dashboard/leader/planning");
-    return { success: true, message: "Vous vous êtes retiré du créneau." };
+    return { success: true, message: "Vous vous êtes retiré(e) du créneau avec succès." };
   } catch (error) {
-    return { success: false, message: "Erreur lors du retrait." };
+    console.error("[selfRemoveFromEventSlot] Erreur:", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Erreur lors du retrait.",
+    };
   }
 }
