@@ -85,7 +85,6 @@ export async function sendWebPushToUser(userId: string, payload: WebPushPayload)
     const pushOptions = {
       TTL: 86400, // 24 heures de rétention
       urgency: "high" as const, // Priorité maximale (APNs apns-priority: 10 pour affichage immédiat)
-      topic: "priere-icc",
     };
 
     const sendPromises = subscriptions.map(async (sub) => {
@@ -141,7 +140,6 @@ export async function sendWebPushToAll(payload: WebPushPayload) {
     const pushOptions = {
       TTL: 86400,
       urgency: "high" as const,
-      topic: "priere-icc",
     };
 
     for (const sub of subscriptions) {

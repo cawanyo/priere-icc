@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import { getIntercessorPlanning } from "@/app/actions/intercessor";
 import {
   startOfWeek,
@@ -32,6 +33,7 @@ import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { REALTIME_CHANNELS } from "@/lib/realtime-channels";
 
 export function IntercessorCalendar() {
+  const { data: session } = useSession();
   const [currentWeekDate, setCurrentWeekDate] = useState(() => new Date());
   const [selectedDay, setSelectedDay] = useState(() => startOfDay(new Date()));
   const [events, setEvents] = useState<PlaningWithIntercessor[]>([]);
@@ -40,6 +42,20 @@ export function IntercessorCalendar() {
   const [selectedSlot, setSelectedSlot] = useState<PlaningWithIntercessor | null>(null);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const sessionUserId = (session?.user as any)?.id;
+  const sessionUserEmail = session?.user?.email?.toLowerCase();
+
+  const isUserMatching = useCallback(
+    (u: any) => {
+      if (!u) return false;
+      if (currentUserId && u.id === currentUserId) return true;
+      if (sessionUserId && u.id === sessionUserId) return true;
+      if (sessionUserEmail && u.email && u.email.toLowerCase() === sessionUserEmail) return true;
+      return false;
+    },
+    [currentUserId, sessionUserId, sessionUserEmail]
+  );
 
   const today = useMemo(() => startOfDay(new Date()), []);
 
@@ -108,7 +124,7 @@ export function IntercessorCalendar() {
       const isDayMatch = isSameDay(convertKeepDate(new Date(evt.date)), selectedDay);
       if (!isDayMatch) return false;
       if (showMyPlanningOnly) {
-        return evt.users?.some((u: any) => u.id === currentUserId);
+        return evt.users?.some((u: any) => isUserMatching(u));
       }
       return true;
     });
@@ -118,7 +134,7 @@ export function IntercessorCalendar() {
       const [bH, bM] = (b.startTime || "00:00").split(":").map(Number);
       return aH - bH || aM - bM;
     });
-  }, [events, selectedDay, showMyPlanningOnly, currentUserId]);
+  }, [events, selectedDay, showMyPlanningOnly, isUserMatching]);
 
   const handleOpenSlot = (slot: PlaningWithIntercessor) => {
     setSelectedSlot(slot);
@@ -285,7 +301,7 @@ export function IntercessorCalendar() {
         ) : (
           <div className="space-y-2.5">
             {daySlots.map((slot) => {
-              const isAssigned = slot.users?.some((u: any) => u.id === currentUserId);
+              const isAssigned = slot.users?.some((u: any) => isUserMatching(u));
               const assignedCount = slot.users?.length || 0;
 
               return (
@@ -355,7 +371,7 @@ export function IntercessorCalendar() {
                   <div className="flex items-center gap-1.5 flex-wrap pt-1">
                     {assignedCount > 0 ? (
                       slot.users.map((u: any) => {
-                        const isMe = u.id === currentUserId;
+                        const isMe = isUserMatching(u);
                         return (
                           <div
                             key={u.id}
@@ -397,7 +413,7 @@ export function IntercessorCalendar() {
           setIsAssignModalOpen(false);
           loadEvents();
         }}
-        isAssigned={selectedSlot?.users?.some((u: any) => u.id === currentUserId) ?? false}
+        isAssigned={selectedSlot?.users?.some(isUserMatching) ?? false}
       />
     </div>
   );

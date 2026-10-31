@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2, CalendarCheck, UserMinus, UserPlus, Users } from "lucide-react";
@@ -18,9 +19,23 @@ interface SelfAssignModalProps {
 }
 
 export function SelfAssignModal({ event, isOpen, onClose, isAssigned }: SelfAssignModalProps) {
+  const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
 
   if (!event) return null;
+
+  const sessionUserId = (session?.user as any)?.id;
+  const sessionUserEmail = session?.user?.email?.toLowerCase();
+  const assignedUsers = event.users || event.intercessors || [];
+
+  // Détection robuste : soit par prop, soit par ID ou email dans la liste des intercesseurs du créneau
+  const isUserAssigned = Boolean(
+    isAssigned ||
+    assignedUsers.some((u: any) =>
+      (sessionUserId && u.id === sessionUserId) ||
+      (sessionUserEmail && u.email?.toLowerCase() === sessionUserEmail)
+    )
+  );
 
   const handleAssign = async () => {
     setLoading(true);
@@ -36,21 +51,22 @@ export function SelfAssignModal({ event, isOpen, onClose, isAssigned }: SelfAssi
   };
 
   const handleRemove = async () => {
-    if (!event.id || event.isVirtual) return;
+    if (!event.id) {
+      toast.error("Identifiant du créneau manquant.");
+      return;
+    }
 
     setLoading(true);
     const res = await selfRemoveFromEventSlot(event.id);
     setLoading(false);
 
     if (res.success) {
-      toast.success(res.message);
+      toast.success(res.message || "Vous vous êtes retiré(e) du créneau.");
       onClose();
     } else {
-      toast.error(res.message);
+      toast.error(res.message || "Erreur lors du retrait.");
     }
   };
-
-  const assignedUsers = event.users || event.intercessors || [];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -58,7 +74,7 @@ export function SelfAssignModal({ event, isOpen, onClose, isAssigned }: SelfAssi
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-indigo-900">
             <CalendarCheck className="h-5 w-5" />
-            {isAssigned ? "Se retirer du créneau" : "S'inscrire au créneau"}
+            {isUserAssigned ? "Se retirer du créneau" : "S'inscrire au créneau"}
           </DialogTitle>
           <DialogDescription>
             {format(new Date(event.date), "EEEE d MMMM", { locale: fr })} • {event.startTime} - {event.endTime}
@@ -100,7 +116,7 @@ export function SelfAssignModal({ event, isOpen, onClose, isAssigned }: SelfAssi
             </div>
             
             <p className="text-sm text-gray-600 pt-2 border-t mt-2">
-                {isAssigned 
+                {isUserAssigned 
                     ? "Vous êtes actuellement positionné sur ce créneau. Souhaitez-vous annuler votre participation ?"
                     : "En validant, vous vous engagez à assurer la conduite ou l'intercession sur ce créneau."
                 }
@@ -110,13 +126,13 @@ export function SelfAssignModal({ event, isOpen, onClose, isAssigned }: SelfAssi
         <DialogFooter className="flex gap-2 sm:justify-end">
           <Button variant="outline" onClick={onClose} disabled={loading}>Annuler</Button>
           
-          {isAssigned ? (
-            <Button variant="destructive" onClick={handleRemove} disabled={loading}>
+          {isUserAssigned ? (
+            <Button variant="destructive" onClick={handleRemove} disabled={loading} className="cursor-pointer">
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserMinus className="mr-2 h-4 w-4" />}
               Se retirer
             </Button>
           ) : (
-            <Button className="bg-indigo-900 hover:bg-indigo-800" onClick={handleAssign} disabled={loading}>
+            <Button className="bg-indigo-900 hover:bg-indigo-800 cursor-pointer" onClick={handleAssign} disabled={loading}>
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="mr-2 h-4 w-4" />}
               Je prends ce créneau
             </Button>
