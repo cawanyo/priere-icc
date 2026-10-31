@@ -3,19 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession, signOut } from "next-auth/react"; 
-import { LogOut, User, ShieldCheck, Users } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useSession } from "next-auth/react"; 
 import Image from "next/image";
 import { NotificationBell } from "../layout/notifications";
 
@@ -91,57 +79,6 @@ export function Header() {
         {/* ESPACE UTILISATEUR CONNECTÉ UNIQUEMENT (Pas de boutons connexion/rejoindre ni de 3 traits) */}
         {session?.user && (
           <div className="flex items-center gap-2 md:gap-3">
-              <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-full border border-gray-100 shadow-sm">
-                          <Avatar className="h-full w-full">
-                              <AvatarImage src={session.user.image || ""} alt={session.user.name || "User"} />
-                              <AvatarFallback className="bg-indigo-50 text-indigo-700 font-semibold">
-                                  {session.user.name?.slice(0, 2).toUpperCase()}
-                              </AvatarFallback>
-                          </Avatar>
-                      </Button>
-                  </DropdownMenuTrigger>
-                  
-                  <DropdownMenuContent className="w-56 mt-2" align="end" forceMount>
-                      <DropdownMenuLabel className="font-normal">
-                          <div className="flex flex-col space-y-1">
-                              <p className="text-sm font-medium leading-none text-indigo-900">{session.user.name}</p>
-                              <p className="text-xs leading-none text-muted-foreground truncate">{session.user.email}</p>
-                          </div>
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      
-                      <DropdownMenuItem asChild className="cursor-pointer">
-                          <Link href="/dashboard/user/profile">
-                              <User className="mr-2 h-4 w-4" /> Mon Profil
-                          </Link>
-                      </DropdownMenuItem>
-
-                      {/* Section Admin / Leader (Conditionnelle) */}
-                      {session.user.role === "ADMIN" && (
-                          <DropdownMenuItem asChild className="cursor-pointer bg-red-50 text-red-700 focus:bg-red-100 focus:text-red-800 mt-1">
-                              <Link href="/dashboard/admin/users">
-                                  <ShieldCheck className="mr-2 h-4 w-4" /> Administration
-                              </Link>
-                          </DropdownMenuItem>
-                      )}
-
-                      {(session.user.role === "ADMIN" || session.user.role === "LEADER") && (
-                          <DropdownMenuItem asChild className="cursor-pointer bg-indigo-50/70 text-indigo-700 focus:bg-indigo-100 focus:text-indigo-800 mt-1">
-                              <Link href="/dashboard/leader/team">
-                                  <Users className="mr-2 h-4 w-4 text-indigo-600" /> Équipe de prière
-                              </Link>
-                          </DropdownMenuItem>
-                      )}
-
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-red-600 focus:text-red-600 cursor-pointer focus:bg-red-50" onClick={() => signOut({ callbackUrl: "/login" })}>
-                          <LogOut className="mr-2 h-4 w-4" /> Se déconnecter
-                      </DropdownMenuItem>
-                  </DropdownMenuContent>
-              </DropdownMenu>
-
               <NotificationBell />
           </div>
         )}

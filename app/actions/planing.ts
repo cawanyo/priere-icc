@@ -160,21 +160,28 @@ export async function savePlanningEvent(data: any) {
       }
     });
 
-    // Récupérer les numéros
+    // Récupérer les utilisateurs et envoyer notifications + SMS
     if (intercessorIds.length > 0) {
       const users = await prisma.user.findMany({
         where: { id: { in: intercessorIds } },
-        select: { phone: true, name: true }
+        select: { id: true, phone: true, name: true }
       });
 
-      users.forEach(user => {
+      for (const user of users) {
+        await createNotification(
+          user.id,
+          "Planning de Prière",
+          `Vous êtes de service le ${format(new Date(date), "dd/MM/yyyy")} à ${startTime}${title ? ` pour "${title}"` : ""}`,
+          "INFO",
+          "/dashboard/desktop/planning"
+        );
         if (user.phone) {
           sendSMS({
             to: user.phone, 
-            message: `Bonjour ${user.name?.split(" ")[0]}, vous avez été programmé pour "${title}" le ${ format(new Date(date), 'DD:mm:yyy')}.`
-        });
+            message: `Bonjour ${user.name?.split(" ")[0]}, vous avez été programmé pour "${title}" le ${ format(new Date(date), 'dd/MM/yyyy')}.`
+          });
         }
-      });
+      }
     }
   }
 

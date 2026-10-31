@@ -36,6 +36,9 @@ export async function subscribeUserToPush(): Promise<{ success: boolean; message
       return { success: false, message: "Autorisation des notifications refusée." };
     }
 
+    if ("serviceWorker" in navigator) {
+      await navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {});
+    }
     const registration = await navigator.serviceWorker.ready;
     const convertedKey = urlBase64ToUint8Array(getVapidPublicKey());
 
@@ -43,13 +46,15 @@ export async function subscribeUserToPush(): Promise<{ success: boolean; message
 
     // Vérifier si l'abonnement existant utilise bien la clé VAPID actuelle
     if (subscription) {
-      let isKeyMatching = true; // Par défaut, on conserve l'abonnement existant pour éviter les désinscriptions accidentelles sur mobile
+      let isKeyMatching = true;
       try {
         const rawKey = subscription.options?.applicationServerKey;
         if (rawKey) {
           const subKeyArray = new Uint8Array(rawKey);
           if (subKeyArray.length > 0 && subKeyArray.length === convertedKey.length) {
             isKeyMatching = subKeyArray.every((val, idx) => val === convertedKey[idx]);
+          } else if (subKeyArray.length > 0) {
+            isKeyMatching = false;
           }
         }
       } catch {
@@ -111,13 +116,22 @@ export function PwaManager() {
   });
   const [showIosGuide, setShowIosGuide] = useState(false);
   const [isBannerVisible, setIsBannerVisible] = useState(false);
+  const [showPushBanner, setShowPushBanner] = useState(false);
 
-  // Synchronisation automatique de l'abonnement Push dès que l'utilisateur est authentifié
+  // Synchronisation automatique de l'abonnement Push ou proposition d'activation
   useEffect(() => {
     if (status !== "authenticated" || !session?.user) return;
     if (typeof window === "undefined" || !("Notification" in window)) return;
+    
     if (Notification.permission === "granted") {
       subscribeUserToPush().catch(() => {});
+    } else if (Notification.permission === "default") {
+      const dismissedUntil = localStorage.getItem("push_prompt_dismissed_until");
+      const isDismissed = dismissedUntil && new Date().getTime() < parseInt(dismissedUntil, 10);
+      if (!isDismissed) {
+        const timer = setTimeout(() => setShowPushBanner(true), 2500);
+        return () => clearTimeout(timer);
+      }
     }
   }, [status, session]);
 
@@ -271,6 +285,73 @@ export function PwaManager() {
               onClick={handleDismissBanner}
               aria-label="Fermer la bannière"
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 p-1 rounded-md"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </aside>
+      )}
+
+      {/* 2. Bannière d'activation des notifications push sur mobile */}
+      {showPushBanner && !isBannerVisible && (
+        <aside
+          role="region"
+          aria-label="Activation des notifications"
+          className="fixed bottom-20 left-4 right-4 md:bottom-6 md:left-auto md:right-6 md:w-96 z-50 bg-white/95 backdrop-blur-md rounded-2xl border border-indigo-100 shadow-2xl p-4 animate-in fade-in slide-in-from-bottom-4 duration-300"
+        >
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm">
+              <Bell className="h-5 w-5" />
+            </div>
+
+            <div className="flex-1 min-w-0 pr-6">
+              <h4 className="text-xs font-bold text-indigo-950 uppercase tracking-wider">
+                Notifications sur mobile
+              </h4>
+              <p className="text-xs text-gray-600 mt-0.5 leading-snug">
+                Recevez directement vos rappels de créneaux et annonces de prière.
+              </p>
+
+              <div className="flex items-center gap-2 mt-3">
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    const res = await subscribeUserToPush();
+                    if (res.success) {
+                      setShowPushBanner(false);
+                      toast.success("Notifications push activées avec succès !");
+                    } else {
+                      toast.error(res.message || "Impossible d'activer les notifications");
+                    }
+                  }}
+                  className="h-8 text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg gap-1.5 shadow-xs cursor-pointer"
+                >
+                  <Bell className="h-3.5 w-3.5" />
+                  Activer
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    setShowPushBanner(false);
+                    const inSevenDays = new Date().getTime() + 7 * 24 * 60 * 60 * 1000;
+                    localStorage.setItem("push_prompt_dismissed_until", inSevenDays.toString());
+                  }}
+                  className="h-8 text-xs text-gray-500 hover:text-gray-800 rounded-lg cursor-pointer"
+                >
+                  Plus tard
+                </Button>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                setShowPushBanner(false);
+                const inSevenDays = new Date().getTime() + 7 * 24 * 60 * 60 * 1000;
+                localStorage.setItem("push_prompt_dismissed_until", inSevenDays.toString());
+              }}
+              aria-label="Fermer la bannière"
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 p-1 rounded-md cursor-pointer"
             >
               <X className="h-4 w-4" />
             </button>
