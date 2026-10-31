@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { DesktopSidebar } from "@/components/layout/DesktopSidebar";
 import { ResponsiveRedirector } from "@/components/layout/ResponsiveRedirector";
+import { triggerBackgroundReminderCheck } from "@/lib/reminders";
 
 export default async function DashboardLayout({
   children,
@@ -18,6 +19,10 @@ export default async function DashboardLayout({
   // @ts-ignore
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
   if (!user) redirect("/login");
+
+  // Déclenchement automatique d'arrière-plan des rappels de créneaux (la veille à 18h et 1h avant)
+  // Limité à une vérification toutes les 10 minutes maximum pour préserver les ressources
+  triggerBackgroundReminderCheck().catch(() => {});
 
   return (
     <div className="flex min-h-screen bg-[#f4f6fb]">
