@@ -79,8 +79,14 @@ export async function sendWebPushToUser(userId: string, payload: WebPushPayload)
       body: payload.body,
       url: payload.url || "/dashboard",
       icon: payload.icon || "/icons/icon-192x192.png",
-      tag: payload.tag || "icc-notification",
+      tag: payload.tag ? `${payload.tag}-${Date.now()}` : `icc-${Date.now()}`,
     });
+
+    const pushOptions = {
+      TTL: 86400, // 24 heures de rétention
+      urgency: "high" as const, // Priorité maximale (APNs apns-priority: 10 pour affichage immédiat)
+      topic: "priere-icc",
+    };
 
     const sendPromises = subscriptions.map(async (sub) => {
       try {
@@ -92,7 +98,8 @@ export async function sendWebPushToUser(userId: string, payload: WebPushPayload)
               auth: sub.auth,
             },
           },
-          notificationPayload
+          notificationPayload,
+          pushOptions
         );
       } catch (err: unknown) {
         const error = err as { statusCode?: number; body?: string };
@@ -128,8 +135,14 @@ export async function sendWebPushToAll(payload: WebPushPayload) {
       body: payload.body,
       url: payload.url || "/dashboard",
       icon: payload.icon || "/icons/icon-192x192.png",
-      tag: payload.tag || "icc-broadcast",
+      tag: payload.tag ? `${payload.tag}-${Date.now()}` : `icc-broadcast-${Date.now()}`,
     });
+
+    const pushOptions = {
+      TTL: 86400,
+      urgency: "high" as const,
+      topic: "priere-icc",
+    };
 
     for (const sub of subscriptions) {
       try {
@@ -141,7 +154,8 @@ export async function sendWebPushToAll(payload: WebPushPayload) {
               auth: sub.auth,
             },
           },
-          notificationPayload
+          notificationPayload,
+          pushOptions
         );
       } catch (err: unknown) {
         const error = err as { statusCode?: number };

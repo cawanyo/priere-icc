@@ -1,5 +1,5 @@
 // Service Worker pour l'application PWA Prière ICC
-const CACHE_NAME = "priere-icc-v1";
+const CACHE_NAME = "priere-icc-v2";
 const OFFLINE_URL = "/offline";
 
 // Fichiers essentiels à mettre en cache lors de l'installation
@@ -145,50 +145,61 @@ self.addEventListener("fetch", (event) => {
 
 // Notifications Push natives (sur l'écran verrouillé et le centre de notifications)
 self.addEventListener("push", (event) => {
-  let title = "Ministère de la Prière ICC";
-  let body = "Vous avez une nouvelle notification.";
-  let url = "/dashboard";
-  let tag = "priere-icc-alert";
-  let icon = "/icons/icon-192x192.png";
-  let badge = "/icons/icon-96x96.png";
+  const showPush = async () => {
+    let title = "Ministère de la Prière ICC";
+    let body = "Vous avez une nouvelle notification.";
+    let url = "/dashboard";
+    let tag = `icc-${Date.now()}`;
 
-  if (event.data) {
-    try {
-      const data = event.data.json();
-      if (data.title) title = data.title;
-      if (data.body) body = data.body;
-      if (data.url) url = data.url;
-      if (data.tag) tag = data.tag;
-      if (data.icon) icon = data.icon;
-      if (data.badge) badge = data.badge;
-    } catch {
+    if (event.data) {
       try {
-        const text = event.data.text();
-        if (text) body = text;
-      } catch {}
+        const data = event.data.json();
+        if (data.title) title = data.title;
+        if (data.body) body = data.body;
+        if (data.url) url = data.url;
+        if (data.tag) tag = `${data.tag}-${Date.now()}`;
+      } catch {
+        try {
+          const text = event.data.text();
+          if (text) body = text;
+        } catch {}
+      }
     }
-  }
 
-  const options = {
-    body,
-    icon,
-    badge,
-    tag,
-    renotify: true,
-    data: {
-      url,
-    },
-  };
+    // Résolution absolue de l'icône
+    let iconUrl;
+    try {
+      iconUrl = new URL("/icons/icon-192x192.png", self.location.origin).href;
+    } catch {}
 
-  event.waitUntil(
-    self.registration.showNotification(title, options).catch((err) => {
-      console.warn("[SW] Erreur showNotification standard, tentative fallback:", err);
-      return self.registration.showNotification(title, {
+    // 1. Tenter un affichage propre avec icône et données
+    try {
+      const options = {
+        body,
+        data: { url },
+        tag,
+      };
+      if (iconUrl) {
+        options.icon = iconUrl;
+      }
+      await self.registration.showNotification(title, options);
+      return;
+    } catch (err) {
+      console.warn("[SW] Notification avec options a échoué, repli minimaliste:", err);
+    }
+
+    // 2. Repli ultra-minimaliste garanti 100% compatible iOS Safari / WebKit
+    try {
+      await self.registration.showNotification(title, {
         body,
         data: { url },
       });
-    })
-  );
+    } catch (finalErr) {
+      console.error("[SW] Échec complet showNotification:", finalErr);
+    }
+  };
+
+  event.waitUntil(showPush());
 });
 
 self.addEventListener("notificationclick", (event) => {
@@ -197,12 +208,14 @@ self.addEventListener("notificationclick", (event) => {
 
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-      // Résolution de l'URL absolue par rapport à l'origine du site
-      const targetUrl = new URL(rawUrl, self.location.origin).href;
+      let targetUrl = rawUrl;
+      try {
+        targetUrl = new URL(rawUrl, self.location.origin).href;
+      } catch {}
 
       // 1. Si un onglet de l'application est déjà ouvert, naviguer vers l'URL et mettre au premier plan
       for (const client of clientList) {
-        if ("navigate" in client) {
+        if ("navigate" in client && client.url.startsWith(self.location.origin)) {
           client.navigate(targetUrl);
           return client.focus();
         }

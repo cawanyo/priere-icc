@@ -23,7 +23,14 @@ export async function savePushSubscription(
     return { success: false, error: "Non authentifié" };
   }
 
-  const userId = (session.user as { id?: string }).id;
+  let userId = (session.user as { id?: string }).id;
+  if (!userId && session.user.email) {
+    const u = await prisma.user.findFirst({
+      where: { email: session.user.email },
+      select: { id: true },
+    });
+    if (u) userId = u.id;
+  }
   if (!userId) {
     return { success: false, error: "ID utilisateur manquant" };
   }
@@ -72,7 +79,14 @@ export async function sendTestPushNotification() {
     return { success: false, error: "Non connecté" };
   }
 
-  const userId = (session.user as { id?: string }).id;
+  let userId = (session.user as { id?: string }).id;
+  if (!userId && session.user.email) {
+    const u = await prisma.user.findFirst({
+      where: { email: session.user.email },
+      select: { id: true },
+    });
+    if (u) userId = u.id;
+  }
   if (!userId) {
     return { success: false, error: "ID manquant" };
   }

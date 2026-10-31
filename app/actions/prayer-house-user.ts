@@ -3,11 +3,12 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { startOfWeek } from "date-fns";
+import { startOfWeek, format } from "date-fns";
 import { normalizeDate } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
 import { broadcastRealtime } from "@/lib/realtime-server";
 import { REALTIME_CHANNELS, REALTIME_EVENTS } from "@/lib/realtime-channels";
+import { createNotification } from "./notifications";
 
 export async function getUserPrayerHouseData(date: String) {
   const session = await getServerSession(authOptions);
@@ -86,6 +87,14 @@ export async function toggleSelfAssignment(data: {
                     userId: user.id // Sécurité : on ne retire que soi-même
                 }
             });
+
+            await createNotification(
+                user.id,
+                "Maison de Prière",
+                `Votre retrait pour la veille de ${data.startTime} le ${format(new Date(data.date), "dd/MM/yyyy")} a été enregistré.`,
+                "INFO",
+                "/dashboard/desktop/prayer-house"
+            );
         } else {
             // S'ajouter (JOIN)
             // On vérifie d'abord si le créneau est libre
@@ -110,6 +119,14 @@ export async function toggleSelfAssignment(data: {
                     userId: user.id
                 }
             });
+
+            await createNotification(
+                user.id,
+                "Maison de Prière 🕊️",
+                `Vous êtes inscrit(e) pour veiller le ${format(new Date(data.date), "dd/MM/yyyy")} à ${data.startTime}.`,
+                "SUCCESS",
+                "/dashboard/desktop/prayer-house"
+            );
         }
 
         await broadcastRealtime(REALTIME_CHANNELS.PRAYER_HOUSE, REALTIME_EVENTS.SLOT_UPDATED, {
