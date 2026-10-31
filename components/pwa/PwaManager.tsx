@@ -100,6 +100,11 @@ export async function subscribeUserToPush(
       navigator.userAgent
     );
 
+    if (!res.success) {
+      console.error("[PWA] Échec sauvegarde table PushSubscription:", res.error);
+      return res;
+    }
+
     // Déclencher la notification directe immédiate ("Notifications acceptées")
     if (options?.sendWelcomeNotification !== false && !options?.silent) {
       const welcomeMsg = options?.welcomeMessage || "Notifications acceptées";
