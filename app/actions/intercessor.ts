@@ -4,11 +4,12 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { addDays, getDay, format, isSameDay } from "date-fns";
+import { addDays, getDay, format, isSameDay, startOfDay, endOfDay, startOfWeek, endOfWeek } from "date-fns";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "./notifications";
 import { broadcastRealtime } from "@/lib/realtime-server";
 import { REALTIME_CHANNELS, REALTIME_EVENTS } from "@/lib/realtime-channels";
+import { projectRecurringSlots } from "@/lib/recurring";
 export async function checkIntercessorAccess() {
   const session = await getServerSession(authOptions);
   const sessionUser = session?.user as { id?: string; email?: string } | undefined;
@@ -35,14 +36,18 @@ export async function checkIntercessorOrPrayerLeaderAccess() {
 
 export async function getIntercessorPlanning(startDate: String, endDate: String) {
   try {
-    const startDateObj = new Date(startDate.toString());
-    const endDateObj = new Date(endDate.toString());  
+    const rawStart = new Date(startDate.toString());
+    const rawEnd = new Date(endDate.toString());  
     const user = await checkIntercessorAccess();
 
-    // 1. Récupérer les événements "Réels" (Planning)
+    // Marge de sécurité d'un jour pour englober tous les créneaux sans biais de fuseau horaire
+    const queryStart = startOfDay(addDays(rawStart, -1));
+    const queryEnd = endOfDay(addDays(rawEnd, 1));
+
+    // 1. Récupérer les événements réels (Planning)
     const realPlannings = await prisma.planning.findMany({
       where: {
-        date: { gte: startDateObj, lte: endDateObj },
+        date: { gte: queryStart, lte: queryEnd },
         specialEventId: null
       },
       include: {
@@ -50,10 +55,8 @@ export async function getIntercessorPlanning(startDate: String, endDate: String)
       }
     });
 
-    // 4. Fusionner et trier
-    const allEvents = realPlannings.sort((a, b) => 
-      new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
-    );
+    // 2. Projeter dynamiquement les récurrences virtuelles (isVirtual: true) avec pointillés
+    const allEvents = await projectRecurringSlots(rawStart, rawEnd, realPlannings);
 
     return { success: true, data: allEvents, currentUserId: user.id };
   } catch (error) {
@@ -97,10 +100,31 @@ export async function selfAssignToEventSlot(slotData: any) {
   const user = await checkIntercessorOrPrayerLeaderAccess();
 
   try {
-    const { id, isVirtual, specialEventId, title, description, startTime, endTime, recurringId } = slotData;
+    const { id, isVirtual, specialEventId, title, description, startTime, endTime, recurringId, date } = slotData;
 
-    
-      // C'est un créneau réel -> On met à jour la liste des intercesseurs
+    const isSlotVirtual = !id || (typeof id === "string" && id.startsWith("virtual-")) || Boolean(isVirtual);
+    let targetPlanningId = id;
+
+    if (isSlotVirtual) {
+      // Matérialiser le créneau virtuel récurrent en créneau réel dans la table Planning !
+      const slotDate = new Date(date);
+      const createdSlot = await prisma.planning.create({
+        data: {
+          title: title || "Intercession",
+          description: description || null,
+          startTime,
+          endTime,
+          recurringId: recurringId || null,
+          specialEventId: null,
+          date: slotDate,
+          users: {
+            connect: [{ id: user.id }],
+          },
+        },
+      });
+      targetPlanningId = createdSlot.id;
+    } else {
+      // C'est déjà un créneau réel -> On met à jour la liste des intercesseurs
       await prisma.planning.update({
         where: { id },
         data: {
@@ -109,6 +133,7 @@ export async function selfAssignToEventSlot(slotData: any) {
           }
         }
       });
+    }
 
     try {
       await createNotification(
@@ -127,13 +152,13 @@ export async function selfAssignToEventSlot(slotData: any) {
         await broadcastRealtime(REALTIME_CHANNELS.SPECIAL_EVENTS, REALTIME_EVENTS.UPDATE, {
           type: "slot-assigned",
           specialEventId,
-          slotId: id,
+          slotId: targetPlanningId,
           userId: user.id,
         });
       } else {
         await broadcastRealtime(REALTIME_CHANNELS.PRAYER_PLANNING, REALTIME_EVENTS.UPDATE, {
           type: "slot-assigned",
-          slotId: id,
+          slotId: targetPlanningId,
           userId: user.id,
         });
       }

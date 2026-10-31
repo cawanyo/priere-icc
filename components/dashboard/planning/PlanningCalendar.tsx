@@ -297,7 +297,12 @@ export function PlanningCalendar() {
                 <div
                   key={slot.id}
                   onClick={() => handleEditEvent(slot, selectedDay)}
-                  className="bg-white rounded-xl border border-slate-200/80 hover:border-indigo-300 p-3.5 sm:p-4 shadow-xs transition-all cursor-pointer group space-y-2.5"
+                  className={cn(
+                    "rounded-xl p-3.5 sm:p-4 shadow-xs transition-all cursor-pointer group space-y-2.5",
+                    slot.isVirtual
+                      ? "border-2 border-dashed border-indigo-300 bg-indigo-50/20 hover:border-indigo-500 hover:bg-indigo-50/35"
+                      : "bg-white border border-slate-200/80 hover:border-indigo-300"
+                  )}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 flex-wrap min-w-0">
@@ -310,25 +315,35 @@ export function PlanningCalendar() {
                         {slot.title || "Créneau d'intercession"}
                       </h3>
 
-                      {isUnassigned && (
+                      {slot.isVirtual ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200/70 rounded-md px-1.5 py-0.5">
+                          <Repeat className="h-2.5 w-2.5" />
+                          Modèle récurrent
+                        </span>
+                      ) : isUnassigned ? (
                         <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200/70 rounded-md px-1.5 py-0.5">
                           <AlertCircle className="h-2.5 w-2.5 text-amber-600" />
                           À pourvoir
                         </span>
-                      )}
+                      ) : null}
                     </div>
 
                     <Button
                       size="sm"
-                      variant="ghost"
+                      variant={slot.isVirtual ? "outline" : "ghost"}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleEditEvent(slot, selectedDay);
                       }}
-                      className="h-7 px-2 text-xs font-medium text-slate-500 hover:text-slate-800 rounded-lg shrink-0 cursor-pointer"
+                      className={cn(
+                        "h-7 px-2 text-xs font-medium rounded-lg shrink-0 cursor-pointer",
+                        slot.isVirtual
+                          ? "border-indigo-300 text-indigo-700 hover:bg-indigo-100/60"
+                          : "text-slate-500 hover:text-slate-800"
+                      )}
                     >
                       <Edit className="h-3 w-3 mr-1" />
-                      Modifier
+                      {slot.isVirtual ? "Instancier" : "Modifier"}
                     </Button>
                   </div>
 
