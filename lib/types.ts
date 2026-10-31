@@ -20,7 +20,9 @@ export type PlaningWithIntercessor = Prisma.PlanningGetPayload<{
   include: {
     users: true
   }
-}>
+}> & {
+  isVirtual?: boolean;
+};
 
 export type Planing = Prisma.PlanningGetPayload<{
 

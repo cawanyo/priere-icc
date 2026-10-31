@@ -25,6 +25,7 @@ import {
   Calendar as CalendarIcon,
   Loader2,
   AlertCircle,
+  Repeat,
 } from "lucide-react";
 import { PlaningWithIntercessor } from "@/lib/types";
 import { cn, convertKeepDate } from "@/lib/utils";
@@ -308,10 +309,12 @@ export function IntercessorCalendar() {
                 <div
                   key={slot.id}
                   className={cn(
-                    "bg-white rounded-xl border p-3.5 sm:p-4 shadow-xs transition-all space-y-2.5",
-                    isAssigned
-                      ? "border-emerald-200/90 ring-1 ring-emerald-100/80 bg-emerald-50/15"
-                      : "border-slate-200/80 hover:border-slate-300"
+                    "rounded-xl p-3.5 sm:p-4 shadow-xs transition-all space-y-2.5",
+                    slot.isVirtual
+                      ? "border-2 border-dashed border-indigo-300 bg-indigo-50/20 hover:border-indigo-400"
+                      : isAssigned
+                      ? "border-emerald-200/90 ring-1 ring-emerald-100/80 bg-emerald-50/15 border bg-white"
+                      : "border-slate-200/80 hover:border-slate-300 border bg-white"
                   )}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -325,7 +328,12 @@ export function IntercessorCalendar() {
                         {slot.title || "Créneau d'intercession"}
                       </h3>
 
-                      {isAssigned ? (
+                      {slot.isVirtual ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200/70 rounded-md px-1.5 py-0.5">
+                          <Repeat className="h-2.5 w-2.5" />
+                          Modèle récurrent
+                        </span>
+                      ) : isAssigned ? (
                         <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/70 rounded-md px-1.5 py-0.5">
                           <CheckCircle2 className="h-2.5 w-2.5" />
                           Inscrit(e)

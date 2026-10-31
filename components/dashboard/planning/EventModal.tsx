@@ -110,7 +110,7 @@ export function EventModal({
     setLoading(false);
 
     if (res.success) {
-      toast.success(event ? "Créneau mis à jour" : "Créneau ajouté avec succès");
+      toast.success(event && !event.isVirtual ? "Créneau mis à jour" : "Créneau enregistré avec succès");
       onRefresh();
       onClose();
     } else {
@@ -261,7 +261,7 @@ export function EventModal({
         {/* Pied de dialogue sobre fixe */}
         <div className="shrink-0 p-3.5 sm:px-6 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between gap-2">
           <div>
-            {event && (
+            {event && !event.isVirtual && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
