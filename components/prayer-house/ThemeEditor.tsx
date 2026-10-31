@@ -62,14 +62,14 @@ export function ThemeEditor({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="w-full text-left bg-indigo-50/60 hover:bg-indigo-50 border border-indigo-100/80 rounded-2xl p-3.5 sm:p-4 transition-all group flex items-start gap-3 cursor-pointer shadow-2xs hover:shadow-xs"
+          className="w-full text-left bg-indigo-50/60 hover:bg-indigo-50 border border-indigo-100/80 rounded-2xl p-3 sm:p-3.5 transition-all group flex items-start gap-3 cursor-pointer shadow-2xs hover:shadow-xs"
         >
           <div className="w-8 h-8 rounded-xl bg-indigo-100/80 flex items-center justify-center text-indigo-600 shrink-0 mt-0.5">
             <MessageSquareQuote className="h-4 w-4" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">
+              <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">
                 Thème de la semaine
               </span>
               <span className="text-xs text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 font-semibold">
@@ -77,7 +77,7 @@ export function ThemeEditor({
                 Modifier
               </span>
             </div>
-            <p className="text-sm font-semibold text-indigo-950 mt-0.5 leading-snug break-words">
+            <p className="text-xs sm:text-sm font-semibold text-indigo-950 mt-1 leading-snug break-words whitespace-pre-wrap">
               {initialValue ? (
                 `« ${initialValue} »`
               ) : (
@@ -93,18 +93,18 @@ export function ThemeEditor({
           type="button"
           onClick={() => setOpen(true)}
           className={cn(
-            "inline-flex items-center gap-1 text-[11px] py-1 px-2 rounded-lg transition-all cursor-pointer truncate max-w-full group",
+            "inline-flex items-start gap-1.5 text-[11px] py-1 px-2 rounded-lg transition-all cursor-pointer text-left w-full group",
             initialValue
               ? "bg-indigo-50 text-indigo-800 hover:bg-indigo-100 border border-indigo-200/60 font-medium"
-              : "text-slate-400 hover:text-slate-700 hover:bg-slate-100/70 border border-dashed border-slate-200"
+              : "text-slate-400 hover:text-slate-700 hover:bg-slate-100/70 border border-dashed border-slate-200 justify-center"
           )}
           title="Modifier le thème du jour"
         >
-          <MessageSquareQuote className="h-3 w-3 shrink-0 text-indigo-500" />
-          <span className="truncate">
+          <MessageSquareQuote className="h-3 w-3 shrink-0 text-indigo-500 mt-0.5" />
+          <span className="break-words whitespace-normal leading-snug flex-1">
             {initialValue ? initialValue : "Ajouter thème"}
           </span>
-          <Pencil className="h-2.5 w-2.5 opacity-0 group-hover:opacity-100 shrink-0 text-slate-400" />
+          <Pencil className="h-2.5 w-2.5 opacity-0 group-hover:opacity-100 shrink-0 text-slate-400 mt-0.5" />
         </button>
       )}
 

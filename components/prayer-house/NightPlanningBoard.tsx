@@ -412,7 +412,7 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
                                     />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-2 p-2.5 bg-white">
+                            <div className="grid grid-cols-2 gap-2 p-2 bg-white">
                                 {displayHours.map(hour => {
                                     const schedule = getSchedule(day, hour);
                                     const isFilled = schedule && schedule.user;
@@ -422,30 +422,30 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
                                             key={hour}
                                             onClick={() => onSelectSlot(day, hour)}
                                             className={`
-                                                relative p-2 rounded-xl border cursor-pointer transition-all flex flex-col items-center justify-center min-h-[56px]
+                                                relative p-1.5 rounded-lg border cursor-pointer transition-all flex flex-col items-center justify-center min-h-[42px]
                                                 ${isFilled 
                                                     ? "bg-indigo-50/70 border-indigo-200" 
                                                     : "bg-white border-dashed border-slate-200 active:bg-slate-50"
                                                 }
                                             `}
                                         >
-                                            <span className="absolute top-1.5 left-2 text-[10px] font-bold text-slate-400">{hour}</span>
+                                            <span className="absolute top-1 left-1.5 text-[9px] font-bold text-slate-400">{hour}</span>
                                             {isFilled ? (
-                                                <div className="flex flex-col items-center mt-1">
-                                                    <Avatar className="h-6 w-6 ring-1 ring-white shadow-xs mb-0.5">
+                                                <div className="flex flex-col items-center mt-0.5">
+                                                    <Avatar className="h-5 w-5 ring-1 ring-white shadow-2xs mb-0.5">
                                                         <AvatarImage src={schedule.user?.image} />
-                                                        <AvatarFallback className="bg-indigo-600 text-white text-[9px] font-bold">
+                                                        <AvatarFallback className="bg-indigo-600 text-white text-[8px] font-bold">
                                                             {schedule.user?.name?.slice(0,1)}
                                                         </AvatarFallback>
                                                     </Avatar>
-                                                    <span className="text-[10px] font-medium text-slate-900 truncate max-w-[80px]">
+                                                    <span className="text-[10px] font-medium text-slate-900 truncate max-w-[75px]">
                                                         {schedule.user?.name?.split(" ")[0]}
                                                     </span>
                                                 </div>
                                             ) : (
-                                                <div className="flex flex-col items-center text-slate-300 mt-1">
-                                                    <Moon className="h-3.5 w-3.5 mb-0.5" />
-                                                    <span className="text-[9px] font-medium">Libre</span>
+                                                <div className="flex flex-col items-center text-slate-300 mt-0.5">
+                                                    <Moon className="h-3 w-3 mb-0.5" />
+                                                    <span className="text-[8px] font-medium">Libre</span>
                                                 </div>
                                             )}
                                         </div>
@@ -461,13 +461,13 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
                     <table className="w-full border-collapse">
                         <thead>
                             <tr className="bg-slate-50/80">
-                                <th className="p-2.5 w-20 border-b border-r border-slate-200/80 text-slate-400 font-semibold text-xs">Heure</th>
+                                <th className="p-2 w-16 border-b border-r border-slate-200/80 text-slate-400 font-semibold text-xs">Heure</th>
                                 {days.map(day => (
-                                    <th key={day.toISOString()} className="p-2.5 border-b border-r last:border-r-0 border-slate-200/80 text-center min-w-[110px]">
-                                        <span className="block text-[11px] uppercase text-slate-400 font-bold mb-0.5">
+                                    <th key={day.toISOString()} className="p-2 border-b border-r last:border-r-0 border-slate-200/80 text-center min-w-[95px] max-w-[140px]">
+                                        <span className="block text-[10px] uppercase text-slate-400 font-bold mb-0.5">
                                             {format(day, "EEEE", { locale: fr })}
                                         </span>
-                                        <span className="block text-base font-bold text-slate-900 leading-tight">
+                                        <span className="block text-sm font-bold text-slate-900 leading-tight">
                                             {format(day, "d MMM", { locale: fr })}
                                         </span>
                                         <div className="mt-1 flex justify-center">
@@ -484,7 +484,7 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
                         <tbody>
                             {displayHours.map(hour => (
                                 <tr key={hour} className="group hover:bg-slate-50/30">
-                                    <td className="p-2 text-center font-mono text-xs font-semibold text-slate-500 border-r border-b border-slate-200/80 group-last:border-b-0 bg-slate-50/40 relative">
+                                    <td className="p-1.5 text-center font-mono text-[11px] font-semibold text-slate-500 border-r border-b border-slate-200/80 group-last:border-b-0 bg-slate-50/40 relative">
                                         <div className="flex items-center justify-center gap-1">
                                             <span>{hour}</span>
                                             <ConfirmDelete
@@ -499,34 +499,34 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
                                         const isFilled = schedule && schedule.user;
 
                                         return (
-                                            <td key={day.toISOString()} className="p-1.5 border-b border-r last:border-r-0 border-slate-200/80 group-last:border-b-0">
+                                            <td key={day.toISOString()} className="p-1 border-b border-r last:border-r-0 border-slate-200/80 group-last:border-b-0">
                                                 <div 
                                                     onClick={() => onSelectSlot(day, hour)}
                                                     className={`
-                                                        h-14 rounded-xl flex items-center justify-center cursor-pointer transition-all border
+                                                        h-11 sm:h-12 rounded-lg flex items-center justify-center cursor-pointer transition-all border
                                                         ${isFilled 
-                                                            ? "bg-indigo-50/70 border-indigo-200 hover:border-indigo-300 hover:shadow-xs" 
+                                                            ? "bg-indigo-50/70 border-indigo-200 hover:border-indigo-300 hover:shadow-2xs" 
                                                             : "bg-white border-transparent hover:border-slate-200"
                                                         }
                                                         ${(!isFilled && schedule) ? "border-dashed border-slate-200" : ""}
                                                     `}
                                                 >
                                                     {isFilled ? (
-                                                        <div className="flex items-center gap-1.5 px-2">
-                                                            <Avatar className="h-6 w-6 ring-1 ring-white shadow-2xs shrink-0">
+                                                        <div className="flex items-center gap-1.5 px-2 min-w-0">
+                                                            <Avatar className="h-5 w-5 ring-1 ring-white shadow-2xs shrink-0">
                                                                 <AvatarImage src={schedule.user?.image} />
-                                                                <AvatarFallback className="bg-indigo-600 text-white text-[9px] font-bold">
+                                                                <AvatarFallback className="bg-indigo-600 text-white text-[8px] font-bold">
                                                                     {schedule.user?.name?.slice(0,1)}
                                                                 </AvatarFallback>
                                                             </Avatar>
-                                                            <span className="text-xs font-medium text-slate-800 truncate max-w-[85px]">
-                                                                {schedule.user?.name}
+                                                            <span className="text-[11px] font-medium text-slate-800 truncate max-w-[75px]">
+                                                                {schedule.user?.name?.split(" ")[0]}
                                                             </span>
                                                         </div>
                                                     ) : (
                                                         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-slate-300">
-                                                            <Moon className="h-3.5 w-3.5" />
-                                                            <span className="text-[10px] font-medium">Libre</span>
+                                                            <Moon className="h-3 w-3" />
+                                                            <span className="text-[9px] font-medium">Libre</span>
                                                         </div>
                                                     )}
                                                 </div>
