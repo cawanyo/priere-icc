@@ -14,8 +14,11 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { SpecialEventWithTemplate } from "@/lib/types";
 import { convertKeepDate, cn } from "@/lib/utils";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+import { REALTIME_CHANNELS } from "@/lib/realtime-channels";
 
 import {
   AlertDialog,
@@ -72,9 +75,18 @@ function formatEventDates(startDate: Date | string, endDate: Date | string): str
 }
 
 export function EventList({ events }: { events: SpecialEventWithTemplate[] }) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"active" | "past">("active");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [idToDelete, setIdToDelete] = useState<string>("");
+
+  // Synchronisation temps réel automatique
+  useRealtimeSync({
+    channel: REALTIME_CHANNELS.SPECIAL_EVENTS,
+    onUpdate: () => {
+      router.refresh();
+    },
+  });
 
   const handleDelete = async (id: string) => {
     setIsLoading(true);

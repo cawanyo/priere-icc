@@ -23,6 +23,8 @@ import { EventModal } from "../planning/EventModal";
 import { PlaningWithIntercessor, SpecialEventWithPlaning } from "@/lib/types";
 import { convertKeepDate, cn } from "@/lib/utils";
 import Link from "next/link";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+import { REALTIME_CHANNELS } from "@/lib/realtime-channels";
 
 interface EventCalendarProps {
   specialEvent: SpecialEventWithPlaning;
@@ -61,6 +63,14 @@ export function EventCalendar({ specialEvent }: EventCalendarProps) {
   const [showUnassignedOnly, setShowUnassignedOnly] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<PlaningWithIntercessor | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Synchronisation temps réel automatique
+  useRealtimeSync({
+    channel: REALTIME_CHANNELS.SPECIAL_EVENTS,
+    onUpdate: () => {
+      router.refresh();
+    },
+  });
 
   // Statistiques globales de l'événement
   const totalSlotsCount = specialEvent.plannings?.length || 0;

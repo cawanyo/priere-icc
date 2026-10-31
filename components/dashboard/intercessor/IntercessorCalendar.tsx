@@ -28,6 +28,8 @@ import {
 import { PlaningWithIntercessor } from "@/lib/types";
 import { cn, convertKeepDate } from "@/lib/utils";
 import { SelfAssignModal } from "./events/SelfAsignModel";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+import { REALTIME_CHANNELS } from "@/lib/realtime-channels";
 
 export function IntercessorCalendar() {
   const [currentWeekDate, setCurrentWeekDate] = useState(() => new Date());
@@ -73,6 +75,12 @@ export function IntercessorCalendar() {
   useEffect(() => {
     loadEvents();
   }, [loadEvents]);
+
+  // Synchronisation temps réel automatique
+  useRealtimeSync({
+    channel: REALTIME_CHANNELS.PRAYER_PLANNING,
+    onUpdate: loadEvents,
+  });
 
   const prevWeek = () => {
     const prev = addWeeks(currentWeekDate, -1);

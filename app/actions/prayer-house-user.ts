@@ -6,6 +6,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { startOfWeek } from "date-fns";
 import { normalizeDate } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
+import { broadcastRealtime } from "@/lib/realtime-server";
+import { REALTIME_CHANNELS, REALTIME_EVENTS } from "@/lib/realtime-channels";
 
 export async function getUserPrayerHouseData(date: String) {
   const session = await getServerSession(authOptions);
@@ -110,7 +112,16 @@ export async function toggleSelfAssignment(data: {
             });
         }
 
+        await broadcastRealtime(REALTIME_CHANNELS.PRAYER_HOUSE, REALTIME_EVENTS.SLOT_UPDATED, {
+          assignmentId: data.assignmentId,
+          date: data.date,
+          startTime: data.startTime,
+          action: data.action,
+          userId: user.id,
+        });
+
         revalidatePath("/dashboard/user/prayer-house");
+        revalidatePath("/dashboard/leader/prayer-house");
         return { success: true };
     } catch (error) {
         return { success: false, error: "Erreur lors de l'inscription" };

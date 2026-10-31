@@ -7,6 +7,8 @@ import { revalidatePath } from "next/cache";
 import * as z from "zod";
 import { endOfDay, isWithinInterval, startOfDay } from "date-fns";
 import { is } from "date-fns/locale";
+import { broadcastRealtime } from "@/lib/realtime-server";
+import { REALTIME_CHANNELS, REALTIME_EVENTS } from "@/lib/realtime-channels";
 
 const unavailabilitySchema = z.object({
   dateRange: z.object({
@@ -42,6 +44,12 @@ export async function addUnavailability(data: any) {
         endDate: end,
         reason: reason || "Indisponible",
       },
+    });
+
+    await broadcastRealtime(REALTIME_CHANNELS.AVAILABILITY, REALTIME_EVENTS.UPDATE, {
+      type: "unavailability-added",
+      // @ts-ignore
+      userId: session.user.id,
     });
 
     revalidatePath("/dashboard/user/intercessor/availability");
@@ -85,6 +93,12 @@ export async function deleteUnavailability(id: string) {
     await prisma.unavailability.delete({
       where: { id },
     });
+
+    await broadcastRealtime(REALTIME_CHANNELS.AVAILABILITY, REALTIME_EVENTS.UPDATE, {
+      type: "unavailability-deleted",
+      id,
+    });
+
     revalidatePath("/dashboard/user/intercessor/availability");
     return { success: true, message: "Supprimé avec succès." };
   } catch (error) {

@@ -22,6 +22,8 @@ import { SelfAssignModal } from "./SelfAsignModel";
 import { SpecialEventWithPlaning } from "@/lib/types";
 import { convertKeepDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+import { REALTIME_CHANNELS } from "@/lib/realtime-channels";
 
 interface IntercessorEventCalendarProps {
   event: SpecialEventWithPlaning;
@@ -58,6 +60,14 @@ export function IntercessorEventCalendar({ event, currentUserId }: IntercessorEv
   }, [today, eventStartDate, eventEndDate, eventDays]);
 
   const [selectedDay, setSelectedDay] = useState<Date>(defaultDay);
+
+  // Synchronisation temps réel automatique
+  useRealtimeSync({
+    channel: REALTIME_CHANNELS.SPECIAL_EVENTS,
+    onUpdate: () => {
+      router.refresh();
+    },
+  });
   const [showMyPlanningOnly, setShowMyPlanningOnly] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);

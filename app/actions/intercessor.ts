@@ -7,6 +7,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { addDays, getDay, format, isSameDay } from "date-fns";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "./notifications";
+import { broadcastRealtime } from "@/lib/realtime-server";
+import { REALTIME_CHANNELS, REALTIME_EVENTS } from "@/lib/realtime-channels";
 export async function checkIntercessorAccess() {
   const session = await getServerSession(authOptions);
   // @ts-ignore
@@ -120,6 +122,21 @@ export async function selfAssignToEventSlot(slotData: any) {
       specialEventId ? `/dashboard/user/intercessor/events/${specialEventId}` : "/dashboard/desktop/planning"
     );
 
+    if (specialEventId) {
+      await broadcastRealtime(REALTIME_CHANNELS.SPECIAL_EVENTS, REALTIME_EVENTS.UPDATE, {
+        type: "slot-assigned",
+        specialEventId,
+        slotId: id,
+        userId: user.id,
+      });
+    } else {
+      await broadcastRealtime(REALTIME_CHANNELS.PRAYER_PLANNING, REALTIME_EVENTS.UPDATE, {
+        type: "slot-assigned",
+        slotId: id,
+        userId: user.id,
+      });
+    }
+
     revalidatePath("/dashboard/user/intercessor/events");
     revalidatePath("/dashboard/user/intercessor/planning");
     revalidatePath("/dashboard/leader/planning");
@@ -153,6 +170,21 @@ export async function selfRemoveFromEventSlot(planningId: string) {
         "INFO",
         slot.specialEventId ? `/dashboard/user/intercessor/events/${slot.specialEventId}` : "/dashboard/desktop/planning"
       );
+    }
+
+    if (slot?.specialEventId) {
+      await broadcastRealtime(REALTIME_CHANNELS.SPECIAL_EVENTS, REALTIME_EVENTS.UPDATE, {
+        type: "slot-removed",
+        specialEventId: slot.specialEventId,
+        slotId: planningId,
+        userId: user.id,
+      });
+    } else {
+      await broadcastRealtime(REALTIME_CHANNELS.PRAYER_PLANNING, REALTIME_EVENTS.UPDATE, {
+        type: "slot-removed",
+        slotId: planningId,
+        userId: user.id,
+      });
     }
 
     revalidatePath("/dashboard/user/intercessor/events");

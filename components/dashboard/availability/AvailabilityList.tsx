@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { normalizeDate } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+import { REALTIME_CHANNELS } from "@/lib/realtime-channels";
 
 interface AvailabilityListProps {
   items: any[];
@@ -36,6 +38,14 @@ export function AvailabilityList({ items, leaderMode }: AvailabilityListProps) {
       setDeletingId(null);
     }
   };
+
+  // Synchronisation temps réel automatique
+  useRealtimeSync({
+    channel: REALTIME_CHANNELS.AVAILABILITY,
+    onUpdate: () => {
+      router.refresh();
+    },
+  });
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
@@ -86,7 +96,15 @@ export function AvailabilityList({ items, leaderMode }: AvailabilityListProps) {
             const daysCount = Math.max(1, differenceInCalendarDays(endDate, startDate) + 1);
             const isDeleting = deletingId === item.id;
 
-            return (
+            // Synchronisation temps réel automatique
+  useRealtimeSync({
+    channel: REALTIME_CHANNELS.AVAILABILITY,
+    onUpdate: () => {
+      router.refresh();
+    },
+  });
+
+  return (
               <div
                 key={item.id}
                 className="p-3.5 sm:p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-white hover:border-slate-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"

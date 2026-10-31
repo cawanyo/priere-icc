@@ -18,6 +18,8 @@ import {
 import { getUserPrayerHouseData, toggleSelfAssignment } from "@/app/actions/prayer-house-user";
 import { toast } from "sonner";
 import { convertKeepDate, cn } from "@/lib/utils";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+import { REALTIME_CHANNELS } from "@/lib/realtime-channels";
 
 export function UserNightBoard() {
   const [currentDate, setCurrentDate] = useState(() => new Date());
@@ -38,6 +40,12 @@ export function UserNightBoard() {
   useEffect(() => {
     loadData();
   }, [currentDate]);
+
+  // Synchronisation temps réel automatique
+  useRealtimeSync({
+    channel: REALTIME_CHANNELS.PRAYER_HOUSE,
+    onUpdate: loadData,
+  });
 
   if (loading) {
     return (

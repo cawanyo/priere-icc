@@ -3,9 +3,10 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { startOfWeek, endOfWeek, addDays, format, addWeeks } from "date-fns";
-import { pusherServer } from "@/lib/pusher";
 import { createNotification } from "./notifications";
 import { sendSMS } from "@/lib/sms";
+import { broadcastRealtime } from "@/lib/realtime-server";
+import { REALTIME_CHANNELS, REALTIME_EVENTS } from "@/lib/realtime-channels";
 
 
 // 1. Récupérer le planning d'une semaine donnée
@@ -48,6 +49,10 @@ export async function assignFamilyToWeek(date: String, familyId: string) {
         weekStart,
         familyId: familyId
       }
+    });
+    await broadcastRealtime(REALTIME_CHANNELS.PRAYER_HOUSE, REALTIME_EVENTS.ASSIGNMENT_UPDATED, {
+      familyId,
+      date: date.toString(),
     });
     revalidatePath("/dashboard/leader/prayer-house");
     return { success: true };
@@ -121,8 +126,11 @@ export async function updateNightSlot(data: {
 
     }
 
-    await pusherServer.trigger("prayer-planning", "update", {
-      message: "Planning modifié"
+    await broadcastRealtime(REALTIME_CHANNELS.PRAYER_HOUSE, REALTIME_EVENTS.SLOT_UPDATED, {
+      assignmentId: data.assignmentId,
+      date: data.date.toString(),
+      startTime: data.startTime,
+      userId: data.userId,
     });
     
     revalidatePath("/dashboard/leader/prayer-house");
@@ -166,6 +174,11 @@ export async function addWeeklySlot(assignmentId: string, weekStartDate: Date, t
       }
     }
 
+    await broadcastRealtime(REALTIME_CHANNELS.PRAYER_HOUSE, REALTIME_EVENTS.SLOT_UPDATED, {
+      assignmentId,
+      time,
+    });
+
     revalidatePath("/dashboard/leader/prayer-house");
     return { success: true };
   } catch (error) {
@@ -182,6 +195,10 @@ export async function removeWeeklySlot(assignmentId: string, time: string) {
                 startTime: time
             }
         });
+        await broadcastRealtime(REALTIME_CHANNELS.PRAYER_HOUSE, REALTIME_EVENTS.SLOT_UPDATED, {
+          assignmentId,
+          time,
+        });
         revalidatePath("/dashboard/leader/prayer-house");
         return { success: true };
     } catch (error) {
@@ -197,6 +214,10 @@ export async function updateWeekTheme(assignmentId: string, theme: string) {
       await prisma.familyWeeklyAssignment.update({
           where: { id: assignmentId },
           data: { weekTheme: theme }
+      });
+      await broadcastRealtime(REALTIME_CHANNELS.PRAYER_HOUSE, REALTIME_EVENTS.THEME_UPDATED, {
+        assignmentId,
+        theme,
       });
       revalidatePath("/dashboard/leader/prayer-house");
       return { success: true };
@@ -230,6 +251,11 @@ export async function updateDayTheme(assignmentId: string, date: String, theme: 
               }
           });
       }
+      await broadcastRealtime(REALTIME_CHANNELS.PRAYER_HOUSE, REALTIME_EVENTS.THEME_UPDATED, {
+        assignmentId,
+        date: date.toString(),
+        theme,
+      });
       revalidatePath("/dashboard/leader/prayer-house");
       return { success: true };
   } catch (e) {
@@ -245,13 +271,9 @@ export async function clearWeeklyAssignment(assignmentId: string) {
       where: { id: assignmentId }
     });
     
-    // Si vous utilisez Supabase Realtime, prévenez les autres
-    /* await supabase.channel('planning-updates').send({
-      type: 'broadcast',
-      event: 'change',
-      payload: { message: 'Planning réinitialisé' }
+    await broadcastRealtime(REALTIME_CHANNELS.PRAYER_HOUSE, REALTIME_EVENTS.ASSIGNMENT_UPDATED, {
+      assignmentId,
     });
-    */
 
     revalidatePath("/dashboard/leader/prayer-house");
     return { success: true };

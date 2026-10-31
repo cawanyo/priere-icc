@@ -38,6 +38,8 @@ import { convertKeepDate } from "@/lib/utils";
 import { SearchableUserSelect } from "../SearchUserSelect";
 import { ConfirmDelete } from "../DeleteConfirm";
 import supabase from "@/lib/superbase";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+import { REALTIME_CHANNELS } from "@/lib/realtime-channels";
 import {  getBlackList, updateBlackList } from "@/app/actions/blacklist";
 import { getLeaders } from "@/app/actions/leader";
 import { AutoFillButton } from "../dashboard/leader/AutofillButton";
@@ -95,23 +97,15 @@ export function NightPlanningBoard({unavailabilities}: {unavailabilities?: any[]
 
 
 
-  useEffect(() => {
-    const channel = supabase.channel('prayer-room-updates');
-
-    channel
-      .on(
-        'broadcast', 
-        { event: 'change' },
-        (payload) => {
-           loadData();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [currentDate]);
+  // Synchronisation temps réel (Pusher WebSocket + Supabase Realtime)
+  useRealtimeSync({
+    channel: REALTIME_CHANNELS.PRAYER_HOUSE,
+    onUpdate: loadData,
+  });
+  useRealtimeSync({
+    channel: "prayer-room-updates",
+    onUpdate: loadData,
+  });
 
 
 

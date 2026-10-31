@@ -5,7 +5,10 @@ import { Calendar, ArrowRight, CalendarDays } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { convertKeepDate, cn } from "@/lib/utils";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+import { REALTIME_CHANNELS } from "@/lib/realtime-channels";
 
 type EventItem = {
   id: string;
@@ -60,7 +63,16 @@ function formatEventDates(startDate: Date | string, endDate: Date | string): str
 }
 
 export function IntercessorEventList({ events }: { events: EventItem[] }) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"active" | "past">("active");
+
+  // Synchronisation temps réel automatique
+  useRealtimeSync({
+    channel: REALTIME_CHANNELS.SPECIAL_EVENTS,
+    onUpdate: () => {
+      router.refresh();
+    },
+  });
 
   const { activeEvents, pastEvents } = useMemo(() => {
     const active: EventItem[] = [];

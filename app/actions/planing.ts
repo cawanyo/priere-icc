@@ -10,7 +10,8 @@ import { sendSMS } from "@/lib/sms";
 import { fr } from "date-fns/locale";
 import { PlaningWithIntercessor } from "@/lib/types";
 import { createNotification } from "./notifications";
-import { Console } from "console";
+import { broadcastRealtime } from "@/lib/realtime-server";
+import { REALTIME_CHANNELS, REALTIME_EVENTS } from "@/lib/realtime-channels";
 // Vérification accès Leader
 async function checkLeader() {
   const session = await getServerSession(authOptions);
@@ -71,6 +72,10 @@ export async function createRecurringSchedule(data: any) {
     }
   });
   
+  await broadcastRealtime(REALTIME_CHANNELS.PRAYER_PLANNING, REALTIME_EVENTS.UPDATE, {
+    type: "recurring-created",
+  });
+
   revalidatePath("/dashboard/leader/planning");
   return { success: true };
 }
@@ -173,14 +178,43 @@ export async function savePlanningEvent(data: any) {
     }
   }
 
+  await broadcastRealtime(REALTIME_CHANNELS.PRAYER_PLANNING, REALTIME_EVENTS.UPDATE, {
+    type: "planning-saved",
+    id,
+    specialEventId,
+  });
+
+  if (specialEventId) {
+    await broadcastRealtime(REALTIME_CHANNELS.SPECIAL_EVENTS, REALTIME_EVENTS.UPDATE, {
+      type: "event-planning-saved",
+      specialEventId,
+    });
+  }
+
   revalidatePath("/dashboard/leader/planning");
+  revalidatePath("/dashboard/user/intercessor/planning");
   revalidatePath("/dashboard/leader/events"); 
   return { success: true};
 }
 export async function deletePlanningEvent(id: string) {
     await checkLeader();
+    const event = await prisma.planning.findUnique({ where: { id } });
     await prisma.planning.delete({ where: { id } });
+
+    await broadcastRealtime(REALTIME_CHANNELS.PRAYER_PLANNING, REALTIME_EVENTS.UPDATE, {
+      type: "planning-deleted",
+      id,
+    });
+
+    if (event?.specialEventId) {
+      await broadcastRealtime(REALTIME_CHANNELS.SPECIAL_EVENTS, REALTIME_EVENTS.UPDATE, {
+        type: "event-planning-deleted",
+        specialEventId: event.specialEventId,
+      });
+    }
+
     revalidatePath("/dashboard/leader/planning");
+    revalidatePath("/dashboard/user/intercessor/planning");
     return { success: true };
 }
 
@@ -201,6 +235,12 @@ export async function getRecurringSchedules() {
     await checkLeader();
     try {
       await prisma.recurringSchedule.delete({ where: { id } });
+
+      await broadcastRealtime(REALTIME_CHANNELS.PRAYER_PLANNING, REALTIME_EVENTS.UPDATE, {
+        type: "recurring-deleted",
+        id,
+      });
+
       revalidatePath("/dashboard/leader/planning");
       return { success: true, message: "Programme récurrent supprimé" };
     } catch (error) {
