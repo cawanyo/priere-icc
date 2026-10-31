@@ -4,7 +4,8 @@ import { ProfileForm } from "@/components/profile/ProfileForm";
 import { SecurityForm } from "@/components/profile/SecurityForm";
 import { PushNotificationCard } from "@/components/profile/PushNotificationCard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ShieldCheck, User, Lock, BellRing } from "lucide-react";
+import Link from "next/link";
+import { ShieldCheck, User, Lock, BellRing, ChevronLeft } from "lucide-react";
 
 const ROLE_DISPLAY: Record<string, string> = {
   PRAYER_LEADER: "Conducteur de prière",
@@ -24,7 +25,15 @@ export default async function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] py-6 md:py-8 px-4 sm:px-6 mb-10">
-      <div className="max-w-3xl mx-auto space-y-6">
+      <div className="max-w-3xl mx-auto space-y-4">
+        {/* Lien retour mobile */}
+        <Link
+          href="/dashboard/mobile/espace"
+          className="inline-flex md:hidden items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Retour
+        </Link>
         
         {/* En-tête profil épuré */}
         <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
